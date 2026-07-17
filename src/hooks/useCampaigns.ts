@@ -1,17 +1,13 @@
 // src/hooks/useCampaigns.ts
 
-'use client';
+"use client";
 
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query';
-import { toast } from 'sonner';
-import { campaignsApi } from '@/lib/api/campaigns';
-import type { CreateCampaignInput, UpdateCampaignInput } from '@/types';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { campaignsApi } from "@/lib/api/campaigns";
+import type { CreateCampaignInput, UpdateCampaignInput } from "@/types";
 
-export const CAMPAIGNS_KEY = ['campaigns'] as const;
+export const CAMPAIGNS_KEY = ["campaigns"] as const;
 
 export function useCampaigns() {
   return useQuery({
@@ -28,14 +24,14 @@ export function useCampaign(id: string, pollWhileRunning = false) {
     refetchInterval: (query) => {
       if (!pollWhileRunning) return false;
       const status = query.state.data?.status;
-      return status === 'RUNNING' ? 5000 : false;
+      return status === "RUNNING" ? 5000 : false;
     },
   });
 }
 
 export function useCampaignStats(id: string, pollWhileRunning = false) {
   return useQuery({
-    queryKey: [...CAMPAIGNS_KEY, id, 'stats'],
+    queryKey: [...CAMPAIGNS_KEY, id, "stats"],
     queryFn: () => campaignsApi.getStats(id),
     enabled: Boolean(id),
     refetchInterval: (query) => {
@@ -53,7 +49,7 @@ export function useCreateCampaign() {
     mutationFn: (data: CreateCampaignInput) => campaignsApi.create(data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: CAMPAIGNS_KEY });
-      toast.success('Campaign created successfully!');
+      toast.success("Campaign created successfully!");
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -65,11 +61,10 @@ export function useUpdateCampaign(id: string) {
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: UpdateCampaignInput) =>
-      campaignsApi.update(id, data),
+    mutationFn: (data: UpdateCampaignInput) => campaignsApi.update(id, data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: CAMPAIGNS_KEY });
-      toast.success('Campaign updated successfully!');
+      toast.success("Campaign updated successfully!");
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -84,8 +79,15 @@ export function useUploadCSV(campaignId: string) {
     mutationFn: (file: File) => campaignsApi.uploadCSV(campaignId, file),
     onSuccess: (result) => {
       qc.invalidateQueries({ queryKey: [...CAMPAIGNS_KEY, campaignId] });
+      console.log("upload csv result: ", result);
+      const imported = result.total - result.invalid;
+
       toast.success(
-        `${result.imported} leads imported${result.invalid > 0 ? `, ${result.invalid} invalid rows skipped` : ''}`
+        `Successfully imported ${imported} lead${imported !== 1 ? "s" : ""}${
+          result.invalid
+            ? `. Skipped ${result.invalid} invalid row${result.invalid !== 1 ? "s" : ""}.`
+            : "."
+        }`,
       );
     },
     onError: (error: Error) => {
@@ -101,7 +103,7 @@ export function useStartCampaign(campaignId: string) {
     mutationFn: () => campaignsApi.start(campaignId),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: CAMPAIGNS_KEY });
-      toast.success('Campaign started!');
+      toast.success("Campaign started!");
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -116,7 +118,7 @@ export function usePauseCampaign(campaignId: string) {
     mutationFn: () => campaignsApi.pause(campaignId),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: CAMPAIGNS_KEY });
-      toast.success('Campaign paused!');
+      toast.success("Campaign paused!");
     },
     onError: (error: Error) => {
       toast.error(error.message);

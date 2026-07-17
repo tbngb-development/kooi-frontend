@@ -6,7 +6,6 @@ import type {
   Campaign,
   CampaignStats,
   CreateCampaignInput,
-  PaginatedResponse,
   UpdateCampaignInput,
   UploadResult,
 } from '@/types';
