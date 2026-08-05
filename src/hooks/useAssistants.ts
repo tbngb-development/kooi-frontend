@@ -5,12 +5,16 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { assistantsApi } from "@/lib/api/assistants";
-import type { RegisterAssistantInput, UpdateAssistantInput } from "@/types";
+import type {
+  AssistantDetail,
+  RegisterAssistantInput,
+  UpdateAssistantInput,
+} from "@/types";
 
 export const ASSISTANTS_KEY = ["assistants"] as const;
 export const BOLNA_AGENTS_KEY = ["bolna-agents"] as const;
 
-// ── Your registered assistants ────────────────────────────────────────────────
+// ── All registered assistants ─────────────────────────────────────────────────
 export function useAssistants() {
   return useQuery({
     queryKey: ASSISTANTS_KEY,
@@ -18,11 +22,16 @@ export function useAssistants() {
   });
 }
 
-export function useAssistant(id: string) {
-  return useQuery({
+// ── Single assistant with prompt variables ────────────────────────────────────
+// Accepts string | null — only fetches when id is a non-empty string
+// Used in campaign creation step 2 after user selects an assistant
+export function useAssistant(id: string | null) {
+  return useQuery<AssistantDetail>({
     queryKey: [...ASSISTANTS_KEY, id],
-    queryFn: () => assistantsApi.getById(id),
+    queryFn: () => assistantsApi.getById(id!),
     enabled: Boolean(id),
+    // Variables come from Bolna live — stale after 5 minutes
+    staleTime: 5 * 60 * 1000,
   });
 }
 
@@ -31,7 +40,7 @@ export function useBolnaAgents() {
   return useQuery({
     queryKey: BOLNA_AGENTS_KEY,
     queryFn: assistantsApi.listBolnaAgents,
-    staleTime: 30_000, // cache for 30s — doesn't change often
+    staleTime: 30_000,
   });
 }
 
@@ -67,23 +76,7 @@ export function useUpdateAssistant(id: string) {
   });
 }
 
-// ── Sync from Bolna dashboard ─────────────────────────────────────────────────
-export function useSyncAssistant(id: string) {
-  const qc = useQueryClient();
-
-  return useMutation({
-    mutationFn: () => assistantsApi.sync(id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ASSISTANTS_KEY });
-      toast.success("Assistant synced from Bolna dashboard");
-    },
-    onError: (error: Error) => {
-      toast.error(error.message);
-    },
-  });
-}
-
-// ── Delete (remove from system only) ─────────────────────────────────────────
+// ── Delete ────────────────────────────────────────────────────────────────────
 export function useDeleteAssistant() {
   const qc = useQueryClient();
 

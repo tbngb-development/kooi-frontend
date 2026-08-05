@@ -113,6 +113,16 @@ export interface Assistant {
   createdAt: string;
 }
 
+export interface AssistantDetail {
+  assistant: Assistant;
+  variables: PromptInputField[];
+}
+
+export interface PromptInputField {
+  key: string;
+  label: string;
+}
+
 export interface RegisterAssistantInput {
   name: string;
   bolnaId: string;
@@ -139,7 +149,8 @@ export interface Campaign {
   description?: string;
   status: CampaignStatus;
   assistantId: string;
-  brochureId?: string | null; // ← NEW
+  brochureId?: string | null;
+  variables?: Record<string, string> | null;
   totalLeads: number;
   calledLeads: number;
   successLeads: number;
@@ -158,7 +169,8 @@ export interface CreateCampaignInput {
   name: string;
   description?: string;
   assistantId: string;
-  brochureId?: string; // ← NEW optional
+  brochureId?: string;
+  variables?: Record<string, string>;
 }
 
 export interface CampaignStats {
