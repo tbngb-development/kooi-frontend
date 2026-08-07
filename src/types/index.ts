@@ -23,7 +23,61 @@ export type CallStatus =
   | "CALLING"
   | "COMPLETED"
   | "FAILED"
-  | "NO_ANSWER";
+  | "NO_ANSWER"
+  | "BUSY";
+
+// ─── Call Analysis Enums ──────────────────────────────────────────────────────
+
+export type Disposition =
+  | "INTERESTED_SEND_DETAILS"
+  | "QUALIFIED_CONSULTANT_FOLLOWUP"
+  | "SITE_VISIT_INTEREST"
+  | "INTERESTED_GENERAL"
+  | "FOLLOWUP_REQUESTED"
+  | "NOT_INTERESTED"
+  | "DO_NOT_CALL"
+  | "WRONG_NUMBER"
+  | "ALREADY_PURCHASED"
+  | "BROKER"
+  | "LANGUAGE_CALLBACK_REQUIRED"
+  | "CALL_ENDED_BY_CUSTOMER"
+  | "CALL_ENDED_ABUSIVE"
+  | "NO_RESPONSE"
+  | "CALL_DROPPED";
+
+export type LeadTemperature =
+  | "HOT"
+  | "WARM"
+  | "NURTURE"
+  | "COLD"
+  | "NOT_APPLICABLE";
+
+export type PurchaseTimeline =
+  | "WITHIN_3_MONTHS"
+  | "WITHIN_6_MONTHS"
+  | "WITHIN_1_YEAR"
+  | "AFTER_1_YEAR"
+  | "FLEXIBLE"
+  | "NOT_SHARED";
+
+export type PurchasePurpose = "OWN_USE" | "INVESTMENT" | "BOTH" | "NOT_SHARED";
+
+export type PreferredNextAction =
+  | "SEND_DETAILS"
+  | "CONSULTANT_CALL"
+  | "SITE_VISIT"
+  | "FOLLOWUP_CALL"
+  | "NONE";
+
+export type ContactChannel = "WHATSAPP" | "EMAIL" | "NOT_ASKED";
+
+export type LocationMatch =
+  | "MATCH"
+  | "MISMATCH"
+  | "NOT_ASKED"
+  | "NOT_MENTIONED";
+
+export type ExtractionFlag = "YES" | "NO";
 
 // ─── API Wrapper ──────────────────────────────────────────────────────────────
 
@@ -106,11 +160,21 @@ export interface AssistantConfig {
 
 export interface Assistant {
   id: string;
-  bolnaId: string; // ← was vapiId
+  bolnaId: string;
   name: string;
   tenantId: string;
   config: AssistantConfig;
   createdAt: string;
+}
+
+export interface AssistantDetail {
+  assistant: Assistant;
+  variables: PromptInputField[];
+}
+
+export interface PromptInputField {
+  key: string;
+  label: string;
 }
 
 export interface RegisterAssistantInput {
@@ -139,7 +203,8 @@ export interface Campaign {
   description?: string;
   status: CampaignStatus;
   assistantId: string;
-  brochureId?: string | null; // ← NEW
+  brochureId?: string | null;
+  variables?: Record<string, string> | null;
   totalLeads: number;
   calledLeads: number;
   successLeads: number;
@@ -151,14 +216,15 @@ export interface Campaign {
     name: string;
     bolnaId: string;
   };
-  brochure?: BrochureSummary | null; // ← NEW
+  brochure?: BrochureSummary | null;
 }
 
 export interface CreateCampaignInput {
   name: string;
   description?: string;
   assistantId: string;
-  brochureId?: string; // ← NEW optional
+  brochureId?: string;
+  variables?: Record<string, string>;
 }
 
 export interface CampaignStats {
@@ -169,12 +235,6 @@ export interface CampaignStats {
   pendingLeads: number;
   qualificationRate: number;
   completionRate: number;
-}
-
-export interface CreateCampaignInput {
-  name: string;
-  description?: string;
-  assistantId: string;
 }
 
 export type UpdateCampaignInput = Partial<CreateCampaignInput>;
@@ -265,7 +325,6 @@ export interface Brochure {
   campaigns: { id: string; name: string; status: string }[];
 }
 
-// What the extract endpoint returns
 export interface BrochureExtractionResult {
   propertyDetails: PropertyDetails;
   flattenedForSave: FlattenedBrochure;
@@ -285,7 +344,6 @@ export interface BrochureExtractionResult {
   };
 }
 
-// Flat structure ready to POST to /brochure/save
 export interface FlattenedBrochure {
   originalFileName: string;
   fileSizeMB: string;
@@ -341,7 +399,6 @@ export interface FlattenedBrochure {
   extractionWarnings: string[];
 }
 
-// Nested structure from AI (for display only)
 export interface PropertyDetails {
   projectName: string | null;
   developerName: string | null;
@@ -404,6 +461,7 @@ export interface Lead {
   email?: string;
   company?: string;
   status: LeadStatus;
+  doNotCall: boolean;
   campaignId: string;
   metadata?: Record<string, unknown>;
   createdAt: string;
@@ -416,11 +474,34 @@ export interface LeadDetail extends Lead {
   calls: Call[];
 }
 
+// ─── Call Analysis ────────────────────────────────────────────────────────────
+
+export interface CallAnalysis {
+  id: string;
+  callId: string;
+  tenantId: string;
+  disposition: Disposition | null;
+  leadTemperature: LeadTemperature | null;
+  preferredConfiguration: string | null;
+  budgetRange: string | null;
+  purchaseTimeline: PurchaseTimeline | null;
+  purchasePurpose: PurchasePurpose | null;
+  locationMatch: LocationMatch | null;
+  customerLocationPref: string | null;
+  preferredNextAction: PreferredNextAction | null;
+  preferredContactChannel: ContactChannel | null;
+  followupSchedule: string | null;
+  doNotCall: ExtractionFlag | null;
+  languageSupportRequired: ExtractionFlag | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 // ─── Call ─────────────────────────────────────────────────────────────────────
 
 export interface Call {
   id: string;
-  vapiCallId?: string;
+  bolnaCallId?: string;
   leadId: string;
   campaignId: string;
   status: CallStatus;
@@ -428,7 +509,6 @@ export interface Call {
   recording?: string;
   transcript?: string;
   summary?: string;
-  outcome?: string;
   startedAt?: string;
   endedAt?: string;
   lead: {
@@ -438,6 +518,7 @@ export interface Call {
   campaign: {
     name: string;
   };
+  callAnalysis?: CallAnalysis | null;
 }
 
 export interface TranscriptMessage {
@@ -449,15 +530,13 @@ export interface TranscriptMessage {
   secondsFromStart?: number;
 }
 
-export type CallOutcome = "QUALIFIED" | "NOT_QUALIFIED" | "CALLED";
-
 export interface CallTranscriptResponse {
   transcript: string | null;
   transcriptMessages: TranscriptMessage[];
   summary: string | null;
-  outcome: CallOutcome | null;
   duration: number | null;
   recording: string | null;
+  callAnalysis: CallAnalysis | null;
 }
 
 // ─── Dashboard ────────────────────────────────────────────────────────────────
@@ -471,26 +550,45 @@ export interface DashboardOverview {
     total: number;
     qualified: number;
     notQualified: number;
-    qualificationRate: number; // always a number
+    qualificationRate: string;
   };
   calls: {
     total: number;
     completed: number;
     failed: number;
-    successRate: number; // always a number
+    successRate: string;
   };
 }
 
-export interface ActivityItem {
+// ─── Dashboard Activity ───────────────────────────────────────────────────────
+
+export interface DashboardQualifiedLead {
+  leadId: string;
+  name: string;
+  phone: string;
+  campaign: string;
+  disposition: Disposition;
+  leadTemperature: LeadTemperature | null;
+  qualifiedAt: string;
+}
+
+export interface DashboardRecentCall {
   id: string;
-  type:
-    | "call_completed"
-    | "lead_qualified"
-    | "campaign_started"
-    | "campaign_completed";
-  message: string;
-  timestamp: string;
-  metadata?: Record<string, unknown>;
+  status: CallStatus;
+  duration?: number;
+  startedAt?: string;
+  lead: { name: string; phone: string };
+  campaign: { name: string };
+  callAnalysis?: {
+    disposition: Disposition | null;
+    leadTemperature: LeadTemperature | null;
+  } | null;
+}
+
+export interface DashboardActivity {
+  recentCalls: DashboardRecentCall[];
+  qualifiedLeads: DashboardQualifiedLead[];
+  recentCampaigns: Campaign[];
 }
 
 export interface DashboardCampaign {
@@ -502,7 +600,7 @@ export interface DashboardCampaign {
   calledLeads: number;
   successLeads: number;
   failedLeads: number;
-  successRate: number;
+  successRate: string;
   progress: string;
   startedAt: string | null;
   completedAt: string | null;
@@ -564,4 +662,27 @@ export interface CallQueryParams {
   status?: CallStatus;
   page?: number;
   limit?: number;
+}
+
+export interface ApiMeta {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
+
+export interface ApiValidationError {
+  field: string;
+  message: string;
+}
+
+export interface IBaseQueryOptions {
+  page: number;
+  limit: number;
+  search?: string;
+  orderBy?: string;
+  orderDir?: "asc" | "desc";
+  includeDeleted?: boolean;
 }

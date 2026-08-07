@@ -20,10 +20,13 @@ export default function DashboardPage() {
   const { data: campaigns, isLoading: campaignsLoading } =
     useDashboardCampaigns();
 
-  console.log("overview data: ", overview);
-  console.log("activity data: ", activity);
-
   if (overviewLoading) return <PageSpinner />;
+
+  // ── Parse string rates from backend for comparisons ───────────────────────
+  const qualificationRate = parseFloat(
+    overview?.leads.qualificationRate ?? "0"
+  );
+  const successRate = parseFloat(overview?.calls.successRate ?? "0");
 
   return (
     <div className="flex flex-col gap-6">
@@ -44,8 +47,8 @@ export default function DashboardPage() {
           icon={<Users size={18} />}
           iconColor="bg-info-100 text-info-600"
           trend={{
-            value: `${(overview?.leads.qualificationRate)} qualification rate`,
-            positive: (overview?.leads.qualificationRate ?? 0) > 50,
+            value: `${overview?.leads.qualificationRate ?? "0%"} qualification rate`,
+            positive: qualificationRate > 50,
           }}
         />
 
@@ -59,16 +62,13 @@ export default function DashboardPage() {
 
         <StatsCard
           title="Success Rate"
-          value={`${overview?.calls.successRate}`}
+          value={overview?.calls.successRate ?? "0%"}
           subtitle="Calls reaching qualified leads"
           icon={<BarChart3 size={18} />}
           iconColor="bg-success-100 text-success-600"
           trend={{
-            value:
-              (overview?.calls.successRate ?? 0) >= 50
-                ? "Above target"
-                : "Below target",
-            positive: (overview?.calls.successRate ?? 0) >= 50,
+            value: successRate >= 50 ? "Above target" : "Below target",
+            positive: successRate >= 50,
           }}
         />
       </div>
@@ -90,16 +90,16 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Activity feed */}
+        {/* Qualified leads feed */}
         <div>
           {activityLoading ? (
             <PageSpinner />
-          ) : activity && activity.length > 0 ? (
-            <ActivityFeed items={activity} />
+          ) : activity ? (
+            <ActivityFeed data={activity} />
           ) : (
             <EmptyState
               title="No recent activity"
-              description="Activity from campaigns and calls will appear here."
+              description="Qualified leads from campaigns will appear here."
             />
           )}
         </div>

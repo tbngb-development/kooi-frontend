@@ -5,107 +5,83 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft } from "lucide-react";
-import { useAssistants } from "@/hooks/useAssistants";
+import { ChevronLeft, Check, ListChecks, Settings2 } from "lucide-react";
+import { useAssistants, useAssistant } from "@/hooks/useAssistants";
 import { useCreateCampaign } from "@/hooks/useCampaigns";
-import { useExtractBrochure, useSaveBrochure } from "@/hooks/useBrochure";
-import { BrochureUploader } from "@/components/brochure/BrochureUploader";
-import { BrochureReviewForm } from "@/components/brochure/BrochureReviewForm";
-import { CampaignDetailsForm } from "@/components/campaigns/CampaignDetailsForm";
+import { CampaignDetailsStep } from "@/components/campaigns/CampaignDetailsStep";
+import { CampaignVariablesStep } from "@/components/campaigns/CampaignVariablesStep";
 import { PageSpinner } from "@/components/ui/Spinner";
-import type { FlattenedBrochure } from "@/types";
 
-// ─── Step definitions ─────────────────────────────────────────────────────────
-type Step =
-  | "brochure-upload" // Step 1 — optional PDF upload
-  | "brochure-review" // Step 2 — review extracted data
-  | "campaign-details"; // Step 3 — name, assistant, create
+type Step = "details" | "variables";
 
 const STEPS = [
-  { key: "brochure-upload", label: "Property Brochure" },
-  { key: "brochure-review", label: "Review Data" },
-  { key: "campaign-details", label: "Campaign Details" },
+  {
+    key: "details",
+    label: "Campaign Details",
+    icon: ListChecks,
+  },
+  {
+    key: "variables",
+    label: "Configure Variables",
+    icon: Settings2,
+  },
 ] as const;
+
+interface CampaignBasicDetails {
+  name: string;
+  description?: string;
+  assistantId: string;
+}
 
 export default function NewCampaignPage() {
   const router = useRouter();
 
-  // ── Step state ──────────────────────────────────────────────────────────────
-  const [currentStep, setCurrentStep] = useState<Step>("brochure-upload");
-  const [uploadProgress, setUploadProgress] = useState(0);
+  const [currentStep, setCurrentStep] = useState<Step>("details");
 
-  // ── Extracted data state ────────────────────────────────────────────────────
-  const [extractedData, setExtractedData] = useState<FlattenedBrochure | null>(
+  const [basicDetails, setBasicDetails] = useState<CampaignBasicDetails | null>(
     null,
   );
-  const [savedBrochureId, setSavedBrochureId] = useState<string | null>(null);
+  const [selectedAssistantId, setSelectedAssistantId] = useState<string | null>(
+    null,
+  );
 
-  // ── Hooks ───────────────────────────────────────────────────────────────────
   const { data: assistants, isLoading: assistantsLoading } = useAssistants();
+  const {
+    data: assistantDetail,
+    isLoading: assistantLoading,
+    isError: assistantError,
+  } = useAssistant(selectedAssistantId);
+
   const { mutate: createCampaign, isPending: creating } = useCreateCampaign();
-  const { mutate: extract, isPending: extracting } = useExtractBrochure();
-  const { mutate: save, isPending: saving } = useSaveBrochure();
 
   if (assistantsLoading) return <PageSpinner />;
 
-  // ── Step indicators ─────────────────────────────────────────────────────────
   const stepIndex = STEPS.findIndex((s) => s.key === currentStep);
 
-  // ── Handlers ─────────────────────────────────────────────────────────────────
-
-  // Step 1: User drops PDF
-  const handleFileSelected = (file: File) => {
-    setUploadProgress(0);
-
-    extract(
-      { file, onProgress: setUploadProgress },
-      {
-        onSuccess: (result) => {
-          setExtractedData(result.flattenedForSave);
-          setCurrentStep("brochure-review");
-        },
-      },
-    );
+  const handleDetailsNext = (data: CampaignBasicDetails) => {
+    setBasicDetails(data);
+    setSelectedAssistantId(data.assistantId);
+    setCurrentStep("variables");
   };
 
-  // Step 1: User skips brochure
-  const handleSkipBrochure = () => {
-    setExtractedData(null);
-    setSavedBrochureId(null);
-    setCurrentStep("campaign-details");
-  };
+  const handleCreateCampaign = (variables: Record<string, string>) => {
+    if (!basicDetails) return;
 
-  // Step 2: User confirms/edits extracted data
-  const handleBrochureConfirm = (editedData: FlattenedBrochure) => {
-    save(editedData, {
-      onSuccess: (result) => {
-        setSavedBrochureId(result.brochureId);
-        setCurrentStep("campaign-details");
-      },
-    });
-  };
-
-  // Step 2: User goes back to re-upload
-  const handleBrochureBack = () => {
-    setExtractedData(null);
-    setCurrentStep("brochure-upload");
-  };
-
-  // Step 3: Create campaign
-  const handleCreateCampaign = (data: {
-    name: string;
-    description?: string;
-    assistantId: string;
-  }) => {
     createCampaign(
       {
-        ...data,
-        brochureId: savedBrochureId ?? undefined,
+        name: basicDetails.name,
+        description: basicDetails.description,
+        assistantId: basicDetails.assistantId,
+        variables,
       },
       {
         onSuccess: (campaign) => router.push(`/campaigns/${campaign.id}`),
       },
     );
+  };
+
+  const handleBack = () => {
+    setCurrentStep("details");
   };
 
   return (
@@ -128,43 +104,71 @@ export default function NewCampaignPage() {
       </div>
 
       {/* Step Indicators */}
-      <div className="flex items-center gap-0">
+      <div className="flex items-center">
         {STEPS.map((step, index) => {
           const isCompleted = index < stepIndex;
           const isCurrent = index === stepIndex;
           const isLast = index === STEPS.length - 1;
+          const StepIcon = step.icon;
 
           return (
-            <div key={step.key} className="flex items-center">
-              <div className="flex items-center gap-2">
+            <div key={step.key} className="flex items-center flex-1">
+              <div className="flex items-center gap-2.5 shrink-0">
+                {/* Icon circle */}
                 <div
                   className={[
-                    "w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold transition-colors",
+                    "w-8 h-8 rounded-full flex items-center justify-center transition-all shrink-0",
                     isCompleted
-                      ? "bg-primary text-white"
+                      ? "bg-text-primary text-white"
                       : isCurrent
-                        ? "bg-primary/10 text-primary border-2 border-primary"
-                        : "bg-surface-secondary text-text-muted border border-border",
+                        ? "bg-primary/10 text-primary ring-1 ring-border"
+                        : "bg-surface-secondary text-text-muted ring-1 ring-border",
                   ].join(" ")}
                 >
-                  {isCompleted ? "✓" : index + 1}
+                  {isCompleted ? (
+                    <Check size={14}  />
+                  ) : (
+                    <StepIcon size={14} />
+                  )}
                 </div>
-                <span
-                  className={[
-                    "text-sm font-medium",
-                    isCurrent ? "text-text-primary" : "text-text-muted",
-                  ].join(" ")}
-                >
-                  {step.label}
-                </span>
+
+                {/* Label */}
+                <div className="flex flex-col">
+                  <span
+                    className={[
+                      "text-xs font-medium leading-none",
+                      isCurrent || isCompleted
+                        ? "text-text-primary"
+                        : "text-text-muted",
+                    ].join(" ")}
+                  >
+                    Step {index + 1}
+                  </span>
+                  <span
+                    className={[
+                      "text-sm font-semibold mt-1",
+                      isCurrent
+                        ? "text-primary"
+                        : isCompleted
+                          ? "text-text-primary"
+                          : "text-text-muted",
+                    ].join(" ")}
+                  >
+                    {step.label}
+                  </span>
+                </div>
               </div>
+
+              {/* Connector line */}
               {!isLast && (
-                <div
-                  className={[
-                    "h-px w-8 mx-3",
-                    isCompleted ? "bg-primary" : "bg-border",
-                  ].join(" ")}
-                />
+                <div className="flex-1 mx-4">
+                  <div
+                    className={[
+                      "h-0.5 rounded-full transition-colors",
+                      isCompleted ? "bg-primary" : "bg-border",
+                    ].join(" ")}
+                  />
+                </div>
               )}
             </div>
           );
@@ -172,36 +176,26 @@ export default function NewCampaignPage() {
       </div>
 
       {/* Step Content */}
-      {currentStep === "brochure-upload" && (
-        <BrochureUploader
-          isExtracting={extracting}
-          uploadProgress={uploadProgress}
-          onFileSelected={handleFileSelected}
-          onSkip={handleSkipBrochure}
-        />
-      )}
-
-      {currentStep === "brochure-review" && extractedData && (
-        <BrochureReviewForm
-          data={extractedData}
-          isSaving={saving}
-          onConfirm={handleBrochureConfirm}
-          onBack={handleBrochureBack}
-        />
-      )}
-
-      {currentStep === "campaign-details" && (
-        <CampaignDetailsForm
+      {currentStep === "details" && (
+        <CampaignDetailsStep
           assistants={assistants ?? []}
+          initialValues={basicDetails}
+          onNext={handleDetailsNext}
+        />
+      )}
+
+      {currentStep === "variables" && (
+        <CampaignVariablesStep
+          variables={assistantDetail?.variables ?? []}
+          isLoadingVariables={assistantLoading}
+          variablesError={assistantError}
           isCreating={creating}
-          brochureName={extractedData?.projectName ?? null}
-          hasBrochure={Boolean(savedBrochureId)}
-          onSubmit={handleCreateCampaign}
-          onBack={() =>
-            setCurrentStep(
-              extractedData ? "brochure-review" : "brochure-upload",
-            )
+          assistantName={
+            assistants?.find((a) => a.id === basicDetails?.assistantId)?.name ??
+            ""
           }
+          onSubmit={handleCreateCampaign}
+          onBack={handleBack}
         />
       )}
     </div>

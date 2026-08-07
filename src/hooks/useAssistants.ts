@@ -5,12 +5,16 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { assistantsApi } from "@/lib/api/assistants";
-import type { RegisterAssistantInput, UpdateAssistantInput } from "@/types";
+import type {
+  AssistantDetail,
+  RegisterAssistantInput,
+  UpdateAssistantInput,
+} from "@/types";
 
 export const ASSISTANTS_KEY = ["assistants"] as const;
 export const BOLNA_AGENTS_KEY = ["bolna-agents"] as const;
 
-// ── Your registered assistants ────────────────────────────────────────────────
+// ── All registered assistants (tenant-scoped via JWT) ────────────────────────
 export function useAssistants() {
   return useQuery({
     queryKey: ASSISTANTS_KEY,
@@ -18,11 +22,22 @@ export function useAssistants() {
   });
 }
 
-export function useAssistant(id: string) {
+// ── Admin: all assistants for a specific tenant ───────────────────────────────
+export function useAdminAssistants(tenantId: string) {
   return useQuery({
+    queryKey: [...ASSISTANTS_KEY, "tenant", tenantId],
+    queryFn: () => assistantsApi.getAllByTenant(tenantId),
+    enabled: Boolean(tenantId),
+  });
+}
+
+// ── Single assistant with prompt variables ────────────────────────────────────
+export function useAssistant(id: string | null) {
+  return useQuery<AssistantDetail>({
     queryKey: [...ASSISTANTS_KEY, id],
-    queryFn: () => assistantsApi.getById(id),
+    queryFn: () => assistantsApi.getById(id!),
     enabled: Boolean(id),
+    staleTime: 5 * 60 * 1000,
   });
 }
 
@@ -31,11 +46,11 @@ export function useBolnaAgents() {
   return useQuery({
     queryKey: BOLNA_AGENTS_KEY,
     queryFn: assistantsApi.listBolnaAgents,
-    staleTime: 30_000, // cache for 30s — doesn't change often
+    staleTime: 30_000,
   });
 }
 
-// ── Register by Bolna agent ID ────────────────────────────────────────────────
+// ── Register by Bolna agent ID (tenant user) ─────────────────────────────────
 export function useRegisterAssistant() {
   const qc = useQueryClient();
 
@@ -51,7 +66,26 @@ export function useRegisterAssistant() {
   });
 }
 
-// ── Update friendly name ──────────────────────────────────────────────────────
+// ── Admin: register assistant for a specific tenant ───────────────────────────
+export function useAdminRegisterAssistant(tenantId: string) {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: RegisterAssistantInput) =>
+      assistantsApi.adminRegister({ ...data, tenantId }),
+    onSuccess: () => {
+      qc.invalidateQueries({
+        queryKey: [...ASSISTANTS_KEY, "tenant", tenantId],
+      });
+      toast.success("Assistant registered successfully!");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+}
+
+// ── Update friendly name (tenant user) ───────────────────────────────────────
 export function useUpdateAssistant(id: string) {
   const qc = useQueryClient();
 
@@ -67,15 +101,18 @@ export function useUpdateAssistant(id: string) {
   });
 }
 
-// ── Sync from Bolna dashboard ─────────────────────────────────────────────────
-export function useSyncAssistant(id: string) {
+// ── Admin: update assistant for a specific tenant ─────────────────────────────
+export function useAdminUpdateAssistant(id: string, tenantId: string) {
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: () => assistantsApi.sync(id),
+    mutationFn: (data: UpdateAssistantInput) =>
+      assistantsApi.adminUpdate(id, { ...data, tenantId }),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ASSISTANTS_KEY });
-      toast.success("Assistant synced from Bolna dashboard");
+      qc.invalidateQueries({
+        queryKey: [...ASSISTANTS_KEY, "tenant", tenantId],
+      });
+      toast.success("Assistant updated!");
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -83,7 +120,7 @@ export function useSyncAssistant(id: string) {
   });
 }
 
-// ── Delete (remove from system only) ─────────────────────────────────────────
+// ── Delete (tenant user) ──────────────────────────────────────────────────────
 export function useDeleteAssistant() {
   const qc = useQueryClient();
 
@@ -91,6 +128,24 @@ export function useDeleteAssistant() {
     mutationFn: (id: string) => assistantsApi.delete(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ASSISTANTS_KEY });
+      toast.success("Assistant removed from system");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+}
+
+// ── Admin: delete assistant for a specific tenant ─────────────────────────────
+export function useAdminDeleteAssistant(tenantId: string) {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => assistantsApi.adminDelete(id, tenantId),
+    onSuccess: () => {
+      qc.invalidateQueries({
+        queryKey: [...ASSISTANTS_KEY, "tenant", tenantId],
+      });
       toast.success("Assistant removed from system");
     },
     onError: (error: Error) => {
