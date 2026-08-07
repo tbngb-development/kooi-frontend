@@ -1,27 +1,26 @@
 // src/app/(dashboard)/leads/[id]/page.tsx
 
-'use client';
+"use client";
 
-import { LeadStatusBadge } from '@/components/leads/LeadStatusBadge';
-import { Card } from '@/components/ui/Card';
-import { PageSpinner } from '@/components/ui/Spinner';
-import { useLead } from '@/hooks/useLeads';
-import { formatDate, formatDateTime } from '@/lib/utils/formatDate';
-import { formatDuration } from '@/lib/utils/formatDuration';
-import { Building2, ChevronLeft, Mail, Phone, User } from 'lucide-react';
-import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { LeadStatusBadge } from "@/components/leads/LeadStatusBadge";
+import { Card } from "@/components/ui/Card";
+import { PageSpinner } from "@/components/ui/Spinner";
+import { useLead } from "@/hooks/useLeads";
+import { formatDate, formatDateTime } from "@/lib/utils/formatDate";
+import { formatDuration } from "@/lib/utils/formatDuration";
+import { Building2, ChevronLeft, Mail, Phone, User } from "lucide-react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 
 export default function LeadDetailPage() {
   const params = useParams();
   const id = String(params.id);
   const { data: lead, isLoading } = useLead(id);
 
-  console.log("leads data from detail page: ", lead)
+  console.log("leads data from detail page: ", lead);
 
   if (isLoading) return <PageSpinner />;
-  if (!lead)
-    return <p className="text-text-muted text-sm">Lead not found.</p>;
+  if (!lead) return <p className="text-text-muted text-sm">Lead not found.</p>;
 
   return (
     <div className="flex flex-col gap-5 max-w-3xl">
@@ -38,7 +37,7 @@ export default function LeadDetailPage() {
           <LeadStatusBadge status={lead.status} />
         </div>
         <p className="text-sm text-text-muted mt-1">
-          Campaign:{' '}
+          Campaign:{" "}
           <Link
             href={`/campaigns/${lead.campaignId}`}
             className="text-brand-600 hover:underline"
@@ -127,7 +126,6 @@ export default function LeadDetailPage() {
                   {call.duration && (
                     <span>Duration: {formatDuration(call.duration)}</span>
                   )}
-                  {call.outcome && <span>Outcome: {call.outcome}</span>}
                 </div>
               </div>
             ))}
