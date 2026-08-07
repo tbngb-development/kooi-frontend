@@ -12,6 +12,7 @@ const config: Record<
   COMPLETED: { variant: 'success', label: 'Completed' },
   FAILED: { variant: 'error', label: 'Failed' },
   NO_ANSWER: { variant: 'warning', label: 'No Answer' },
+  BUSY: { variant: 'gray', label: 'BUSY' },
 };
 
 export function CallStatusBadge({ status }: { status: CallStatus }) {
