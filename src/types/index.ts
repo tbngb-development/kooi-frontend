@@ -98,6 +98,9 @@ export interface PaginationMeta {
 export interface PaginatedData<T> {
   items: T[];
   pagination: PaginationMeta;
+  // Temp fix for paginated Get calls api
+  calls?: Call[]
+  leads?: Lead[]
 }
 
 export interface PaginatedResponse<T> {
