@@ -6,21 +6,28 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
-import { useDeleteAssistant } from '@/hooks/useAssistants';
 import { formatDate } from '@/lib/utils/formatDate';
 import type { Assistant } from '@/types';
 import { Bot, Pencil, Trash2 } from 'lucide-react';
-import Link from 'next/link';
 import { useState } from 'react';
 
 interface AssistantCardProps {
   assistant: Assistant;
   canEdit?: boolean;
+  // Admin mode — callbacks instead of router navigation
+  onEdit?: (assistant: Assistant) => void;
+  onDelete?: (id: string) => void;
+  deleteLoading?: boolean;
 }
 
-export function AssistantCard({ assistant, canEdit = true }: AssistantCardProps) {
+export function AssistantCard({
+  assistant,
+  canEdit = false,
+  onEdit,
+  onDelete,
+  deleteLoading = false,
+}: AssistantCardProps) {
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const { mutate: deleteAssistant, isPending } = useDeleteAssistant();
 
   return (
     <>
@@ -44,8 +51,17 @@ export function AssistantCard({ assistant, canEdit = true }: AssistantCardProps)
           </Badge>
         </div>
 
+        {/* Bolna ID */}
+        <div className="text-xs text-text-muted border-t border-surface-border pt-3 font-mono">
+          ID:{' '}
+          <span className="font-medium text-text-secondary">
+            {assistant.bolnaId.slice(0, 8)}…
+          </span>
+        </div>
+
+        {/* Voice config if present */}
         {assistant.config?.voice && (
-          <div className="text-xs text-text-muted border-t border-surface-border pt-3">
+          <div className="text-xs text-text-muted">
             Voice:{' '}
             <span className="font-medium text-text-secondary">
               {String(assistant.config.voice?.voiceId ?? '—')}
@@ -53,42 +69,49 @@ export function AssistantCard({ assistant, canEdit = true }: AssistantCardProps)
           </div>
         )}
 
-        {canEdit && (
+        {/* Actions — only rendered when canEdit=true and callbacks provided */}
+        {canEdit && (onEdit || onDelete) && (
           <div className="flex items-center gap-2 border-t border-surface-border pt-3">
-            <Link href={`/assistants/${assistant.id}`} className="flex-1">
+            {onEdit && (
               <Button
                 variant="outline"
                 size="sm"
                 leftIcon={<Pencil size={13} />}
-                className="w-full"
+                className="flex-1"
+                onClick={() => onEdit(assistant)}
               >
                 Edit
               </Button>
-            </Link>
-            <Button
-              variant="ghost"
-              size="sm"
-              leftIcon={<Trash2 size={13} />}
-              onClick={() => setConfirmDelete(true)}
-              className="text-error-600 hover:bg-error-50"
-            >
-              Delete
-            </Button>
+            )}
+            {onDelete && (
+              <Button
+                variant="ghost"
+                size="sm"
+                leftIcon={<Trash2 size={13} />}
+                onClick={() => setConfirmDelete(true)}
+                className="text-error-600 hover:bg-error-50"
+              >
+                Delete
+              </Button>
+            )}
           </div>
         )}
       </Card>
 
-      <ConfirmModal
-        isOpen={confirmDelete}
-        onClose={() => setConfirmDelete(false)}
-        onConfirm={() => {
-          deleteAssistant(assistant.id);
-          setConfirmDelete(false);
-        }}
-        title="Delete Assistant"
-        description={`Are you sure you want to delete "${assistant.name}"? This action cannot be undone.`}
-        loading={isPending}
-      />
+      {/* Confirm delete modal */}
+      {onDelete && (
+        <ConfirmModal
+          isOpen={confirmDelete}
+          onClose={() => setConfirmDelete(false)}
+          onConfirm={() => {
+            onDelete(assistant.id);
+            setConfirmDelete(false);
+          }}
+          title="Delete Assistant"
+          description={`Are you sure you want to delete "${assistant.name}"? This action cannot be undone.`}
+          loading={deleteLoading}
+        />
+      )}
     </>
   );
 }

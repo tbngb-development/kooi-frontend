@@ -5,8 +5,9 @@
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import GoBackButton from "@/components/ui/GoBackButton"; // ← default import, no curly braces
+import GoBackButton from "@/components/ui/GoBackButton";
 import { PageSpinner } from "@/components/ui/Spinner";
+import { AdminAssistantSection } from "@/components/assistants/AdminAssistantSection";
 import {
   useTenant,
   useTenantStats,
@@ -27,6 +28,8 @@ import {
 } from "lucide-react";
 import { use, useState } from "react";
 import { toast } from "sonner";
+
+// ── Stat Card ─────────────────────────────────────────────────────────────────
 
 interface StatCardProps {
   label: string;
@@ -85,6 +88,8 @@ function StatCard({
   );
 }
 
+// ── Count Badge Card ──────────────────────────────────────────────────────────
+
 function CountBadgeCard({
   label,
   count,
@@ -107,6 +112,8 @@ function CountBadgeCard({
   );
 }
 
+// ── Page ──────────────────────────────────────────────────────────────────────
+
 export default function TenantDetailPage({
   params,
 }: {
@@ -120,9 +127,6 @@ export default function TenantDetailPage({
   const { mutate: toggle, isPending: toggling } = useToggleTenantStatus();
 
   const isLoading = tenantLoading || statsLoading;
-
-  console.log("tenants: ", tenant)
-  console.log("stats Data: ", statsData)
 
   if (isLoading) return <PageSpinner />;
 
@@ -143,6 +147,7 @@ export default function TenantDetailPage({
   const maskedApiKey = tenant.apiKey
     ? `${tenant.apiKey.slice(0, 8)}${"•".repeat(24)}${tenant.apiKey.slice(-4)}`
     : "—";
+
   function handleCopyApiKey() {
     if (!tenant?.apiKey) return;
     navigator.clipboard.writeText(tenant.apiKey);
@@ -182,12 +187,13 @@ export default function TenantDetailPage({
           </div>
         </div>
 
-        {/* Toggle Action */}
         <Button
           variant={tenant.isActive ? "danger" : "primary"}
           size="sm"
           loading={toggling}
-          onClick={() => toggle({ id: tenant.id, isActive: !tenant.isActive })}
+          onClick={() =>
+            toggle({ id: tenant.id, isActive: !tenant.isActive })
+          }
         >
           {tenant.isActive ? "Deactivate Tenant" : "Activate Tenant"}
         </Button>
@@ -225,7 +231,7 @@ export default function TenantDetailPage({
         />
       </div>
 
-      {/* Stats */}
+      {/* Performance Stats */}
       {stats ? (
         <div>
           <h3 className="text-sm font-semibold text-text-primary mb-3">
@@ -281,11 +287,18 @@ export default function TenantDetailPage({
         </Card>
       )}
 
+      {/* ── Assistant Management Section ─────────────────────────────────── */}
+      <div className="flex flex-col gap-4 rounded-lg border border-surface-border bg-surface p-5">
+        <AdminAssistantSection tenantId={tenant.id} />
+      </div>
+
       {/* API Key */}
       <Card padding="md">
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-text-primary">API Key</h3>
+            <h3 className="text-sm font-semibold text-text-primary">
+              API Key
+            </h3>
             <p className="text-xs text-text-muted">
               Keep this secret — do not share publicly
             </p>

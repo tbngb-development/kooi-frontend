@@ -1,15 +1,57 @@
 // src/components/calls/CallsTable.tsx
 
-'use client';
+"use client";
 
-import { EmptyState } from '@/components/ui/EmptyState';
-import { Pagination } from '@/components/ui/Pagination';
-import { CallStatusBadge } from './CallStatusBadge';
-import { formatDateTime } from '@/lib/utils/formatDate';
-import { formatDuration } from '@/lib/utils/formatDuration';
-import type { Call, PaginationMeta } from '@/types';
-import { Phone } from 'lucide-react';
-import Link from 'next/link';
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Pagination } from "@/components/ui/Pagination";
+import { CallStatusBadge } from "./CallStatusBadge";
+import { formatDateTime } from "@/lib/utils/formatDate";
+import { formatDuration } from "@/lib/utils/formatDuration";
+import type { Call, Disposition, LeadTemperature, PaginationMeta } from "@/types";
+import { Phone } from "lucide-react";
+import Link from "next/link";
+
+// ─── Disposition label map ────────────────────────────────────────────────────
+
+const dispositionLabel: Record<Disposition, string> = {
+  INTERESTED_SEND_DETAILS: "Send Details",
+  QUALIFIED_CONSULTANT_FOLLOWUP: "Consultant F/U",
+  SITE_VISIT_INTEREST: "Site Visit",
+  INTERESTED_GENERAL: "Interested",
+  FOLLOWUP_REQUESTED: "Follow-up",
+  NOT_INTERESTED: "Not Interested",
+  DO_NOT_CALL: "Do Not Call",
+  WRONG_NUMBER: "Wrong Number",
+  ALREADY_PURCHASED: "Already Bought",
+  BROKER: "Broker",
+  LANGUAGE_CALLBACK_REQUIRED: "Language CB",
+  CALL_ENDED_BY_CUSTOMER: "Ended by Lead",
+  CALL_ENDED_ABUSIVE: "Abusive",
+  NO_RESPONSE: "No Response",
+  CALL_DROPPED: "Dropped",
+};
+
+// ─── Temperature badge ────────────────────────────────────────────────────────
+
+const temperatureStyle: Record<LeadTemperature, string> = {
+  HOT: "bg-error-100 text-error-700",
+  WARM: "bg-warning-100 text-warning-700",
+  NURTURE: "bg-info-100 text-info-700",
+  COLD: "bg-surface-subtle text-text-muted",
+  NOT_APPLICABLE: "bg-surface-subtle text-text-muted",
+};
+
+function TemperatureBadge({ value }: { value: LeadTemperature }) {
+  return (
+    <span
+      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${temperatureStyle[value]}`}
+    >
+      {value}
+    </span>
+  );
+}
+
+// ─── Main component ───────────────────────────────────────────────────────────
 
 interface CallsTableProps {
   calls: Call[];
@@ -17,7 +59,11 @@ interface CallsTableProps {
   onPageChange?: (page: number) => void;
 }
 
-export function CallsTable({ calls, pagination, onPageChange }: CallsTableProps) {
+export function CallsTable({
+  calls,
+  pagination,
+  onPageChange,
+}: CallsTableProps) {
   if (calls.length === 0) {
     return (
       <EmptyState
@@ -47,6 +93,12 @@ export function CallsTable({ calls, pagination, onPageChange }: CallsTableProps)
                 <th className="text-left px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
                   Status
                 </th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
+                  Disposition
+                </th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
+                  Temperature
+                </th>
                 <th className="text-right px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
                   Duration
                 </th>
@@ -56,41 +108,56 @@ export function CallsTable({ calls, pagination, onPageChange }: CallsTableProps)
               </tr>
             </thead>
             <tbody className="divide-y divide-surface-border">
-              {calls.map((call) => (
-                <tr
-                  key={call.id}
-                  className="hover:bg-surface-hover transition-colors"
-                >
-                  <td className="px-5 py-3">
-                    <Link
-                      href={`/calls/${call.id}`}
-                      className="font-medium text-text-primary hover:text-brand-600 transition-colors"
-                    >
-                      {call.lead.name}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-3 text-text-secondary font-mono text-xs">
-                    {call.lead.phone}
-                  </td>
-                  <td className="px-4 py-3">
-                    <Link
-                      href={`/campaigns/${call.campaignId}`}
-                      className="text-text-muted hover:text-brand-600 text-xs transition-colors"
-                    >
-                      {call.campaign.name}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-3">
-                    <CallStatusBadge status={call.status} />
-                  </td>
-                  <td className="px-4 py-3 text-right text-text-secondary">
-                    {formatDuration(call.duration)}
-                  </td>
-                  <td className="px-5 py-3 text-text-muted text-xs">
-                    {formatDateTime(call.startedAt)}
-                  </td>
-                </tr>
-              ))}
+              {calls.map((call) => {
+                const analysis = call.callAnalysis ?? null;
+                return (
+                  <tr
+                    key={call.id}
+                    className="hover:bg-surface-hover transition-colors"
+                  >
+                    <td className="px-5 py-3">
+                      <Link
+                        href={`/calls/${call.id}`}
+                        className="font-medium text-text-primary hover:text-brand-600 transition-colors"
+                      >
+                        {call.lead.name}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3 text-text-secondary font-mono text-xs">
+                      {call.lead.phone}
+                    </td>
+                    <td className="px-4 py-3">
+                      <Link
+                        href={`/campaigns/${call.campaignId}`}
+                        className="text-text-muted hover:text-brand-600 text-xs transition-colors"
+                      >
+                        {call.campaign.name}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3">
+                      <CallStatusBadge status={call.status} />
+                    </td>
+                    <td className="px-4 py-3 text-xs text-text-secondary">
+                      {analysis?.disposition
+                        ? dispositionLabel[analysis.disposition]
+                        : "—"}
+                    </td>
+                    <td className="px-4 py-3">
+                      {analysis?.leadTemperature ? (
+                        <TemperatureBadge value={analysis.leadTemperature} />
+                      ) : (
+                        <span className="text-xs text-text-muted">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-right text-text-secondary">
+                      {formatDuration(call.duration)}
+                    </td>
+                    <td className="px-5 py-3 text-text-muted text-xs">
+                      {formatDateTime(call.startedAt)}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

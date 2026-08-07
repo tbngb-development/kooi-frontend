@@ -12,32 +12,62 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useBolnaAgents } from "@/hooks/useAssistants";
 import { ExternalLink, RefreshCw, Bot } from "lucide-react";
-import type { RegisterAssistantInput } from "@/types";
+import type { Assistant, RegisterAssistantInput, UpdateAssistantInput } from "@/types";
 
-const schema = z.object({
+// ── Schema ────────────────────────────────────────────────────────────────────
+const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   bolnaId: z.string().min(1, "Please select or enter a Bolna agent ID"),
 });
 
-type FormValues = z.infer<typeof schema>;
+const editSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  bolnaId: z.string().optional(),
+});
 
-interface AssistantFormProps {
-  onSubmit: (data: RegisterAssistantInput) => void;
+type RegisterFormValues = z.infer<typeof registerSchema>;
+type EditFormValues = z.infer<typeof editSchema>;
+type FormValues = RegisterFormValues | EditFormValues;
+
+// ── Props ─────────────────────────────────────────────────────────────────────
+interface AssistantFormBaseProps {
   isLoading?: boolean;
   submitLabel?: string;
+  onCancel?: () => void;
 }
 
+interface RegisterModeProps extends AssistantFormBaseProps {
+  editMode?: false;
+  defaultValues?: undefined;
+  onSubmit: (data: RegisterAssistantInput) => void;
+}
+
+interface EditModeProps extends AssistantFormBaseProps {
+  editMode: true;
+  defaultValues: Assistant;
+  onSubmit: (data: UpdateAssistantInput) => void;
+}
+
+type AssistantFormProps = RegisterModeProps | EditModeProps;
+
+// ── Component ─────────────────────────────────────────────────────────────────
 export function AssistantForm({
   onSubmit,
   isLoading,
   submitLabel = "Register Assistant",
+  onCancel,
+  editMode = false,
+  defaultValues,
 }: AssistantFormProps) {
   const [inputMode, setInputMode] = useState<"select" | "manual">("select");
+
   const {
     data: bolnaAgents,
     isLoading: agentsLoading,
     refetch,
   } = useBolnaAgents();
+
+  const schema = editMode ? editSchema : registerSchema;
 
   const {
     register,
@@ -45,11 +75,14 @@ export function AssistantForm({
     setValue,
     watch,
     formState: { errors },
-  } = useForm<FormValues>({ resolver: zodResolver(schema) });
+  } = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: editMode
+      ? { name: defaultValues?.name ?? '', bolnaId: defaultValues?.bolnaId ?? '' }
+      : { name: '', bolnaId: '' },
+  });
 
   const selectedBolnaId = watch("bolnaId");
-  console.log("selectedBolnaId: ", selectedBolnaId)
-  console.log("Bolna Agent List: ", bolnaAgents)
 
   const bolnaAgentOptions =
     bolnaAgents?.map((a) => ({
@@ -61,156 +94,166 @@ export function AssistantForm({
     const agentId = e.target.value;
     const agent = bolnaAgents?.find((a) => a.id === agentId);
     setValue("bolnaId", agentId);
-    // Auto-fill name from Bolna agent name
     if (agent) {
       setValue("name", agent.agent_name);
     }
   };
 
+  // Cast submit handler — TS narrows correctly via editMode prop
+  const handleFormSubmit = (data: FormValues) => {
+    if (editMode) {
+      (onSubmit as (d: UpdateAssistantInput) => void)({ name: data.name });
+    } else {
+      (onSubmit as (d: RegisterAssistantInput) => void)(
+        data as RegisterAssistantInput
+      );
+    }
+  };
+
   return (
     <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="flex flex-col gap-5 max-w-2xl"
+      onSubmit={handleSubmit(handleFormSubmit)}
+      className="flex flex-col gap-5"
     >
-      {/* Info Banner */}
-      <div className="rounded-lg bg-blue-50 border border-blue-100 p-4">
-        <div className="flex items-start gap-3">
-          <Bot size={18} className="text-blue-500 mt-0.5 shrink-0" />
-          <div>
-            <p className="text-sm font-medium text-blue-800">
-              Bolna Dashboard Agent
-            </p>
-            <p className="text-sm text-blue-600 mt-0.5">
-              Configure your agent (prompt, voice, Sarvam TTS) in the Bolna
-              dashboard, then register it here by selecting its Agent ID.
-            </p>
-            <a
-              href="https://app.bolna.dev"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-sm text-blue-700 font-medium mt-2 hover:underline"
-            >
-              Open Bolna Dashboard
-              <ExternalLink size={12} />
-            </a>
-          </div>
-        </div>
-      </div>
 
       <Card>
         <h2 className="text-sm font-semibold text-text-primary mb-4">
-          Register Agent
+          {editMode ? 'Update Assistant' : 'Register Agent'}
         </h2>
         <div className="flex flex-col gap-4">
-          {/* Agent ID Selection */}
-          <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="text-sm font-medium text-text-primary">
-                Bolna Agent
-              </label>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() =>
-                    setInputMode(inputMode === "select" ? "manual" : "select")
-                  }
-                  className="text-xs text-text-muted hover:text-text-primary transition-colors"
-                >
-                  {inputMode === "select"
-                    ? "Enter ID manually"
-                    : "Select from list"}
-                </button>
-                {inputMode === "select" && (
+
+          {/* ── Bolna Agent picker — only when creating ── */}
+          {!editMode && (
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-sm font-medium text-text-primary">
+                  Bolna Agent
+                </label>
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={() => refetch()}
+                    onClick={() =>
+                      setInputMode(
+                        inputMode === "select" ? "manual" : "select"
+                      )
+                    }
                     className="text-xs text-text-muted hover:text-text-primary transition-colors"
                   >
-                    <RefreshCw size={12} />
+                    {inputMode === "select"
+                      ? "Enter ID manually"
+                      : "Select from list"}
                   </button>
-                )}
-              </div>
-            </div>
-
-            {inputMode === "select" ? (
-              agentsLoading ? (
-                <div className="flex items-center gap-2 h-10 px-3 rounded-md border border-border bg-surface-secondary">
-                  <Spinner size="sm" />
-                  <span className="text-sm text-text-muted">
-                    Fetching agents from Bolna...
-                  </span>
-                </div>
-              ) : bolnaAgentOptions.length === 0 ? (
-                <div className="rounded-md bg-amber-50 border border-amber-100 p-3">
-                  <p className="text-sm text-amber-700">
-                    No agents found in your Bolna dashboard.{" "}
-                    <a
-                      href="https://app.bolna.dev"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="underline font-medium"
+                  {inputMode === "select" && (
+                    <button
+                      type="button"
+                      onClick={() => refetch()}
+                      className="text-xs text-text-muted hover:text-text-primary transition-colors"
                     >
-                      Create one first
-                    </a>
-                    .
-                  </p>
+                      <RefreshCw size={12} />
+                    </button>
+                  )}
                 </div>
+              </div>
+
+              {inputMode === "select" ? (
+                agentsLoading ? (
+                  <div className="flex items-center gap-2 h-10 px-3 rounded-md border border-border bg-surface-secondary">
+                    <Spinner size="sm" />
+                    <span className="text-sm text-text-muted">
+                      Fetching agents from Bolna...
+                    </span>
+                  </div>
+                ) : bolnaAgentOptions.length === 0 ? (
+                  <div className="rounded-md bg-amber-50 border border-amber-100 p-3">
+                    <p className="text-sm text-amber-700">
+                      No agents found in your Bolna dashboard.{" "}
+                      <a
+                        href="https://app.bolna.dev"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline font-medium"
+                      >
+                        Create one first
+                      </a>
+                      .
+                    </p>
+                  </div>
+                ) : (
+                  <select
+                    onChange={handleAgentSelect}
+                    className="w-full h-10 px-3 rounded-md border border-border bg-surface text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                  >
+                    <option value="">Select a Bolna agent...</option>
+                    {bolnaAgentOptions.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                )
               ) : (
-                <select
-                  onChange={handleAgentSelect}
-                  className="w-full h-10 px-3 rounded-md border border-border bg-surface text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                >
-                  <option value="">Select a Bolna agent...</option>
-                  {bolnaAgentOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              )
-            ) : (
-              <Input
-                placeholder="e.g. ee24d63a-64a4-4548-87cb-468b95824920"
-                error={errors.bolnaId?.message}
-                {...register("bolnaId")}
-              />
-            )}
+                <Input
+                  placeholder="e.g. ee24d63a-64a4-4548-87cb-468b95824920"
+                  error={(errors as { bolnaId?: { message?: string } }).bolnaId?.message}
+                  {...register("bolnaId")}
+                />
+              )}
 
-            {/* Hidden input for react-hook-form when using select mode */}
-            {inputMode === "select" && (
-              <input type="hidden" {...register("bolnaId")} />
-            )}
+              {/* Hidden input for react-hook-form when using select mode */}
+              {inputMode === "select" && (
+                <input type="hidden" {...register("bolnaId")} />
+              )}
 
-            {errors.bolnaId && (
-              <p className="text-xs text-error mt-1">
-                {errors.bolnaId.message}
+              {(errors as { bolnaId?: { message?: string } }).bolnaId && (
+                <p className="text-xs text-error mt-1">
+                  {(errors as { bolnaId?: { message?: string } }).bolnaId?.message}
+                </p>
+              )}
+
+              {selectedBolnaId && (
+                <p className="text-xs text-text-muted mt-1.5 font-mono">
+                  ID: {selectedBolnaId}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* ── Bolna ID read-only display when editing ── */}
+          {editMode && defaultValues?.bolnaId && (
+            <div>
+              <p className="text-sm font-medium text-text-primary mb-1.5">
+                Bolna Agent ID
               </p>
-            )}
-
-            {/* Show selected ID */}
-            {selectedBolnaId && (
-              <p className="text-xs text-text-muted mt-1.5 font-mono">
-                ID: {selectedBolnaId}
+              <div className="flex items-center gap-2 px-3 py-2 rounded-md border border-surface-border bg-surface-subtle font-mono text-xs text-text-muted">
+                {defaultValues.bolnaId}
+              </div>
+              <p className="text-xs text-text-muted mt-1">
+                Agent ID cannot be changed. Delete and re-register to use a different agent.
               </p>
-            )}
-          </div>
+            </div>
+          )}
 
-          {/* Friendly Name */}
+          {/* ── Display Name — always shown ── */}
           <Input
             label="Display name"
             placeholder="e.g. Real Estate Qualifier — Sarvam"
-            hint="How this agent appears in your campaigns"
+            hint="How this agent appears in campaigns"
             error={errors.name?.message}
             {...register("name")}
           />
         </div>
       </Card>
 
+      {/* Actions */}
       <div className="flex items-center gap-3">
         <Button type="submit" loading={isLoading}>
           {submitLabel}
         </Button>
-        <Button type="button" variant="outline" onClick={() => history.back()}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel ?? (() => history.back())}
+        >
           Cancel
         </Button>
       </div>
