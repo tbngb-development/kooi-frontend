@@ -9,7 +9,7 @@ import { Providers } from './providers';
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 
 export const metadata: Metadata = {
-  title: 'Vapi AI Lead Qualification',
+  title: 'AI Lead Qualification',
   description: 'AI-powered lead qualification system',
 };
 
