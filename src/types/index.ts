@@ -99,8 +99,8 @@ export interface PaginatedData<T> {
   items: T[];
   pagination: PaginationMeta;
   // Temp fix for paginated Get calls api
-  calls?: Call[]
-  leads?: Lead[]
+  calls?: Call[];
+  leads?: Lead[];
 }
 
 export interface PaginatedResponse<T> {
@@ -243,9 +243,12 @@ export interface CampaignStats {
 export type UpdateCampaignInput = Partial<CreateCampaignInput>;
 
 export interface UploadResult {
-  invalid: number;
-  total: number;
-  errors?: string[];
+  total: number; // all rows in the file
+  valid: number; // rows that had a phone number
+  imported: number; // net-new leads actually inserted
+  duplicates: number; // rows skipped — phone already exists in campaign
+  invalid: number; // rows skipped — missing phone number
+  duplicateNumbers: string[]; // the actual phone numbers that were duplicates
 }
 
 // ─── Brochure ─────────────────────────────────────────────────────────────────
