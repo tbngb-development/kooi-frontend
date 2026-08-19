@@ -1,6 +1,6 @@
 // src/lib/api/campaigns.ts
 
-import apiClient from '@/lib/axios';
+import apiClient from "@/lib/axios";
 import type {
   ApiResponse,
   Campaign,
@@ -8,95 +8,99 @@ import type {
   CreateCampaignInput,
   UpdateCampaignInput,
   UploadResult,
-} from '@/types';
+} from "@/types";
+
+// Shape returned by POST /campaigns/:id/start
+interface StartCampaignResult {
+  message: string;
+  totalLeads: number;
+  variableKeys: string[];
+}
 
 export const campaignsApi = {
   getAll: async (): Promise<Campaign[]> => {
-    const res = await apiClient.get<ApiResponse<Campaign[]>>('/api/campaigns');
+    const res = await apiClient.get<ApiResponse<Campaign[]>>("/api/campaigns");
     if (!res.data.success || !res.data.data) {
-      throw new Error(res.data.error ?? 'Failed to fetch campaigns');
+      throw new Error(res.data.error ?? "Failed to fetch campaigns");
     }
     return res.data.data;
   },
 
   getById: async (id: string): Promise<Campaign> => {
     const res = await apiClient.get<ApiResponse<Campaign>>(
-      `/api/campaigns/${id}`
+      `/api/campaigns/${id}`,
     );
     if (!res.data.success || !res.data.data) {
-      throw new Error(res.data.error ?? 'Failed to fetch campaign');
+      throw new Error(res.data.error ?? "Failed to fetch campaign");
     }
     return res.data.data;
   },
 
   create: async (data: CreateCampaignInput): Promise<Campaign> => {
     const res = await apiClient.post<ApiResponse<Campaign>>(
-      '/api/campaigns',
-      data
+      "/api/campaigns",
+      data,
     );
     if (!res.data.success || !res.data.data) {
-      throw new Error(res.data.error ?? 'Failed to create campaign');
+      throw new Error(res.data.error ?? "Failed to create campaign");
     }
     return res.data.data;
   },
 
-  update: async (
-    id: string,
-    data: UpdateCampaignInput
-  ): Promise<Campaign> => {
+  update: async (id: string, data: UpdateCampaignInput): Promise<Campaign> => {
     const res = await apiClient.patch<ApiResponse<Campaign>>(
       `/api/campaigns/${id}`,
-      data
+      data,
     );
     if (!res.data.success || !res.data.data) {
-      throw new Error(res.data.error ?? 'Failed to update campaign');
+      throw new Error(res.data.error ?? "Failed to update campaign");
     }
     return res.data.data;
   },
 
   uploadCSV: async (id: string, file: File): Promise<UploadResult> => {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append("file", file);
     const res = await apiClient.post<ApiResponse<UploadResult>>(
       `/api/campaigns/${id}/upload`,
       formData,
-      {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      }
+      { headers: { "Content-Type": "multipart/form-data" } },
     );
     if (!res.data.success || !res.data.data) {
-      throw new Error(res.data.error ?? 'Failed to upload CSV');
+      throw new Error(res.data.error ?? "Failed to upload file");
     }
     return res.data.data;
   },
 
-  start: async (id: string): Promise<Campaign> => {
-    const res = await apiClient.post<ApiResponse<Campaign>>(
-      `/api/campaigns/${id}/start`
+  // Returns StartCampaignResult — not Campaign — matches backend response shape
+  start: async (id: string): Promise<StartCampaignResult> => {
+    const res = await apiClient.post<ApiResponse<StartCampaignResult>>(
+      `/api/campaigns/${id}/start`,
     );
     if (!res.data.success || !res.data.data) {
-      throw new Error(res.data.error ?? 'Failed to start campaign');
+      throw new Error(res.data.error ?? "Failed to start campaign");
     }
     return res.data.data;
   },
 
   pause: async (id: string): Promise<Campaign> => {
     const res = await apiClient.post<ApiResponse<Campaign>>(
-      `/api/campaigns/${id}/pause`
+      `/api/campaigns/${id}/pause`,
     );
     if (!res.data.success || !res.data.data) {
-      throw new Error(res.data.error ?? 'Failed to pause campaign');
+      throw new Error(res.data.error ?? "Failed to pause campaign");
     }
     return res.data.data;
   },
 
   getStats: async (id: string): Promise<CampaignStats> => {
     const res = await apiClient.get<ApiResponse<CampaignStats>>(
-      `/api/campaigns/${id}/stats`
+      `/api/campaigns/${id}/stats`,
     );
     if (!res.data.success || !res.data.data) {
-      throw new Error(res.data.error ?? 'Failed to fetch campaign stats');
+      throw new Error(res.data.error ?? "Failed to fetch campaign stats");
     }
     return res.data.data;
   },
 };
+  
