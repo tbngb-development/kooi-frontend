@@ -10,10 +10,27 @@ import { Card } from '@/components/ui/Card';
 import { PageSpinner } from '@/components/ui/Spinner';
 import { useCampaign } from '@/hooks/useCampaigns';
 import { formatDate } from '@/lib/utils/formatDate';
-import { Bot, ChevronLeft, Phone, Users } from 'lucide-react';
+import { Bot, ChevronLeft, Info, Phone, Users } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
+import type { CampaignStatus } from '@/types';
+
+// Statuses where uploading new leads is allowed
+const UPLOAD_ALLOWED_STATUSES: CampaignStatus[] = [
+  'DRAFT',
+  'PAUSED',
+  'COMPLETED',
+];
+
+// Contextual hint copy per status shown above the uploader
+const UPLOAD_HINT: Partial<Record<CampaignStatus, string>> = {
+  DRAFT: 'Upload leads to get this campaign ready to start.',
+  PAUSED:
+    'Campaign is paused. Any leads you upload will be called when you resume.',
+  COMPLETED:
+    'Campaign finished. Upload new leads and click "Start Campaign" to run another batch.',
+};
 
 export default function CampaignDetailPage() {
   const params = useParams();
@@ -21,7 +38,7 @@ export default function CampaignDetailPage() {
   const { user } = useAuthStore();
   const canEdit = user?.role !== 'USER';
 
-  // Poll every 5s while RUNNING
+  // Poll every 5s while RUNNING so stats + status stay live
   const { data: campaign, isLoading } = useCampaign(id, true);
 
   if (isLoading) return <PageSpinner />;
@@ -29,8 +46,9 @@ export default function CampaignDetailPage() {
     return <p className="text-text-muted text-sm">Campaign not found.</p>;
 
   const showUploader =
-    canEdit &&
-    (campaign.status === 'DRAFT' || campaign.status === 'PAUSED');
+    canEdit && UPLOAD_ALLOWED_STATUSES.includes(campaign.status);
+
+  const uploaderHint = UPLOAD_HINT[campaign.status];
 
   return (
     <div className="flex flex-col gap-5">
@@ -43,6 +61,7 @@ export default function CampaignDetailPage() {
           <ChevronLeft size={14} />
           Back to Campaigns
         </Link>
+
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div>
             <div className="flex items-center gap-3">
@@ -67,6 +86,7 @@ export default function CampaignDetailPage() {
               )}
             </div>
           </div>
+
           {canEdit && (
             <CampaignActions
               campaignId={campaign.id}
@@ -79,12 +99,23 @@ export default function CampaignDetailPage() {
       {/* Stats */}
       <CampaignStats campaign={campaign} />
 
-      {/* Upload CSV */}
+      {/* Upload CSV — hidden while RUNNING or FAILED */}
       {showUploader && (
         <Card>
-          <h3 className="text-sm font-semibold text-text-primary mb-4">
-            Upload Leads
-          </h3>
+          <div className="flex items-start justify-between gap-2 mb-4">
+            <h3 className="text-sm font-semibold text-text-primary">
+              Upload Leads
+            </h3>
+          </div>
+
+          {/* Contextual hint banner */}
+          {uploaderHint && (
+            <div className="flex items-start gap-2 rounded-md bg-surface-subtle border border-surface-border p-3 mb-4">
+              <Info size={13} className="text-text-muted shrink-0 mt-0.5" />
+              <p className="text-xs text-text-muted">{uploaderHint}</p>
+            </div>
+          )}
+
           <CSVUploader campaignId={campaign.id} />
         </Card>
       )}
@@ -111,6 +142,7 @@ export default function CampaignDetailPage() {
             </div>
           </Card>
         </Link>
+
         <Link href={`/campaigns/${id}/calls`}>
           <Card className="hover:border-brand-300 hover:shadow-md transition-all cursor-pointer group">
             <div className="flex items-center gap-3">

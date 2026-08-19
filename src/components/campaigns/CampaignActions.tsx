@@ -1,11 +1,11 @@
 // src/components/campaigns/CampaignActions.tsx
 
-'use client';
+"use client";
 
-import { Button } from '@/components/ui/Button';
-import { useStartCampaign, usePauseCampaign } from '@/hooks/useCampaigns';
-import type { CampaignStatus } from '@/types';
-import { Pause, Play } from 'lucide-react';
+import { Button } from "@/components/ui/Button";
+import { useStartCampaign, usePauseCampaign } from "@/hooks/useCampaigns";
+import type { CampaignStatus } from "@/types";
+import { Pause, Play } from "lucide-react";
 
 interface CampaignActionsProps {
   campaignId: string;
@@ -16,7 +16,7 @@ export function CampaignActions({ campaignId, status }: CampaignActionsProps) {
   const { mutate: start, isPending: starting } = useStartCampaign(campaignId);
   const { mutate: pause, isPending: pausing } = usePauseCampaign(campaignId);
 
-  if (status === 'RUNNING') {
+  if (status === "RUNNING") {
     return (
       <Button
         variant="outline"
@@ -29,17 +29,22 @@ export function CampaignActions({ campaignId, status }: CampaignActionsProps) {
     );
   }
 
-  if (status === 'DRAFT' || status === 'PAUSED') {
+  // DRAFT, PAUSED, COMPLETED all show Start — backend filters
+  // PENDING leads so only newly uploaded leads run on COMPLETED re-run
+  if (status === "DRAFT" || status === "PAUSED" || status === "COMPLETED") {
+    const label = status === "PAUSED" ? "Resume Campaign" : "Start Campaign";
+
     return (
       <Button
         leftIcon={<Play size={14} />}
         onClick={() => start()}
         loading={starting}
       >
-        {status === 'PAUSED' ? 'Resume Campaign' : 'Start Campaign'}
+        {label}
       </Button>
     );
   }
 
+  // FAILED — no action available
   return null;
 }
