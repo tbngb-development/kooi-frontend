@@ -6,14 +6,10 @@ import { CallStatusBadge } from "@/components/calls/CallStatusBadge";
 import { TranscriptViewer } from "@/components/calls/TranscriptViewer";
 import { Card } from "@/components/ui/Card";
 import { PageSpinner } from "@/components/ui/Spinner";
-import { useCall, useCallTranscript } from "@/hooks/useCalls";
+import { useCall } from "@/hooks/useCalls";
 import { formatDateTime } from "@/lib/utils/formatDate";
 import { formatDuration } from "@/lib/utils/formatDuration";
-import type {
-  CallAnalysis,
-  Disposition,
-  LeadTemperature,
-} from "@/types";
+import type { CallAnalysis, Disposition, LeadTemperature } from "@/types";
 import {
   ChevronLeft,
   Clock,
@@ -69,7 +65,10 @@ function AnalysisRow({
     <div className="flex items-start justify-between gap-4 py-2 border-b border-surface-border last:border-0">
       <span className="text-xs text-text-muted shrink-0 w-40">{label}</span>
       <span className="text-xs text-text-primary text-right">
-        {value && value !== "NOT_SHARED" && value !== "NOT_ASKED" && value !== "NONE"
+        {value &&
+        value !== "NOT_SHARED" &&
+        value !== "NOT_ASKED" &&
+        value !== "NONE"
           ? value
           : "—"}
       </span>
@@ -128,10 +127,7 @@ function CallAnalysisSection({ analysis }: { analysis: CallAnalysis }) {
           label="Purchase Purpose"
           value={analysis.purchasePurpose}
         />
-        <AnalysisRow
-          label="Location Match"
-          value={analysis.locationMatch}
-        />
+        <AnalysisRow label="Location Match" value={analysis.locationMatch} />
         {analysis.customerLocationPref && (
           <AnalysisRow
             label="Customer Location Pref"
@@ -145,10 +141,7 @@ function CallAnalysisSection({ analysis }: { analysis: CallAnalysis }) {
         <p className="text-xs font-medium text-text-muted uppercase tracking-wide mb-2">
           Next Action
         </p>
-        <AnalysisRow
-          label="Next Action"
-          value={analysis.preferredNextAction}
-        />
+        <AnalysisRow label="Next Action" value={analysis.preferredNextAction} />
         <AnalysisRow
           label="Contact Channel"
           value={analysis.preferredContactChannel}
@@ -180,17 +173,17 @@ export default function CallDetailPage() {
   const id = String(params.id);
 
   const { data: call, isLoading: callLoading } = useCall(id);
-  const { data: transcript, isLoading: transcriptLoading } =
-    useCallTranscript(id);
+  // const { data: transcript, isLoading: transcriptLoading } =
+  //   useCallTranscript(id);
 
   if (callLoading) return <PageSpinner />;
   if (!call) return <p className="text-text-muted text-sm">Call not found.</p>;
 
   // Prefer analysis from call object, fall back to transcript response
-  const analysis = call.callAnalysis ?? transcript?.callAnalysis ?? null;
+  const analysis = call.callAnalysis ?? null;
 
   return (
-    <div className="flex flex-col gap-5 max-w-3xl">
+    <div className="flex flex-col gap-5 max-w-6xl">
       {/* Header */}
       <div>
         <Link
@@ -263,9 +256,7 @@ export default function CallDetailPage() {
           {call.startedAt && (
             <span>Started: {formatDateTime(call.startedAt)}</span>
           )}
-          {call.endedAt && (
-            <span>Ended: {formatDateTime(call.endedAt)}</span>
-          )}
+          {call.endedAt && <span>Ended: {formatDateTime(call.endedAt)}</span>}
         </div>
       </Card>
 
@@ -305,12 +296,10 @@ export default function CallDetailPage() {
             Transcript
           </h3>
         </div>
-        {transcriptLoading ? (
+        {!call.transcript  ? (
           <PageSpinner />
         ) : (
-          <TranscriptViewer
-            messages={transcript?.transcriptMessages ?? []}
-          />
+          <TranscriptViewer rawTranscript={call.transcript} />
         )}
       </Card>
     </div>

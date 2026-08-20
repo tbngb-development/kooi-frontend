@@ -19,25 +19,20 @@ const ACCEPTED_MIME_TYPES = [
 ].join(",");
 const MAX_FILE_SIZE_MB = 10;
 
-function getExtension(filename: string): string {
-  return filename.slice(filename.lastIndexOf(".")).toLowerCase();
-}
-
 function isValidExtension(filename: string): boolean {
-  return (ACCEPTED_EXTENSIONS as readonly string[]).includes(
-    getExtension(filename),
-  );
+  const ext = filename.slice(filename.lastIndexOf(".")).toLowerCase();
+  return (ACCEPTED_EXTENSIONS as readonly string[]).includes(ext);
 }
 
 export function CSVUploader({ campaignId }: CSVUploaderProps) {
   const [dragging, setDragging] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [allowDuplicates, setAllowDuplicates] = useState(false); // 👈 test flag
 
   const inputRef = useRef<HTMLInputElement>(null);
   const { mutate: upload, isPending } = useUploadCSV(campaignId);
 
-  // ── Validation ────────────────────────────────────────────────────────────
   const validateFile = useCallback((file: File): string | null => {
     if (!isValidExtension(file.name)) {
       return "Only .csv, .xls, or .xlsx files are accepted";
@@ -48,7 +43,6 @@ export function CSVUploader({ campaignId }: CSVUploaderProps) {
     return null;
   }, []);
 
-  // ── Auto-upload on valid file selection ───────────────────────────────────
   const handleFile = useCallback(
     (file: File) => {
       setValidationError(null);
@@ -60,25 +54,24 @@ export function CSVUploader({ campaignId }: CSVUploaderProps) {
         return;
       }
 
-      // Show file immediately so user has visual feedback before upload fires
       setSelectedFile(file);
 
-      upload(file, {
-        onSuccess: () => {
-          setSelectedFile(null);
+      // 👈 pass allowDuplicates captured from state at call time
+      upload(
+        { file, allowDuplicates },
+        {
+          onSuccess: () => setSelectedFile(null),
+          onError: (err: Error) => {
+            setValidationError(
+              err?.message ?? "Upload failed. Please try again.",
+            );
+          },
         },
-        onError: (err: Error) => {
-          // Keep file shown so user can retry context is clear
-          setValidationError(
-            err?.message ?? "Upload failed. Please try again.",
-          );
-        },
-      });
+      );
     },
-    [validateFile, upload],
+    [validateFile, upload, allowDuplicates],
   );
 
-  // ── Drag handlers ─────────────────────────────────────────────────────────
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -102,12 +95,10 @@ export function CSVUploader({ campaignId }: CSVUploaderProps) {
     [handleFile],
   );
 
-  // ── Input handlers ────────────────────────────────────────────────────────
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       if (file) handleFile(file);
-      // Reset so same file can be re-selected after error
       e.target.value = "";
     },
     [handleFile],
@@ -125,7 +116,6 @@ export function CSVUploader({ campaignId }: CSVUploaderProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Hidden file input */}
       <input
         ref={inputRef}
         type="file"
@@ -136,7 +126,7 @@ export function CSVUploader({ campaignId }: CSVUploaderProps) {
         disabled={isPending}
       />
 
-      {/* Drop zone — disabled while uploading */}
+      {/* Drop zone */}
       <div
         role="button"
         tabIndex={isPending ? -1 : 0}
@@ -156,25 +146,16 @@ export function CSVUploader({ campaignId }: CSVUploaderProps) {
         className={cn(
           "border-2 border-dashed rounded-lg p-8 text-center",
           "transition-colors select-none",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500",
           isPending
             ? "border-surface-border bg-surface-subtle cursor-not-allowed opacity-60"
             : dragging
               ? "border-brand-500 bg-brand-50 cursor-copy"
               : "border-surface-border hover:border-brand-300 hover:bg-brand-50/50 cursor-pointer",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500",
         )}
       >
         <div className="flex flex-col items-center gap-2 pointer-events-none">
-          <div
-            className={cn(
-              "flex h-12 w-12 items-center justify-center rounded-full transition-colors",
-              isPending
-                ? "bg-brand-100"
-                : dragging
-                  ? "bg-brand-200"
-                  : "bg-brand-100",
-            )}
-          >
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-100">
             {isPending ? (
               <Loader2 size={20} className="text-brand-600 animate-spin" />
             ) : (
@@ -187,7 +168,6 @@ export function CSVUploader({ campaignId }: CSVUploaderProps) {
               />
             )}
           </div>
-
           <div>
             {isPending ? (
               <>
@@ -213,7 +193,7 @@ export function CSVUploader({ campaignId }: CSVUploaderProps) {
         </div>
       </div>
 
-      {/* Validation / upload error */}
+      {/* Validation error */}
       {validationError && (
         <div className="flex items-start gap-2 rounded-md bg-error-50 border border-error-100 p-3">
           <AlertCircle size={14} className="text-error-500 shrink-0 mt-0.5" />
@@ -238,7 +218,20 @@ export function CSVUploader({ campaignId }: CSVUploaderProps) {
         </p>
       </div>
 
-      {/* Selected file indicator — shown while upload is in-flight */}
+      <label className="inline-flex items-center gap-2 cursor-pointer w-fit">
+        <input
+          type="checkbox"
+          checked={allowDuplicates}
+          onChange={(e) => setAllowDuplicates(e.target.checked)}
+          disabled={isPending}
+          className="h-3.5 w-3.5 rounded border-surface-border accent-brand-600"
+        />
+        <span className="text-xs text-text-muted">
+          Allow duplicate contacts
+        </span>
+      </label>
+
+      {/* File indicator */}
       {selectedFile && (
         <div className="flex items-center justify-between rounded-md border border-surface-border bg-surface-subtle p-3">
           <div className="flex items-center gap-2 min-w-0">
@@ -252,22 +245,15 @@ export function CSVUploader({ campaignId }: CSVUploaderProps) {
               </p>
             </div>
           </div>
-
-          {/* Only show remove if upload errored (isPending = false but file still shown) */}
-          {!isPending && (
+          {!isPending ? (
             <button
               onClick={handleRemove}
               aria-label="Remove selected file"
-              className={cn(
-                "flex h-7 w-7 items-center justify-center rounded ml-2",
-                "text-text-muted hover:bg-surface-hover",
-              )}
+              className="flex h-7 w-7 items-center justify-center rounded ml-2 text-text-muted hover:bg-surface-hover"
             >
               <X size={14} />
             </button>
-          )}
-
-          {isPending && (
+          ) : (
             <Loader2
               size={14}
               className="text-brand-600 animate-spin shrink-0 ml-2"
