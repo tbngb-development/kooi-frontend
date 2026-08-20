@@ -23,10 +23,10 @@ export function useCall(id: string) {
   });
 }
 
-export function useCallTranscript(id: string) {
-  return useQuery({
-    queryKey: [...CALLS_KEY, id, 'transcript'],
-    queryFn: () => callsApi.getTranscript(id),
-    enabled: Boolean(id),
-  });
-}
+// export function useCallTranscript(id: string) {
+//   return useQuery({
+//     queryKey: [...CALLS_KEY, id, 'transcript'],
+//     queryFn: () => callsApi.getTranscript(id),
+//     enabled: Boolean(id),
+//   });
+// }

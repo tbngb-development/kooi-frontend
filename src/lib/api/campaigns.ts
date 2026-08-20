@@ -58,20 +58,26 @@ export const campaignsApi = {
     return res.data.data;
   },
 
-  uploadCSV: async (id: string, file: File): Promise<UploadResult> => {
+  uploadCSV: async (
+    id: string,
+    file: File,
+    allowDuplicates = false, // 👈 new param
+  ): Promise<UploadResult> => {
     const formData = new FormData();
     formData.append("file", file);
-    const res = await apiClient.post<ApiResponse<UploadResult>>(
-      `/api/campaigns/${id}/upload`,
-      formData,
-      { headers: { "Content-Type": "multipart/form-data" } },
-    );
+
+    const url = allowDuplicates
+      ? `/api/campaigns/${id}/upload?allowDuplicates=true`
+      : `/api/campaigns/${id}/upload`;
+
+    const res = await apiClient.post<ApiResponse<UploadResult>>(url, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
     if (!res.data.success || !res.data.data) {
       throw new Error(res.data.error ?? "Failed to upload file");
     }
     return res.data.data;
   },
-
   // Returns StartCampaignResult — not Campaign — matches backend response shape
   start: async (id: string): Promise<StartCampaignResult> => {
     const res = await apiClient.post<ApiResponse<StartCampaignResult>>(
@@ -103,4 +109,3 @@ export const campaignsApi = {
     return res.data.data;
   },
 };
-  
