@@ -8,16 +8,19 @@ import type {
   CreateCampaignInput,
   UpdateCampaignInput,
   UploadResult,
+  ParseLeadsResult,
 } from "@/types";
 
-// Shape returned by POST /campaigns/:id/start
 interface StartCampaignResult {
   message: string;
   totalLeads: number;
   variableKeys: string[];
+  scheduledAt: string | null; // ← NEW
 }
 
 export const campaignsApi = {
+  // ... Keep getAll, getById, create, update, uploadCSV exactly identical ...
+
   getAll: async (): Promise<Campaign[]> => {
     const res = await apiClient.get<ApiResponse<Campaign[]>>("/api/campaigns");
     if (!res.data.success || !res.data.data) {
@@ -58,10 +61,25 @@ export const campaignsApi = {
     return res.data.data;
   },
 
+  parseCSV: async (id: string, file: File): Promise<ParseLeadsResult> => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await apiClient.post<ApiResponse<ParseLeadsResult>>(
+      `/api/campaigns/${id}/parse-leads`,
+      formData,
+      { headers: { "Content-Type": "multipart/form-data" } },
+    );
+    if (!res.data.success || !res.data.data) {
+      throw new Error(res.data.error ?? "Failed to parse file");
+    }
+    return res.data.data;
+  },
+
   uploadCSV: async (
     id: string,
     file: File,
-    allowDuplicates = false, // 👈 new param
+    allowDuplicates = false,
   ): Promise<UploadResult> => {
     const formData = new FormData();
     formData.append("file", file);
@@ -78,10 +96,15 @@ export const campaignsApi = {
     }
     return res.data.data;
   },
-  // Returns StartCampaignResult — not Campaign — matches backend response shape
-  start: async (id: string): Promise<StartCampaignResult> => {
+
+  // ── UPDATED: Accepts optional scheduledAt in request body ──
+  start: async (
+    id: string,
+    scheduledAt?: string,
+  ): Promise<StartCampaignResult> => {
     const res = await apiClient.post<ApiResponse<StartCampaignResult>>(
       `/api/campaigns/${id}/start`,
+      { scheduledAt },
     );
     if (!res.data.success || !res.data.data) {
       throw new Error(res.data.error ?? "Failed to start campaign");
@@ -95,6 +118,17 @@ export const campaignsApi = {
     );
     if (!res.data.success || !res.data.data) {
       throw new Error(res.data.error ?? "Failed to pause campaign");
+    }
+    return res.data.data;
+  },
+
+  // ── NEW: Cancel scheduled campaign ──
+  cancelSchedule: async (id: string): Promise<Campaign> => {
+    const res = await apiClient.post<ApiResponse<Campaign>>(
+      `/api/campaigns/${id}/cancel-schedule`,
+    );
+    if (!res.data.success || !res.data.data) {
+      throw new Error(res.data.error ?? "Failed to cancel scheduled campaign");
     }
     return res.data.data;
   },
