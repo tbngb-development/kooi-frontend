@@ -406,20 +406,18 @@ export function UploadLeadsModal({
           )}
 
           {/* ── Dev-only: allow duplicates toggle ─────────────────────── */}
-          {process.env.NODE_ENV !== "production" && (
-            <label className="inline-flex items-center gap-2 cursor-pointer w-fit">
-              <input
-                type="checkbox"
-                checked={allowDuplicates}
-                onChange={(e) => setAllowDuplicates(e.target.checked)}
-                disabled={uploading}
-                className="h-3.5 w-3.5 rounded border-surface-border accent-brand-600"
-              />
-              <span className="text-xs text-text-muted">
-                 Allow duplicate contacts (Dev)
-              </span>
-            </label>
-          )}
+          <label className="inline-flex items-center gap-2 cursor-pointer w-fit">
+            <input
+              type="checkbox"
+              checked={allowDuplicates}
+              onChange={(e) => setAllowDuplicates(e.target.checked)}
+              disabled={uploading}
+              className="h-3.5 w-3.5 rounded border-surface-border accent-brand-600"
+            />
+            <span className="text-xs text-text-muted">
+              Allow duplicate contacts (Dev)
+            </span>
+          </label>
 
           {/* ── Actions ────────────────────────────────────────────────── */}
           <div className="flex items-center justify-between gap-2.5 pt-1">
