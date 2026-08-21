@@ -5,6 +5,7 @@ export type UserRole = "SUPER_ADMIN" | "ADMIN" | "USER";
 export type CampaignStatus =
   | "DRAFT"
   | "RUNNING"
+  | "SCHEDULED"
   | "PAUSED"
   | "COMPLETED"
   | "FAILED";
@@ -212,6 +213,7 @@ export interface Campaign {
   calledLeads: number;
   successLeads: number;
   failedLeads: number;
+  scheduledAt?: string;
   startedAt?: string;
   completedAt?: string;
   createdAt: string;

@@ -1,6 +1,7 @@
 ## `AGENT.md`
 
 # AGENT.md — AI Lead Qualification System
+
 # Full System Reference for AI Agents
 
 > Last updated: August 2026
@@ -34,6 +35,7 @@ and sends it back via webhook. The system stores this as `CallAnalysis` and surf
 it on the frontend for business review.
 
 ### Core Flow
+
 ```
 
 CSV Upload → Campaign Start → Bolna Outbound Call → Webhook → CallAnalysis Saved → Dashboard
@@ -41,6 +43,7 @@ CSV Upload → Campaign Start → Bolna Outbound Call → Webhook → CallAnalys
 ```
 
 ### Multi-tenancy
+
 Every DB record has `tenantId`. All queries are scoped to `req.user.tenantId`.
 No cross-tenant data leakage is possible through the API layer.
 
@@ -238,29 +241,31 @@ frontend/src/
 ## 3. Technology Stack
 
 ### Backend
-| Layer | Technology |
-|---|---|
-| Runtime | Node.js + TypeScript |
-| Framework | Express.js |
-| ORM | Prisma v6.19.3 |
-| Database | PostgreSQL |
-| Auth | JWT (jsonwebtoken) + bcryptjs |
-| File Upload | Multer |
-| Voice AI | Bolna API |
-| PDF Parsing | Custom pdfExtractor utility |
+
+| Layer       | Technology                    |
+| ----------- | ----------------------------- |
+| Runtime     | Node.js + TypeScript          |
+| Framework   | Express.js                    |
+| ORM         | Prisma v6.19.3                |
+| Database    | PostgreSQL                    |
+| Auth        | JWT (jsonwebtoken) + bcryptjs |
+| File Upload | Multer                        |
+| Voice AI    | Bolna API                     |
+| PDF Parsing | Custom pdfExtractor utility   |
 
 ### Frontend
-| Layer | Technology |
-|---|---|
-| Framework | Next.js 16 (App Router) |
-| Language | TypeScript |
-| State | Zustand (auth) + TanStack Query v5 (server state) |
-| Forms | React Hook Form + Zod |
-| HTTP | Axios |
-| Styling | Tailwind CSS v4 |
-| Charts | Recharts |
-| Toast | Sonner |
-| Icons | Lucide React |
+
+| Layer     | Technology                                        |
+| --------- | ------------------------------------------------- |
+| Framework | Next.js 16 (App Router)                           |
+| Language  | TypeScript                                        |
+| State     | Zustand (auth) + TanStack Query v5 (server state) |
+| Forms     | React Hook Form + Zod                             |
+| HTTP      | Axios                                             |
+| Styling   | Tailwind CSS v4                                   |
+| Charts    | Recharts                                          |
+| Toast     | Sonner                                            |
+| Icons     | Lucide React                                      |
 
 ---
 
@@ -284,6 +289,7 @@ Tenant
 ```
 
 ### Model: Tenant
+
 ```prisma
 model Tenant {
   id        String   @id @default(uuid())
@@ -297,6 +303,7 @@ model Tenant {
 ```
 
 ### Model: User
+
 ```prisma
 model User {
   id        String   @id @default(uuid())
@@ -311,6 +318,7 @@ model User {
 ```
 
 ### Model: Campaign
+
 ```prisma
 model Campaign {
   id           String         @id @default(uuid())
@@ -320,17 +328,21 @@ model Campaign {
   tenantId     String
   assistantId  String
   brochureId   String?
-  variables    Json?           // campaign-level prompt variables
+  variables    Json?
   totalLeads   Int            @default(0)
   calledLeads  Int            @default(0)
-  successLeads Int            @default(0)  // not auto-incremented — manual in V1
+  successLeads Int            @default(0)
   failedLeads  Int            @default(0)
+  scheduledAt  DateTime?      // ← Added: Timestamp indicating when the campaign is scheduled to run
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
   startedAt    DateTime?
   completedAt  DateTime?
 }
 ```
 
 ### Model: Lead
+
 ```prisma
 model Lead {
   id         String     @id @default(uuid())
@@ -349,6 +361,7 @@ model Lead {
 ```
 
 ### Model: Call
+
 ```prisma
 model Call {
   id                 String     @id @default(uuid())
@@ -366,9 +379,11 @@ model Call {
   endedAt            DateTime?
 }
 ```
+
 > ⚠️ `outcome` field was REMOVED. Outcome lives in `CallAnalysis.disposition` only.
 
 ### Model: CallAnalysis
+
 ```prisma
 model CallAnalysis {
   id       String @id @default(uuid())
@@ -399,11 +414,13 @@ model CallAnalysis {
 ```
 
 ### Model: Brochure
+
 Stores AI-extracted property data from PDF upload. Linked optionally to campaigns.
 Key fields: `projectName`, `city`, `area`, `configurations[]`, `startingPrice`,
 `amenities[]`, `isConfirmed` (must be true before campaign can use it).
 
 ### Model: Assistant
+
 ```prisma
 model Assistant {
   id      String @id @default(uuid())
@@ -418,6 +435,7 @@ model Assistant {
 ## 5. Backend Architecture
 
 ### Route Registration (index.ts)
+
 ```
 /api/auth          → auth.routes.ts
 /api/campaigns     → campaign.routes.ts
@@ -431,12 +449,14 @@ model Assistant {
 ```
 
 ### Auth Middleware (`src/middleware/auth.ts`)
+
 - Reads `Authorization: Bearer <token>` header
 - Verifies JWT
 - Attaches `req.user` with `{ id, tenantId, role }`
 - All protected routes use `router.use(authenticate)`
 
 ### Important Route Order Rule
+
 ```typescript
 // ALWAYS register /stats before /:id
 // Otherwise Express matches "stats" as an :id param
@@ -444,9 +464,11 @@ router.get("/stats", getStats);
 router.get("/", list);
 router.get("/:id", get);
 ```
+
 This applies to both `call.routes.ts` and `lead.routes.ts`.
 
 ### Campaign Processing (`campaign.service.ts`)
+
 ```
 start()
   → find PENDING leads where doNotCall = false
@@ -462,6 +484,7 @@ start()
 > batched concurrent dispatch in MVP. Full async queue deferred to V1.
 
 ### Webhook Handler (`webhook.handler.ts`)
+
 Handles all Bolna call lifecycle events:
 
 ```
@@ -476,6 +499,7 @@ failed/error      → Call.status = FAILED, Lead.status = FAILED
 ```
 
 #### handleCallCompleted() flow:
+
 ```
 1. Find Call by bolnaCallId
 2. Normalize transcript messages
@@ -491,20 +515,23 @@ failed/error      → Call.status = FAILED, Lead.status = FAILED
 ```
 
 #### Enum Sanitization (critical)
+
 ```typescript
 // All enum fields from Bolna AI are sanitized before Prisma insert
 // Bolna can return unexpected values like "NOT_MENTIONED" for locationMatch
 // sanitizeEnum() maps unknowns to null — CallAnalysis still saves with other valid fields
 function sanitizeEnum<T extends string>(
   value: string | null | undefined,
-  allowed: readonly T[]
-): T | null
+  allowed: readonly T[],
+): T | null;
 ```
 
 ### Call.summary Source
+
 ```
 Call.summary ← extracted_data.Summary.call_summary.subjective
 ```
+
 Bolna's raw `payload.summary` string is DISCARDED. Only extraction data is used.
 
 ---
@@ -512,6 +539,7 @@ Bolna's raw `payload.summary` string is DISCARDED. Only extraction data is used.
 ## 6. Frontend Architecture
 
 ### Auth Flow
+
 - `authStore.ts` (Zustand) — stores `user`, `token`, `tenant`
 - `lib/axios.ts` — Axios instance attaches `Bearer token` from store on every request
 - Protected routes check store on layout level
@@ -519,13 +547,16 @@ Bolna's raw `payload.summary` string is DISCARDED. Only extraction data is used.
 - `(admin-auth)/` layout — for SUPER_ADMIN login
 
 ### Data Fetching Pattern
+
 ```
 Page → useHook() → lib/api/*.ts → Axios → Backend API
 ```
+
 All server state managed by TanStack Query v5.
 All mutations show toast via Sonner on success/error.
 
 ### Query Key Conventions
+
 ```typescript
 CAMPAIGNS_KEY = ['campaigns']
 CALLS_KEY     = ['calls']
@@ -540,31 +571,36 @@ DASHBOARD_KEY = ['dashboard']
 ```
 
 ### Types (`src/types/index.ts`)
+
 Single source of truth for ALL frontend types.
 Never import from generated Prisma types on frontend.
 
 Key interfaces:
+
 ```typescript
-CallAnalysis      // mirrors DB model — all 13 extraction fields
-Call              // includes callAnalysis?: CallAnalysis | null
-Lead              // includes doNotCall: boolean
-UploadResult      // total, valid, imported, duplicates, invalid, duplicateNumbers[]
-CallStats         // total, completed, failed, noAnswer, busy, avgDuration, dispositionBreakdown, temperatureBreakdown
-LeadStats         // total, pending, calling, called, failed, noAnswer, doNotCall, qualified, qualificationRate
-DashboardActivity // recentCalls[], qualifiedLeads[], recentCampaigns[]
-DashboardOverview // qualificationRate and successRate are STRING ("45.2%") not number
+CallAnalysis; // mirrors DB model — all 13 extraction fields
+Call; // includes callAnalysis?: CallAnalysis | null
+Lead; // includes doNotCall: boolean
+UploadResult; // total, valid, imported, duplicates, invalid, duplicateNumbers[]
+CallStats; // total, completed, failed, noAnswer, busy, avgDuration, dispositionBreakdown, temperatureBreakdown
+LeadStats; // total, pending, calling, called, failed, noAnswer, doNotCall, qualified, qualificationRate
+DashboardActivity; // recentCalls[], qualifiedLeads[], recentCampaigns[]
+DashboardOverview; // qualificationRate and successRate are STRING ("45.2%") not number
 ```
 
 > ⚠️ `DashboardOverview.leads.qualificationRate` and `calls.successRate` are strings.
 > Always use `parseFloat()` before numeric comparisons.
 
 ### FilterBar Component (`src/components/ui/FilterBar.tsx`)
+
 Three exported components:
+
 ```typescript
 <FilterBar hasActiveFilters onReset>   // wrapper with reset button
 <FilterSelect label value onChange options />  // single filter dropdown
 <SortSelect sortBy sortOrder onSortByChange onSortOrderChange options /> // sort controls
 ```
+
 Used on: `campaigns/[id]/calls`, `campaigns/[id]/leads`
 
 ---
@@ -572,6 +608,7 @@ Used on: `campaigns/[id]/calls`, `campaigns/[id]/leads`
 ## 7. Data Flow
 
 ### Campaign Creation
+
 ```
 1. User fills CampaignDetailsStep (name, description, assistantId)
 2. Assistant selected → fetch assistant variables from Bolna prompt
@@ -584,6 +621,7 @@ Used on: `campaigns/[id]/calls`, `campaigns/[id]/leads`
 ```
 
 ### Lead Upload
+
 ```
 1. CSVUploader → POST /api/campaigns/:id/upload (multipart/form-data)
 2. Backend:
@@ -601,6 +639,7 @@ Used on: `campaigns/[id]/calls`, `campaigns/[id]/leads`
 ```
 
 ### Call Lifecycle
+
 ```
 makeCall()
   → Lead.status = CALLING
@@ -619,6 +658,7 @@ Webhook: failed          → FAILED
 ```
 
 ### Bolna Extraction → CallAnalysis
+
 ```
 payload.extracted_data structure:
 {
@@ -661,6 +701,7 @@ Parsing rules:
 ## 8. API Reference
 
 ### Auth
+
 ```
 POST /api/auth/register    { tenantName, email, password, name }
 POST /api/auth/login       { email, password }
@@ -668,6 +709,7 @@ GET  /api/auth/profile     (authenticated)
 ```
 
 ### Campaigns
+
 ```
 GET    /api/campaigns
 POST   /api/campaigns          { name, description, assistantId, brochureId?, variables? }
@@ -677,9 +719,12 @@ POST   /api/campaigns/:id/upload    (multipart — CSV/XLS/XLSX file)
 POST   /api/campaigns/:id/start
 POST   /api/campaigns/:id/pause
 GET    /api/campaigns/:id/stats
+POST   /api/campaigns/:id/start          { scheduledAt?: string }  // Accepts optional ISO-8601 string to schedule
+POST   /api/campaigns/:id/cancel-schedule (resets scheduled campaign back to DRAFT, resets leads to PENDING)
 ```
 
 ### Calls
+
 ```
 GET  /api/calls/stats          ?campaignId=&leadId=
 GET  /api/calls                ?campaignId=&leadId=&status=&disposition=&leadTemperature=&dateFrom=&dateTo=&sortBy=&sortOrder=&page=&limit=
@@ -688,6 +733,7 @@ GET  /api/calls/:id/transcript
 ```
 
 ### Leads
+
 ```
 GET  /api/leads/stats          ?campaignId=
 GET  /api/leads                ?campaignId=&status=&doNotCall=&dateFrom=&dateTo=&sortBy=&sortOrder=&page=&limit=
@@ -695,6 +741,7 @@ GET  /api/leads/:id
 ```
 
 ### Dashboard
+
 ```
 GET  /api/dashboard/overview
 GET  /api/dashboard/activity
@@ -702,6 +749,7 @@ GET  /api/dashboard/campaigns
 ```
 
 ### Assistants
+
 ```
 GET   /api/assistants
 POST  /api/assistants
@@ -710,6 +758,7 @@ PATCH /api/assistants/:id
 ```
 
 ### Brochures
+
 ```
 POST /api/brochures/extract    (multipart — PDF)
 POST /api/brochures/save
@@ -719,6 +768,7 @@ POST /api/brochures/:id/confirm
 ```
 
 ### Webhooks
+
 ```
 POST /webhooks/bolna    (no auth — Bolna posts here on call events)
 ```
@@ -728,12 +778,14 @@ POST /webhooks/bolna    (no auth — Bolna posts here on call events)
 ## 9. Key Business Rules
 
 ### Lead Deduplication
+
 - `@@unique([phone, campaignId])` in schema
 - Backend checks existing phones before insert
 - `createMany({ skipDuplicates: true })` as race condition safety net
 - Frontend shows duplicate report after upload
 
 ### Do Not Call
+
 - If `extracted_data.Compliance.do_not_call.objective === "YES"`:
   - `Lead.doNotCall = true`
   - Campaign start skips leads where `doNotCall = true`
@@ -741,20 +793,34 @@ POST /webhooks/bolna    (no auth — Bolna posts here on call events)
 - Displayed as "Do Not Call" badge on lead detail page
 
 ### Campaign Upload Rules
+
 - Allowed statuses for upload: DRAFT, RUNNING, PAUSED, COMPLETED
 - Blocked status: FAILED only
 - Upload to COMPLETED campaign = add more leads for future re-run
 
+### Campaign Scheduling (Bolna Queue-Based)
+
+- Users can schedule campaigns using "Schedule for Later" with an ISO 8601 timestamp (`scheduledAt`).
+- This initiates a non-blocking `processLeads()` dispatch instantly but passes `scheduled_at` to the Bolna API payload.
+- Bolna queues calls and fires them at the designated time.
+- During scheduled dispatch, Campaign status is `SCHEDULED`.
+- The first Bolna webhook trigger (`queued` / `initiated`) transitions the campaign status to `RUNNING`.
+- Canceling a scheduled campaign (`POST /cancel-schedule`) resets all leads with `CALLING` status back to `PENDING`, deletes `CALLING` call records, and resets campaign status to `DRAFT`.
+
 ### Brochure Confirmation
+
 - Brochure must have `isConfirmed = true` before it can be linked to a campaign
 - Campaign creation validates this on backend
 
 ### Call Summary Source
+
 - `Call.summary` = `extracted_data.Summary.call_summary.subjective`
 - Bolna's own `payload.summary` string is ignored entirely
 
 ### Qualification Definition
+
 Qualifying dispositions (used across dashboard + stats):
+
 ```
 QUALIFIED_CONSULTANT_FOLLOWUP
 SITE_VISIT_INTEREST
@@ -763,6 +829,7 @@ INTERESTED_GENERAL
 ```
 
 Disqualifying dispositions:
+
 ```
 NOT_INTERESTED
 DO_NOT_CALL
@@ -773,6 +840,7 @@ CALL_ENDED_ABUSIVE
 ```
 
 ### Campaign Counter Behaviour
+
 - `calledLeads` — incremented on every completed call
 - `failedLeads` — incremented on FAILED calls
 - `successLeads` — NOT auto-incremented (deferred to V1)
@@ -783,6 +851,7 @@ CALL_ENDED_ABUSIVE
 ## 10. Enums Reference
 
 ### Disposition (CallAnalysis)
+
 ```
 INTERESTED_SEND_DETAILS        Customer agreed to receive details
 QUALIFIED_CONSULTANT_FOLLOWUP  Customer agreed to consultant callback
@@ -802,6 +871,7 @@ CALL_DROPPED                   Call disconnected unexpectedly
 ```
 
 ### LeadTemperature
+
 ```
 HOT            Site visit, booking, buying within 3 months
 WARM           Interested, agreed to callback, shared requirements
@@ -811,6 +881,7 @@ NOT_APPLICABLE Wrong number, broker, dropped, no conversation
 ```
 
 ### LeadStatus
+
 ```
 PENDING        Not yet called
 CALLING        Call in progress
@@ -822,6 +893,7 @@ FAILED         Call or system failure
 ```
 
 ### CallStatus
+
 ```
 PENDING    Not yet initiated
 CALLING    In progress
@@ -832,6 +904,7 @@ BUSY       Line was busy
 ```
 
 ### LocationMatch
+
 ```
 MATCH          Customer's preferred location matches project
 MISMATCH       Location mismatch
@@ -840,33 +913,39 @@ NOT_MENTIONED  AI returned this — valid enum value
 ```
 
 ### PurchaseTimeline
+
 ```
 WITHIN_3_MONTHS / WITHIN_6_MONTHS / WITHIN_1_YEAR / AFTER_1_YEAR / FLEXIBLE / NOT_SHARED
 ```
 
 ### PurchasePurpose
+
 ```
 OWN_USE / INVESTMENT / BOTH / NOT_SHARED
 ```
 
 ### PreferredNextAction
+
 ```
 SEND_DETAILS / CONSULTANT_CALL / SITE_VISIT / FOLLOWUP_CALL / NONE
 ```
 
 ### ContactChannel
+
 ```
 WHATSAPP / EMAIL / NOT_ASKED
 ```
 
 ### ExtractionFlag
+
 ```
 YES / NO
 ```
 
 ### CampaignStatus
+
 ```
-DRAFT / RUNNING / PAUSED / COMPLETED / FAILED
+DRAFT / SCHEDULED / RUNNING / PAUSED / COMPLETED / FAILED
 ```
 
 ---
@@ -874,6 +953,7 @@ DRAFT / RUNNING / PAUSED / COMPLETED / FAILED
 ## 11. Environment Variables
 
 ### Backend (`express-backend/.env`)
+
 ```
 DATABASE_URL=postgresql://user:password@localhost:5432/voice-agent-mvp
 JWT_SECRET=your-secret-key-min-32-chars
@@ -882,6 +962,7 @@ BOLNA_API_URL=https://api.bolna.ai
 ```
 
 ### Frontend (`frontend/.env.local`)
+
 ```
 NEXT_PUBLIC_API_URL=http://localhost:3001
 ```
@@ -891,6 +972,7 @@ NEXT_PUBLIC_API_URL=http://localhost:3001
 ## 12. Known Patterns
 
 ### Adding a new backend endpoint
+
 1. Add method to `*.service.ts`
 2. Add handler to `*.controller.ts`
 3. Register route in `*.routes.ts`
@@ -898,12 +980,14 @@ NEXT_PUBLIC_API_URL=http://localhost:3001
 4. Add type to `src/types/bolna.types.ts` or backend types if needed
 
 ### Adding a new frontend API call
+
 1. Add function to `src/lib/api/*.ts`
 2. Add hook to `src/hooks/use*.ts`
 3. Add type to `src/types/index.ts`
 4. Use hook in page/component
 
 ### Adding a new extraction field from Bolna
+
 1. Add to `BolnaExtractedData` interface in `bolna.types.ts`
 2. Add to `ParsedCallAnalysis` interface in `bolna.types.ts`
 3. Add field to `CallAnalysis` model in `schema.prisma`
@@ -914,6 +998,7 @@ NEXT_PUBLIC_API_URL=http://localhost:3001
 8. Display in `calls/[id]/page.tsx` CallAnalysisSection
 
 ### Prisma schema change checklist
+
 ```
 1. Edit prisma/schema.prisma
 2. npx prisma migrate dev --name description_of_change
@@ -925,7 +1010,9 @@ NEXT_PUBLIC_API_URL=http://localhost:3001
 > The DLL file is locked by Node.js and cannot be overwritten while running.
 
 ### V1 Migration Notes
+
 The following are intentionally deferred to V1:
+
 - SUPER_ADMIN with nullable tenantId
 - Email verification flow
 - Webhook signature verification (security)
@@ -936,6 +1023,7 @@ The following are intentionally deferred to V1:
 - Rate limiting on API routes
 - `successLeads` counter driven by disposition
 - BullMQ — not needed (Bolna handles concurrency)
+
 ```
 
 ---
@@ -948,5 +1036,6 @@ This file covers every layer of the system. Any AI agent reading this can:
 - Avoid known pitfalls (route order, Windows EPERM, string rates, etc.)
 
 
-i want to to update my frontend system to add re-run campign by uploading more leads after even after campaign status updated or already completed 
+i want to to update my frontend system to add re-run campign by uploading more leads after even after campaign status updated or already completed
 ask my clarification question or if you need any files from backend or frontend to understand api data flow type to update current system
+```

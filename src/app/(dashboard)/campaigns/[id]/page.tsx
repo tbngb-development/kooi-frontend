@@ -1,33 +1,40 @@
 // src/app/(dashboard)/campaigns/[id]/page.tsx
 
-'use client';
+"use client";
 
-import { CampaignStats } from '@/components/campaigns/CampaignStats';
-import { CampaignActions } from '@/components/campaigns/CampaignActions';
-import { CampaignStatusBadge } from '@/components/campaigns/CampaignStatusBadge';
-import { CSVUploader } from '@/components/campaigns/CSVUploader';
-import { Card } from '@/components/ui/Card';
-import { PageSpinner } from '@/components/ui/Spinner';
-import { useCampaign } from '@/hooks/useCampaigns';
-import { formatDate } from '@/lib/utils/formatDate';
-import { Bot, ChevronLeft, Info, Phone, Users } from 'lucide-react';
-import Link from 'next/link';
-import { useParams } from 'next/navigation';
-import { useAuthStore } from '@/store/authStore';
-import type { CampaignStatus } from '@/types';
+import { CampaignStats } from "@/components/campaigns/CampaignStats";
+import { CampaignActions } from "@/components/campaigns/CampaignActions";
+import { CampaignStatusBadge } from "@/components/campaigns/CampaignStatusBadge";
+import { CSVUploader } from "@/components/campaigns/CSVUploader";
+import { Card } from "@/components/ui/Card";
+import { PageSpinner } from "@/components/ui/Spinner";
+import { useCampaign } from "@/hooks/useCampaigns";
+import { formatDate } from "@/lib/utils/formatDate";
+import {
+  Bot,
+  ChevronLeft,
+  Info,
+  Phone,
+  Users,
+  CalendarDays,
+} from "lucide-react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useAuthStore } from "@/store/authStore";
+import type { CampaignStatus } from "@/types";
 
 // Statuses where uploading new leads is allowed
 const UPLOAD_ALLOWED_STATUSES: CampaignStatus[] = [
-  'DRAFT',
-  'PAUSED',
-  'COMPLETED',
+  "DRAFT",
+  "PAUSED",
+  "COMPLETED",
 ];
 
 // Contextual hint copy per status shown above the uploader
 const UPLOAD_HINT: Partial<Record<CampaignStatus, string>> = {
-  DRAFT: 'Upload leads to get this campaign ready to start.',
+  DRAFT: "Upload leads to get this campaign ready to start.",
   PAUSED:
-    'Campaign is paused. Any leads you upload will be called when you resume.',
+    "Campaign is paused. Any leads you upload will be called when you resume.",
   COMPLETED:
     'Campaign finished. Upload new leads and click "Start Campaign" to run another batch.',
 };
@@ -36,9 +43,9 @@ export default function CampaignDetailPage() {
   const params = useParams();
   const id = String(params.id);
   const { user } = useAuthStore();
-  const canEdit = user?.role !== 'USER';
+  const canEdit = user?.role !== "USER";
 
-  // Poll every 5s while RUNNING so stats + status stay live
+  // Poll every 5s while RUNNING or SCHEDULED so stats + status stay live
   const { data: campaign, isLoading } = useCampaign(id, true);
 
   if (isLoading) return <PageSpinner />;
@@ -75,14 +82,28 @@ export default function CampaignDetailPage() {
                 {campaign.description}
               </p>
             )}
-            <div className="flex items-center gap-4 mt-2 text-xs text-text-muted">
-              <span className="flex items-center gap-1">
-                <Bot size={12} />
-                {campaign.assistant.name}
-              </span>
-              <span>Created {formatDate(campaign.createdAt)}</span>
-              {campaign.startedAt && (
-                <span>Started {formatDate(campaign.startedAt)}</span>
+
+            {/* Header Meta Rows */}
+            <div className="flex flex-col gap-1.5 mt-2.5">
+              <div className="flex items-center gap-4 text-xs text-text-muted">
+                <span className="flex items-center gap-1">
+                  <Bot size={12} />
+                  {campaign.assistant.name}
+                </span>
+                <span>Created {formatDate(campaign.createdAt)}</span>
+                {campaign.startedAt && (
+                  <span>Started {formatDate(campaign.startedAt)}</span>
+                )}
+              </div>
+
+              {/* SCHEDULED: Display campaign scheduling details */}
+              {campaign.status === "SCHEDULED" && campaign.scheduledAt && (
+                <div className="flex items-center gap-1.5 text-xs text-brand-600 font-medium">
+                  <CalendarDays size={13} />
+                  <span>
+                    Scheduled to launch on {formatDate(campaign.scheduledAt)}
+                  </span>
+                </div>
               )}
             </div>
           </div>
@@ -99,7 +120,7 @@ export default function CampaignDetailPage() {
       {/* Stats */}
       <CampaignStats campaign={campaign} />
 
-      {/* Upload CSV — hidden while RUNNING or FAILED */}
+      {/* Upload CSV — hidden while RUNNING, SCHEDULED or FAILED */}
       {showUploader && (
         <Card>
           <div className="flex items-start justify-between gap-2 mb-4">
