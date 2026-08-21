@@ -1,5 +1,3 @@
-## `AGENT.md`
-
 # AGENT.md — AI Lead Qualification System
 
 # Full System Reference for AI Agents
@@ -16,13 +14,13 @@
 3. [Technology Stack](#3-technology-stack)
 4. [Database Schema](#4-database-schema)
 5. [Backend Architecture](#5-backend-architecture)
-6. [Frontend Architecture](#7-frontend-architecture)
-7. [Data Flow](#8-data-flow)
-8. [API Reference](#9-api-reference)
-9. [Key Business Rules](#10-key-business-rules)
-10. [Enums Reference](#11-enums-reference)
-11. [Environment Variables](#12-environment-variables)
-12. [Known Patterns](#13-known-patterns)
+6. [Frontend Architecture](#6-frontend-architecture)
+7. [Data Flow](#7-data-flow)
+8. [API Reference](#8-api-reference)
+9. [Key Business Rules](#9-key-business-rules)
+10. [Enums Reference](#10-enums-reference)
+11. [Environment Variables](#11-environment-variables)
+12. [Known Patterns](#12-known-patterns)
 
 ---
 
@@ -37,9 +35,7 @@ it on the frontend for business review.
 ### Core Flow
 
 ```
-
-CSV Upload → Campaign Start → Bolna Outbound Call → Webhook → CallAnalysis Saved → Dashboard
-
+CSV Upload → Campaign Start (or Schedule) → Bolna Outbound Call → Webhook → CallAnalysis Saved → Dashboard
 ```
 
 ### Multi-tenancy
@@ -54,7 +50,6 @@ No cross-tenant data leakage is possible through the API layer.
 ### Backend — `express-backend/`
 
 ```
-
 express-backend/
 ├── prisma/
 │   ├── schema.prisma              # Single source of truth for all models + enums
@@ -93,15 +88,15 @@ express-backend/
 │   │   │   ├── call.routes.ts      # GET /stats MUST be before GET /:id
 │   │   │   └── call.service.ts     # list(), get(), getTranscript(), getStats()
 │   │   ├── campaigns/
-│   │   │   ├── campaign.controller.ts
-│   │   │   ├── campaign.routes.ts
-│   │   │   └── campaign.service.ts # uploadLeads(), start(), processLeads(), makeCall()
+│   │   │   ├── campaign.controller.ts   # + parseLeads, cancelSchedule handlers
+│   │   │   ├── campaign.routes.ts       # + /parse-leads, /cancel-schedule
+│   │   │   └── campaign.service.ts      # uploadLeads(), parseLeads(), start(scheduledAt?), processLeads(), makeCall(scheduledAt?), cancelSchedule()
 │   │   ├── dashboard/
 │   │   │   └── dashboard.routes.ts # overview, activity, campaigns endpoints
 │   │   ├── leads/
 │   │   │   ├── lead.controller.ts  # list, get, getStats
 │   │   │   ├── lead.routes.ts      # GET /stats MUST be before GET /:id
-│   │   │   └── lead.service.ts     # list(), get(), getStats()
+│   │   │   └── lead.service.ts     # list() supports leadTemperature filter
 │   │   ├── tenants/
 │   │   │   ├── tenant.controller.ts
 │   │   │   ├── tenant.routes.ts
@@ -109,10 +104,10 @@ express-backend/
 │   │   ├── users/
 │   │   │   └── user.routes.ts
 │   │   └── webhooks/
-│   │       ├── webhook.handler.ts  # All Bolna webhook logic lives here
+│   │       ├── webhook.handler.ts  # All Bolna webhook logic + SCHEDULED transitions
 │   │       └── webhook.routes.ts
 │   ├── types/
-│   │   ├── bolna.types.ts          # Bolna API + extraction types
+│   │   ├── bolna.types.ts          # Bolna API + extraction types (+ scheduled_at on BolnaCallPayload)
 │   │   └── index.ts                # Shared Express types
 │   ├── utils/
 │   │   ├── leadParser.ts           # CSV/XLS/XLSX parser
@@ -122,13 +117,11 @@ express-backend/
 │   │   ├── propertyExtractor.ts    # AI property data extraction from PDF
 │   │   └── response.ts             # Standard response helpers
 │   └── index.ts                    # Express app entry point
-
 ```
 
 ### Frontend — `frontend/`
 
 ```
-
 frontend/src/
 ├── app/
 │   ├── (admin)/                   # SUPER_ADMIN area
@@ -157,12 +150,13 @@ frontend/src/
 │   │   ├── CallsTable.tsx         # Table with Disposition + Temperature columns
 │   │   └── TranscriptViewer.tsx
 │   ├── campaigns/
-│   │   ├── CSVUploader.tsx        # Upload + duplicate report UI
-│   │   ├── CampaignActions.tsx    # Start/Pause buttons
+│   │   ├── CSVUploader.tsx        # DEPRECATED — replaced by UploadLeadsModal
+│   │   ├── UploadLeadsModal.tsx   # 2-step upload: File Select → Parse Preview → Confirm
+│   │   ├── CampaignActions.tsx    # Run Now / Schedule / Pause / Cancel Schedule
 │   │   ├── CampaignDetailsForm.tsx
 │   │   ├── CampaignDetailsStep.tsx
 │   │   ├── CampaignStats.tsx
-│   │   ├── CampaignStatusBadge.tsx
+│   │   ├── CampaignStatusBadge.tsx  # Includes SCHEDULED variant
 │   │   └── CampaignVariablesStep.tsx # Required fields + char limits validation
 │   ├── dashboard/
 │   │   ├── ActivityFeed.tsx       # Shows qualified leads feed
@@ -200,10 +194,10 @@ frontend/src/
 │   ├── useAuth.ts
 │   ├── useBrochure.ts
 │   ├── useCalls.ts                # useCalls, useCall, useCallTranscript, useCallStats
-│   ├── useCampaigns.ts            # useCampaigns, useCampaign, useUploadCSV, etc.
+│   ├── useCampaigns.ts            # + useParseCSV, useCancelScheduleCampaign
 │   ├── useDebounce.ts
 │   ├── useDashboard.ts            # useDashboardOverview, useDashboardActivity, useDashboardCampaigns
-│   ├── useLeads.ts                # useLeads, useLead, useLeadStats
+│   ├── useLeads.ts                # useLeads (supports leadTemperature), useLead, useLeadStats
 │   ├── usePagination.ts
 │   ├── useTenants.ts
 │   └── useUsers.ts
@@ -213,9 +207,9 @@ frontend/src/
 │   │   ├── auth.ts
 │   │   ├── brochure.ts
 │   │   ├── calls.ts               # getAll, getById, getTranscript, getStats
-│   │   ├── campaigns.ts           # getAll, getById, create, uploadCSV, start, pause, getStats
+│   │   ├── campaigns.ts           # + parseCSV, cancelSchedule, start(scheduledAt?)
 │   │   ├── dashboard.ts           # getOverview, getActivity, getCampaigns
-│   │   ├── leads.ts               # getAll, getById, getStats
+│   │   ├── leads.ts               # getAll (supports leadTemperature), getById, getStats
 │   │   ├── tenants.ts
 │   │   └── users.ts
 │   ├── utils/
@@ -233,7 +227,6 @@ frontend/src/
     ├── api.ts
     ├── index.ts                   # ALL shared types — single source of truth
     └── user.ts
-
 ```
 
 ---
@@ -255,17 +248,18 @@ frontend/src/
 
 ### Frontend
 
-| Layer     | Technology                                        |
-| --------- | ------------------------------------------------- |
-| Framework | Next.js 16 (App Router)                           |
-| Language  | TypeScript                                        |
-| State     | Zustand (auth) + TanStack Query v5 (server state) |
-| Forms     | React Hook Form + Zod                             |
-| HTTP      | Axios                                             |
-| Styling   | Tailwind CSS v4                                   |
-| Charts    | Recharts                                          |
-| Toast     | Sonner                                            |
-| Icons     | Lucide React                                      |
+| Layer       | Technology                                        |
+| ----------- | ------------------------------------------------- |
+| Framework   | Next.js 16 (App Router)                           |
+| Language    | TypeScript                                        |
+| State       | Zustand (auth) + TanStack Query v5 (server state) |
+| Forms       | React Hook Form + Zod                             |
+| HTTP        | Axios                                             |
+| Styling     | Tailwind CSS v4                                   |
+| Charts      | Recharts                                          |
+| Toast       | Sonner                                            |
+| Icons       | Lucide React                                      |
+| Date Picker | react-datepicker                                  |
 
 ---
 
@@ -274,7 +268,6 @@ frontend/src/
 ### Models Overview
 
 ```
-
 Tenant
   ├── Users[]
   ├── Campaigns[]
@@ -285,7 +278,6 @@ Tenant
   ├── Assistants[]
   ├── Brochures[]
   └── CallAnalyses[]
-
 ```
 
 ### Model: Tenant
@@ -333,7 +325,7 @@ model Campaign {
   calledLeads  Int            @default(0)
   successLeads Int            @default(0)
   failedLeads  Int            @default(0)
-  scheduledAt  DateTime?      // ← Added: Timestamp indicating when the campaign is scheduled to run
+  scheduledAt  DateTime?      // When the campaign is scheduled to run (Bolna-queued)
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
   startedAt    DateTime?
@@ -469,6 +461,8 @@ This applies to both `call.routes.ts` and `lead.routes.ts`.
 
 ### Campaign Processing (`campaign.service.ts`)
 
+**Immediate (Run Now) — no `scheduledAt`:**
+
 ```
 start()
   → find PENDING leads where doNotCall = false
@@ -480,8 +474,32 @@ start()
       → Bolna handles concurrency on their end
 ```
 
-> ⚠️ No BullMQ/Redis queue. Bolna IS the queue. Sequential was replaced with
-> batched concurrent dispatch in MVP. Full async queue deferred to V1.
+**Scheduled (Schedule Later) — with `scheduledAt` ISO 8601 string:**
+
+```
+start(scheduledAt)
+  → validate scheduledAt is a future date
+  → update campaign status = SCHEDULED, scheduledAt = date
+  → processLeads() dispatches immediately with scheduled_at per makeCall
+  → makeCall() sends scheduled_at in Bolna payload
+  → Bolna queues each call and fires it at the designated time
+  → NO auto-complete after dispatch (webhook handles completion)
+```
+
+**Cancel Schedule:**
+
+```
+cancelSchedule()
+  → validate campaign.status === SCHEDULED
+  → reset all Lead.status CALLING → PENDING
+  → delete all Call records with status CALLING
+  → set campaign.status = DRAFT, scheduledAt = null
+  → ⚠️ Bolna calls already queued may still fire (Bolna has no cancel API)
+```
+
+> ⚠️ No BullMQ/Redis queue. Bolna IS the queue. Both immediate and scheduled
+> dispatch use the same batched concurrent pattern. Bolna's native `scheduled_at`
+> parameter handles time-based queueing on their side.
 
 ### Webhook Handler (`webhook.handler.ts`)
 
@@ -489,13 +507,14 @@ Handles all Bolna call lifecycle events:
 
 ```
 queued/initiated  → Call.status = CALLING
+                  → if campaign.status === SCHEDULED, transition to RUNNING (+ startedAt)
 ringing           → log only
 in-progress       → Call.status = CALLING
 call-disconnected → log only (completed fires seconds later with full data)
-completed         → handleCallCompleted()
-no-answer         → Call.status = NO_ANSWER, Lead.status = NO_ANSWER
-busy              → Call.status = BUSY, Lead.status = NO_ANSWER
-failed/error      → Call.status = FAILED, Lead.status = FAILED
+completed         → handleCallCompleted()   + checkScheduledCampaignCompletion()
+no-answer         → Call.status = NO_ANSWER + Lead.status = NO_ANSWER + completion check
+busy              → Call.status = BUSY + Lead.status = NO_ANSWER + completion check
+failed/error      → Call.status = FAILED + Lead.status = FAILED + completion check
 ```
 
 #### handleCallCompleted() flow:
@@ -512,6 +531,20 @@ failed/error      → Call.status = FAILED, Lead.status = FAILED
 6. If parsed: saveCallAnalysis() → create CallAnalysis record
 7. If doNotCall === YES: Lead.doNotCall = true
 8. Increment campaign.calledLeads
+9. If leadTemperature ∈ {HOT, WARM}: increment campaign.successLeads
+10. checkScheduledCampaignCompletion() — mark COMPLETED if scheduled + no active leads
+```
+
+#### checkScheduledCampaignCompletion() flow:
+
+```
+Called after every terminal webhook (completed / no-answer / busy / failed).
+Only affects campaigns with scheduledAt set and current status RUNNING.
+
+1. Load campaign
+2. If !scheduledAt OR status !== RUNNING → skip
+3. Count leads with status ∈ {PENDING, CALLING}
+4. If count === 0 → set campaign.status = COMPLETED, completedAt = now
 ```
 
 #### Enum Sanitization (critical)
@@ -582,10 +615,15 @@ CallAnalysis; // mirrors DB model — all 13 extraction fields
 Call; // includes callAnalysis?: CallAnalysis | null
 Lead; // includes doNotCall: boolean
 UploadResult; // total, valid, imported, duplicates, invalid, duplicateNumbers[]
+ParseLeadsResult; // total, valid, invalid, inFileDuplicates, dbDuplicates, readyToImport (+ number arrays)
 CallStats; // total, completed, failed, noAnswer, busy, avgDuration, dispositionBreakdown, temperatureBreakdown
 LeadStats; // total, pending, calling, called, failed, noAnswer, doNotCall, qualified, qualificationRate
 DashboardActivity; // recentCalls[], qualifiedLeads[], recentCampaigns[]
 DashboardOverview; // qualificationRate and successRate are STRING ("45.2%") not number
+Campaign; // includes scheduledAt?: string
+CampaignStatus; // DRAFT | SCHEDULED | RUNNING | PAUSED | COMPLETED | FAILED
+LeadQueryParams; // includes leadTemperature?: string (comma-separated)
+CallQueryParams; // includes leadTemperature?: string (comma-separated)
 ```
 
 > ⚠️ `DashboardOverview.leads.qualificationRate` and `calls.successRate` are strings.
@@ -620,41 +658,67 @@ Used on: `campaigns/[id]/calls`, `campaigns/[id]/leads`
 4. POST /api/campaigns with variables as JSON
 ```
 
-### Lead Upload
+### Lead Upload (Two-Phase)
 
 ```
-1. CSVUploader → POST /api/campaigns/:id/upload (multipart/form-data)
-2. Backend:
-   - Blocks upload if campaign.status === FAILED
-   - Parses CSV/XLS/XLSX
-   - Filters rows missing phone
-   - Queries existing phones in campaign
-   - Splits into newLeads + duplicates
-   - createMany with skipDuplicates: true (race condition safety)
-   - Returns UploadResult with duplicateNumbers[]
-3. Frontend shows:
-   - Toast: "N leads imported"
-   - Toast warning: "N duplicates skipped"
-   - Inline report with duplicate phone list
+Phase 1 — Preview (POST /api/campaigns/:id/parse-leads)
+1. UploadLeadsModal → user picks file
+2. Backend parses file, checks:
+   - Missing phone (invalid)
+   - Duplicates within the uploaded file itself
+   - Duplicates against existing DB leads for this campaign
+3. Backend returns ParseLeadsResult (no DB writes)
+4. Frontend shows stats grid + duplicate breakdown
+
+Phase 2 — Confirm (POST /api/campaigns/:id/upload)
+5. User clicks "Import N Leads"
+6. Backend re-parses + inserts only new (unique) leads
+7. Backend enforces same dedup logic (race-condition safety)
+8. Frontend closes modal + shows result toast
+```
+
+### Campaign Scheduling (Bolna Native Queue)
+
+```
+1. User clicks "Schedule" button → selects date/time via react-datepicker
+2. Frontend sends POST /api/campaigns/:id/start { scheduledAt: "2024-06-05T16:35:00.000+05:30" }
+3. Backend validates future date, sets Campaign.status = SCHEDULED, saves scheduledAt
+4. processLeads() dispatches all calls IMMEDIATELY with scheduled_at in Bolna payload
+5. Bolna queues calls internally, fires each at the scheduled time
+6. First webhook (queued/initiated) transitions campaign SCHEDULED → RUNNING (+ startedAt)
+7. Subsequent completion webhooks trigger checkScheduledCampaignCompletion()
+   → When no active leads remain (PENDING or CALLING), campaign → COMPLETED
+```
+
+### Campaign Cancel Schedule
+
+```
+1. User clicks "Cancel Schedule" on a SCHEDULED campaign
+2. POST /api/campaigns/:id/cancel-schedule
+3. Backend:
+   - Resets all Lead.status CALLING → PENDING
+   - Deletes all Call records with status CALLING
+   - Sets Campaign.status = DRAFT, scheduledAt = null
+4. ⚠️ Warning returned: Bolna calls already queued may still fire (no Bolna cancel API)
 ```
 
 ### Call Lifecycle
 
 ```
-makeCall()
+makeCall(scheduledAt?)
   → Lead.status = CALLING
   → Call created (status=CALLING)
-  → POST https://api.bolna.ai/call
+  → POST https://api.bolna.ai/call { ..., scheduled_at?: "ISO-8601" }
   → bolnaCallId stored on Call record
 
-Webhook: queued/initiated → Call.status = CALLING
+Webhook: queued/initiated → Call.status = CALLING (+ SCHEDULED → RUNNING transition)
 Webhook: ringing         → no change
 Webhook: in-progress     → Call.status = CALLING
 Webhook: call-disconnected → no change (wait for completed)
-Webhook: completed       → full processing (see above)
-Webhook: no-answer       → COMPLETED with NO_ANSWER status
-Webhook: busy            → BUSY
-Webhook: failed          → FAILED
+Webhook: completed       → full processing (see above) + scheduled completion check
+Webhook: no-answer       → COMPLETED with NO_ANSWER status + scheduled completion check
+Webhook: busy            → BUSY + scheduled completion check
+Webhook: failed          → FAILED + scheduled completion check
 ```
 
 ### Bolna Extraction → CallAnalysis
@@ -712,15 +776,15 @@ GET  /api/auth/profile     (authenticated)
 
 ```
 GET    /api/campaigns
-POST   /api/campaigns          { name, description, assistantId, brochureId?, variables? }
+POST   /api/campaigns                   { name, description, assistantId, brochureId?, variables? }
 GET    /api/campaigns/:id
 PATCH  /api/campaigns/:id
-POST   /api/campaigns/:id/upload    (multipart — CSV/XLS/XLSX file)
-POST   /api/campaigns/:id/start
+POST   /api/campaigns/:id/parse-leads   (multipart — dry-run, returns stats WITHOUT saving)
+POST   /api/campaigns/:id/upload        (multipart — CSV/XLS/XLSX file, persists leads)
+POST   /api/campaigns/:id/start         { scheduledAt?: string }   // ISO 8601 with timezone
 POST   /api/campaigns/:id/pause
+POST   /api/campaigns/:id/cancel-schedule                          // Resets SCHEDULED → DRAFT
 GET    /api/campaigns/:id/stats
-POST   /api/campaigns/:id/start          { scheduledAt?: string }  // Accepts optional ISO-8601 string to schedule
-POST   /api/campaigns/:id/cancel-schedule (resets scheduled campaign back to DRAFT, resets leads to PENDING)
 ```
 
 ### Calls
@@ -736,7 +800,7 @@ GET  /api/calls/:id/transcript
 
 ```
 GET  /api/leads/stats          ?campaignId=
-GET  /api/leads                ?campaignId=&status=&doNotCall=&dateFrom=&dateTo=&sortBy=&sortOrder=&page=&limit=
+GET  /api/leads                ?campaignId=&status=&doNotCall=&leadTemperature=&dateFrom=&dateTo=&sortBy=&sortOrder=&page=&limit=
 GET  /api/leads/:id
 ```
 
@@ -782,7 +846,7 @@ POST /webhooks/bolna    (no auth — Bolna posts here on call events)
 - `@@unique([phone, campaignId])` in schema
 - Backend checks existing phones before insert
 - `createMany({ skipDuplicates: true })` as race condition safety net
-- Frontend shows duplicate report after upload
+- Frontend shows duplicate report after upload (via `parse-leads` dry-run)
 
 ### Do Not Call
 
@@ -797,6 +861,8 @@ POST /webhooks/bolna    (no auth — Bolna posts here on call events)
 - Allowed statuses for upload: DRAFT, RUNNING, PAUSED, COMPLETED
 - Blocked status: FAILED only
 - Upload to COMPLETED campaign = add more leads for future re-run
+- (Note: SCHEDULED upload is currently allowed at backend but discouraged — future
+  enhancement will block it to prevent race with Bolna-queued calls)
 
 ### Campaign Scheduling (Bolna Queue-Based)
 
@@ -806,6 +872,8 @@ POST /webhooks/bolna    (no auth — Bolna posts here on call events)
 - During scheduled dispatch, Campaign status is `SCHEDULED`.
 - The first Bolna webhook trigger (`queued` / `initiated`) transitions the campaign status to `RUNNING`.
 - Canceling a scheduled campaign (`POST /cancel-schedule`) resets all leads with `CALLING` status back to `PENDING`, deletes `CALLING` call records, and resets campaign status to `DRAFT`.
+- Cancel does NOT recall already-queued Bolna calls (Bolna has no cancel API).
+- No cron / no scheduler service on our side — Bolna is the queue.
 
 ### Brochure Confirmation
 
@@ -839,11 +907,20 @@ BROKER
 CALL_ENDED_ABUSIVE
 ```
 
+### Qualified Leads Filtering
+
+- Frontend Quick Action cards link to `/campaigns/:id/calls?leadTemperature=HOT,WARM`
+- Backend supports `leadTemperature` filter on both `GET /api/leads` and `GET /api/calls`
+- Comma-separated: e.g. `?leadTemperature=HOT,WARM`
+- For leads: filters via `calls.some.callAnalysis.leadTemperature { in: [...] }`
+- For calls: filters via `callAnalysis.leadTemperature { in: [...] }` directly
+- Frontend displays an amber filter chip on filtered pages with a clear (X) button
+
 ### Campaign Counter Behaviour
 
-- `calledLeads` — incremented on every completed call
-- `failedLeads` — incremented on FAILED calls
-- `successLeads` — NOT auto-incremented (deferred to V1)
+- `calledLeads` — incremented on every completed call (webhook)
+- `failedLeads` — incremented on FAILED calls (webhook)
+- `successLeads` — **auto-incremented when `leadTemperature ∈ {HOT, WARM}`** (webhook)
 - `totalLeads` — incremented on successful CSV import
 
 ---
@@ -1021,21 +1098,18 @@ The following are intentionally deferred to V1:
 - Zod validation on all backend routes
 - Structured logging (Winston/Pino)
 - Rate limiting on API routes
-- `successLeads` counter driven by disposition
-- BullMQ — not needed (Bolna handles concurrency)
-
-```
+- BullMQ — not needed (Bolna handles concurrency, including scheduling)
+- LeadBatch model — per-upload batch tracking with independent stats
+- Block lead upload on RUNNING and SCHEDULED campaigns (currently only FAILED is blocked)
+- Retry failed leads per batch
+- Batch-level pause/resume
 
 ---
 
 This file covers every layer of the system. Any AI agent reading this can:
+
 - Navigate to the exact file for any feature
-- Understand data flow end to end
+- Understand data flow end to end (immediate + scheduled campaigns, two-phase lead upload)
 - Know which enums exist and their valid values
 - Follow the correct patterns for extending the system
-- Avoid known pitfalls (route order, Windows EPERM, string rates, etc.)
-
-
-i want to to update my frontend system to add re-run campign by uploading more leads after even after campaign status updated or already completed
-ask my clarification question or if you need any files from backend or frontend to understand api data flow type to update current system
-```
+- Avoid known pitfalls (route order, Windows EPERM, string rates, Bolna cancel limitations)
