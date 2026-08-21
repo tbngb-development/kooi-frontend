@@ -110,7 +110,7 @@ export const metadata: Metadata = {
   },
 
   // ─── Manifest ──────────────────────────────────────────
-  manifest: "/site.webmanifest",
+  // manifest: "/site.webmanifest",
 
   // ─── Category ──────────────────────────────────────────
   category: "technology",
