@@ -5,7 +5,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { campaignsApi } from "@/lib/api/campaigns";
-import type { CreateCampaignInput, UpdateCampaignInput } from "@/types";
+import type { CreateCampaignInput, ParseLeadsResult, UpdateCampaignInput } from "@/types";
 
 export const CAMPAIGNS_KEY = ["campaigns"] as const;
 
@@ -16,6 +16,7 @@ export function useCampaigns() {
   });
 }
 
+// ── UPDATED: Poll while status is RUNNING or SCHEDULED ──
 export function useCampaign(id: string, pollWhileRunning = false) {
   return useQuery({
     queryKey: [...CAMPAIGNS_KEY, id],
@@ -24,7 +25,7 @@ export function useCampaign(id: string, pollWhileRunning = false) {
     refetchInterval: (query) => {
       if (!pollWhileRunning) return false;
       const status = query.state.data?.status;
-      return status === "RUNNING" ? 5000 : false;
+      return status === "RUNNING" || status === "SCHEDULED" ? 5000 : false;
     },
   });
 }
@@ -64,6 +65,16 @@ export function useUpdateCampaign(id: string) {
     },
     onError: (error: Error) => {
       toast.error(error.message);
+    },
+  });
+}
+
+export function useParseCSV(campaignId: string) {
+  return useMutation({
+    mutationFn: (file: File): Promise<ParseLeadsResult> =>
+      campaignsApi.parseCSV(campaignId, file),
+    onError: (error: Error) => {
+      toast.error("Parse failed", { description: error.message });
     },
   });
 }
@@ -122,19 +133,31 @@ export function useUploadCSV(campaignId: string) {
   });
 }
 
+// ── UPDATED: Accept optional scheduledAt string ──
 export function useStartCampaign(campaignId: string) {
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: () => campaignsApi.start(campaignId),
+    mutationFn: (scheduledAt?: string) =>
+      campaignsApi.start(campaignId, scheduledAt),
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: CAMPAIGNS_KEY });
-      toast.success("Campaign started", {
-        description: `${data.totalLeads} lead${data.totalLeads !== 1 ? "s" : ""} queued for calling`,
-      });
+      qc.invalidateQueries({ queryKey: [...CAMPAIGNS_KEY, campaignId] });
+
+      if (data.scheduledAt) {
+        toast.success("Campaign Scheduled", {
+          description: `Campaign scheduled successfully to start.`,
+        });
+      } else {
+        toast.success("Campaign Started", {
+          description: `${data.totalLeads} lead${data.totalLeads !== 1 ? "s" : ""} queued for calling`,
+        });
+      }
     },
     onError: (error: Error) => {
-      toast.error("Failed to start campaign", { description: error.message });
+      toast.error("Failed to update campaign start status", {
+        description: error.message,
+      });
     },
   });
 }
@@ -146,10 +169,30 @@ export function usePauseCampaign(campaignId: string) {
     mutationFn: () => campaignsApi.pause(campaignId),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: CAMPAIGNS_KEY });
+      qc.invalidateQueries({ queryKey: [...CAMPAIGNS_KEY, campaignId] });
       toast.success("Campaign paused");
     },
     onError: (error: Error) => {
       toast.error("Failed to pause campaign", { description: error.message });
+    },
+  });
+}
+
+// ── NEW: Cancel Scheduled Campaign Hook ──
+export function useCancelScheduleCampaign(campaignId: string) {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => campaignsApi.cancelSchedule(campaignId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: CAMPAIGNS_KEY });
+      qc.invalidateQueries({ queryKey: [...CAMPAIGNS_KEY, campaignId] });
+      toast.success("Campaign schedule cancelled", {
+        description: "Leads have been reset to pending state.",
+      });
+    },
+    onError: (error: Error) => {
+      toast.error("Failed to cancel schedule", { description: error.message });
     },
   });
 }

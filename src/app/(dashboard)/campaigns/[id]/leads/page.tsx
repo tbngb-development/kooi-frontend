@@ -6,18 +6,29 @@ import { LeadsTable } from "@/components/leads/LeadsTable";
 import { PageSpinner } from "@/components/ui/Spinner";
 import { useLeads } from "@/hooks/useLeads";
 import { usePagination } from "@/hooks/usePagination";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Flame, X } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams, useRouter } from "next/navigation";
 
 export default function CampaignLeadsPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const campaignId = String(params.id);
   const { page, setPage } = usePagination();
 
-  const { data, isLoading } = useLeads({ campaignId, page, limit: 20 });
-  console.log("leads data: ", data);
-  console.log("pagination: ", data?.pagination);
+  const leadTemperature = searchParams.get("leadTemperature") ?? undefined;
+
+  const { data, isLoading } = useLeads({
+    campaignId,
+    leadTemperature,
+    page,
+    limit: 20,
+  });
+
+  const clearFilter = () => {
+    router.push(`/campaigns/${campaignId}/leads`);
+  };
 
   return (
     <div className="flex flex-col gap-5">
@@ -29,9 +40,23 @@ export default function CampaignLeadsPage() {
           <ChevronLeft size={14} />
           Back to Campaign
         </Link>
-        <h2 className="text-lg font-semibold text-text-primary">
-          Campaign Leads
-        </h2>
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <h2 className="text-lg font-semibold text-text-primary">
+            {leadTemperature ? "Qualified Leads" : "Campaign Leads"}
+          </h2>
+
+          {/* Active filter chip */}
+          {leadTemperature && (
+            <button
+              onClick={clearFilter}
+              className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200 px-3 py-1 text-xs font-medium text-amber-700 hover:bg-amber-100 transition-colors cursor-pointer"
+            >
+              <Flame size={11} />
+              Filter: {leadTemperature}
+              <X size={11} />
+            </button>
+          )}
+        </div>
       </div>
 
       {isLoading ? (

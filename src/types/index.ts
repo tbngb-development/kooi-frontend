@@ -5,6 +5,7 @@ export type UserRole = "SUPER_ADMIN" | "ADMIN" | "USER";
 export type CampaignStatus =
   | "DRAFT"
   | "RUNNING"
+  | "SCHEDULED"
   | "PAUSED"
   | "COMPLETED"
   | "FAILED";
@@ -212,6 +213,7 @@ export interface Campaign {
   calledLeads: number;
   successLeads: number;
   failedLeads: number;
+  scheduledAt?: string;
   startedAt?: string;
   completedAt?: string;
   createdAt: string;
@@ -654,9 +656,21 @@ export interface UpdateUserInput {
 
 // ─── Query Params ─────────────────────────────────────────────────────────────
 
+export interface ParseLeadsResult {
+  total: number; // total rows in file
+  valid: number; // rows with a phone number
+  invalid: number; // rows missing phone
+  inFileDuplicates: number; // duplicates within the uploaded file
+  inFileDuplicateNumbers: string[];
+  dbDuplicates: number; // duplicates against existing DB leads
+  dbDuplicateNumbers: string[];
+  readyToImport: number; // net-new leads that will be inserted
+}
+
 export interface LeadQueryParams {
   campaignId?: string;
   status?: LeadStatus;
+  leadTemperature?: string;
   page?: number;
   limit?: number;
   search?: string;
@@ -666,6 +680,7 @@ export interface CallQueryParams {
   campaignId?: string;
   leadId?: string;
   status?: CallStatus;
+  leadTemperature?: string; 
   page?: number;
   limit?: number;
 }
