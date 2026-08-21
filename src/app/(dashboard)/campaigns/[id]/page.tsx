@@ -2,21 +2,25 @@
 
 "use client";
 
+import { useState } from "react";
 import { CampaignStats } from "@/components/campaigns/CampaignStats";
 import { CampaignActions } from "@/components/campaigns/CampaignActions";
 import { CampaignStatusBadge } from "@/components/campaigns/CampaignStatusBadge";
-import { CSVUploader } from "@/components/campaigns/CSVUploader";
+import { UploadLeadsModal } from "@/components/campaigns/UploadLeadsModal";
 import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
 import { PageSpinner } from "@/components/ui/Spinner";
 import { useCampaign } from "@/hooks/useCampaigns";
 import { formatDate } from "@/lib/utils/formatDate";
 import {
   Bot,
+  CalendarDays,
   ChevronLeft,
+  Flame,
   Info,
   Phone,
+  Upload,
   Users,
-  CalendarDays,
 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -30,13 +34,12 @@ const UPLOAD_ALLOWED_STATUSES: CampaignStatus[] = [
   "COMPLETED",
 ];
 
-// Contextual hint copy per status shown above the uploader
 const UPLOAD_HINT: Partial<Record<CampaignStatus, string>> = {
   DRAFT: "Upload leads to get this campaign ready to start.",
   PAUSED:
     "Campaign is paused. Any leads you upload will be called when you resume.",
   COMPLETED:
-    'Campaign finished. Upload new leads and click "Start Campaign" to run another batch.',
+    'Campaign finished. Upload new leads and click "Run Now" to run another batch.',
 };
 
 export default function CampaignDetailPage() {
@@ -45,21 +48,21 @@ export default function CampaignDetailPage() {
   const { user } = useAuthStore();
   const canEdit = user?.role !== "USER";
 
-  // Poll every 5s while RUNNING or SCHEDULED so stats + status stay live
+  const [uploadOpen, setUploadOpen] = useState(false);
+
   const { data: campaign, isLoading } = useCampaign(id, true);
 
   if (isLoading) return <PageSpinner />;
   if (!campaign)
     return <p className="text-text-muted text-sm">Campaign not found.</p>;
 
-  const showUploader =
+  const showUploadButton =
     canEdit && UPLOAD_ALLOWED_STATUSES.includes(campaign.status);
-
   const uploaderHint = UPLOAD_HINT[campaign.status];
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Back + Header */}
+      {/* ─── Header ────────────────────────────────────────────────────── */}
       <div>
         <Link
           href="/campaigns"
@@ -82,8 +85,6 @@ export default function CampaignDetailPage() {
                 {campaign.description}
               </p>
             )}
-
-            {/* Header Meta Rows */}
             <div className="flex flex-col gap-1.5 mt-2.5">
               <div className="flex items-center gap-4 text-xs text-text-muted">
                 <span className="flex items-center gap-1">
@@ -96,7 +97,6 @@ export default function CampaignDetailPage() {
                 )}
               </div>
 
-              {/* SCHEDULED: Display campaign scheduling details */}
               {campaign.status === "SCHEDULED" && campaign.scheduledAt && (
                 <div className="flex items-center gap-1.5 text-xs text-brand-600 font-medium">
                   <CalendarDays size={13} />
@@ -117,74 +117,108 @@ export default function CampaignDetailPage() {
         </div>
       </div>
 
-      {/* Stats */}
+      {/* ─── Quick Action Cards (3 in a row) ───────────────────────────── */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <QuickActionCard
+          href={`/campaigns/${id}/leads`}
+          icon={<Users size={18} />}
+          iconBg="bg-info-100 group-hover:bg-info-500"
+          iconColor="text-info-600"
+          title="View Leads"
+          subtitle={`${campaign.totalLeads} total lead${campaign.totalLeads !== 1 ? "s" : ""}`}
+        />
+        <QuickActionCard
+          href={`/campaigns/${id}/calls`}
+          icon={<Phone size={18} />}
+          iconBg="bg-secondary-50 group-hover:bg-secondary-500"
+          iconColor="text-secondary-600"
+          title="View Calls"
+          subtitle={`${campaign.calledLeads} call${campaign.calledLeads !== 1 ? "s" : ""} made`}
+        />
+        <QuickActionCard
+          href={`/campaigns/${id}/calls?leadTemperature=HOT,WARM`}
+          icon={<Flame size={18} />}
+          iconBg="bg-amber-100 group-hover:bg-amber-500"
+          iconColor="text-amber-600"
+          title="Qualified Calls"
+          subtitle={`${campaign.successLeads} qualified (HOT / WARM)`}
+        />
+      </div>
+
+      {/* ─── Stats ─────────────────────────────────────────────────────── */}
       <CampaignStats campaign={campaign} />
 
-      {/* Upload CSV — hidden while RUNNING, SCHEDULED or FAILED */}
-      {showUploader && (
+      {/* ─── Upload Button + Hint ──────────────────────────────────────── */}
+      {showUploadButton && (
         <Card>
-          <div className="flex items-start justify-between gap-2 mb-4">
-            <h3 className="text-sm font-semibold text-text-primary">
-              Upload Leads
-            </h3>
-          </div>
-
-          {/* Contextual hint banner */}
-          {uploaderHint && (
-            <div className="flex items-start gap-2 rounded-md bg-surface-subtle border border-surface-border p-3 mb-4">
-              <Info size={13} className="text-text-muted shrink-0 mt-0.5" />
-              <p className="text-xs text-text-muted">{uploaderHint}</p>
+          <div className="flex items-start justify-between gap-3 flex-wrap">
+            <div className="flex-1 min-w-0">
+              <h3 className="text-sm font-semibold text-text-primary">
+                Upload Leads
+              </h3>
+              {uploaderHint && (
+                <div className="flex items-start gap-2 mt-2">
+                  <Info size={13} className="text-text-muted shrink-0 mt-0.5" />
+                  <p className="text-xs text-text-muted">{uploaderHint}</p>
+                </div>
+              )}
             </div>
-          )}
-
-          <CSVUploader campaignId={campaign.id} />
+            <Button
+              leftIcon={<Upload size={14} />}
+              onClick={() => setUploadOpen(true)}
+            >
+              Upload File
+            </Button>
+          </div>
         </Card>
       )}
 
-      {/* Quick links */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Link href={`/campaigns/${id}/leads`}>
-          <Card className="hover:border-brand-300 hover:shadow-md transition-all cursor-pointer group">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-info-100 group-hover:bg-info-500 transition-colors">
-                <Users
-                  size={18}
-                  className="text-info-600 group-hover:text-white transition-colors"
-                />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-text-primary">
-                  View Leads
-                </p>
-                <p className="text-xs text-text-muted">
-                  {campaign.totalLeads} total leads
-                </p>
-              </div>
-            </div>
-          </Card>
-        </Link>
-
-        <Link href={`/campaigns/${id}/calls`}>
-          <Card className="hover:border-brand-300 hover:shadow-md transition-all cursor-pointer group">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary-50 group-hover:bg-secondary-500 transition-colors">
-                <Phone
-                  size={18}
-                  className="text-secondary-600 group-hover:text-white transition-colors"
-                />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-text-primary">
-                  View Calls
-                </p>
-                <p className="text-xs text-text-muted">
-                  {campaign.calledLeads} calls made
-                </p>
-              </div>
-            </div>
-          </Card>
-        </Link>
-      </div>
+      {/* ─── Upload Modal ──────────────────────────────────────────────── */}
+      <UploadLeadsModal
+        isOpen={uploadOpen}
+        onClose={() => setUploadOpen(false)}
+        campaignId={id}
+      />
     </div>
+  );
+}
+
+// ─── Quick Action Card ────────────────────────────────────────────────────
+
+function QuickActionCard({
+  href,
+  icon,
+  iconBg,
+  iconColor,
+  title,
+  subtitle,
+}: {
+  href: string;
+  icon: React.ReactNode;
+  iconBg: string;
+  iconColor: string;
+  title: string;
+  subtitle: string;
+}) {
+  return (
+    <Link href={href}>
+      <Card className="hover:border-brand-300 hover:shadow-md transition-all cursor-pointer group h-full">
+        <div className="flex items-center gap-3">
+          <div
+            className={`flex h-10 w-10 items-center justify-center rounded-lg transition-colors shrink-0 ${iconBg}`}
+          >
+            <span
+              className={`${iconColor} group-hover:text-white transition-colors`}
+            >
+              {icon}
+            </span>
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-text-primary">{title}</p>
+            <p className="text-xs text-text-muted truncate">{subtitle}</p>
+          </div>
+        </div>
+      </Card>
+    </Link>
   );
 }

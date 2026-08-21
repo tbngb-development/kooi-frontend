@@ -8,6 +8,7 @@ import type {
   CreateCampaignInput,
   UpdateCampaignInput,
   UploadResult,
+  ParseLeadsResult,
 } from "@/types";
 
 interface StartCampaignResult {
@@ -56,6 +57,21 @@ export const campaignsApi = {
     );
     if (!res.data.success || !res.data.data) {
       throw new Error(res.data.error ?? "Failed to update campaign");
+    }
+    return res.data.data;
+  },
+
+  parseCSV: async (id: string, file: File): Promise<ParseLeadsResult> => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await apiClient.post<ApiResponse<ParseLeadsResult>>(
+      `/api/campaigns/${id}/parse-leads`,
+      formData,
+      { headers: { "Content-Type": "multipart/form-data" } },
+    );
+    if (!res.data.success || !res.data.data) {
+      throw new Error(res.data.error ?? "Failed to parse file");
     }
     return res.data.data;
   },

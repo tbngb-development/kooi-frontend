@@ -3,7 +3,6 @@
 'use client';
 
 import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { PageSpinner } from '@/components/ui/Spinner';
 import { CampaignStatusBadge } from '@/components/campaigns/CampaignStatusBadge';

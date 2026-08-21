@@ -5,7 +5,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { campaignsApi } from "@/lib/api/campaigns";
-import type { CreateCampaignInput, UpdateCampaignInput } from "@/types";
+import type { CreateCampaignInput, ParseLeadsResult, UpdateCampaignInput } from "@/types";
 
 export const CAMPAIGNS_KEY = ["campaigns"] as const;
 
@@ -65,6 +65,16 @@ export function useUpdateCampaign(id: string) {
     },
     onError: (error: Error) => {
       toast.error(error.message);
+    },
+  });
+}
+
+export function useParseCSV(campaignId: string) {
+  return useMutation({
+    mutationFn: (file: File): Promise<ParseLeadsResult> =>
+      campaignsApi.parseCSV(campaignId, file),
+    onError: (error: Error) => {
+      toast.error("Parse failed", { description: error.message });
     },
   });
 }
