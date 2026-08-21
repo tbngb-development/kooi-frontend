@@ -286,7 +286,7 @@ export function UploadLeadsModal({
           </div>
 
           {/* ── Stats Grid ─────────────────────────────────────────────── */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <StatBox
               label="Total Rows"
               value={parseResult.total}
@@ -296,7 +296,6 @@ export function UploadLeadsModal({
               label="Ready to Import"
               value={parseResult.readyToImport}
               tone="success"
-              icon={<CheckCircle2 size={13} />}
             />
             <StatBox
               label="Duplicates"
