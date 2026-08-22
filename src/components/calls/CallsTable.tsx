@@ -7,7 +7,12 @@ import { Pagination } from "@/components/ui/Pagination";
 import { CallStatusBadge } from "./CallStatusBadge";
 import { formatDateTime } from "@/lib/utils/formatDate";
 import { formatDuration } from "@/lib/utils/formatDuration";
-import type { Call, Disposition, LeadTemperature, PaginationMeta } from "@/types";
+import type {
+  Call,
+  Disposition,
+  LeadTemperature,
+  PaginationMeta,
+} from "@/types";
 import { Phone } from "lucide-react";
 import Link from "next/link";
 
@@ -124,7 +129,12 @@ export function CallsTable({
                       </Link>
                     </td>
                     <td className="px-4 py-3 text-text-secondary font-mono text-xs">
-                      {call.lead.phone}
+                      <Link
+                        href={`/calls/${call.id}`}
+                        className="font-medium text-text-primary hover:text-brand-600 transition-colors"
+                      >
+                        {call.lead.phone}
+                      </Link>
                     </td>
                     <td className="px-4 py-3">
                       <Link
