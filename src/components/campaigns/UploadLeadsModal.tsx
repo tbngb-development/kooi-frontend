@@ -259,9 +259,12 @@ export function UploadLeadsModal({
             <p className="text-xs font-medium text-info-600 mb-1.5">
               Required columns
             </p>
-            <p className="text-xs text-text-muted font-mono">name, phone</p>
-            <p className="text-xs text-text-muted mt-1">
-              Optional: email, company
+            <p className="text-xs text-text-muted font-mono">phone</p>
+            <p className="text-xs text-text-muted mt-1.5 font-medium">
+              Optional columns
+            </p>
+            <p className="text-xs text-text-muted font-mono">
+              name (min 3 chars), email, company
             </p>
           </div>
         </div>
