@@ -1,5 +1,3 @@
-// src/app/(dashboard)/dashboard/page.tsx
-
 "use client";
 
 import { StatsCard } from "@/components/dashboard/StatsCard";
@@ -22,11 +20,10 @@ export default function DashboardPage() {
 
   if (overviewLoading) return <PageSpinner />;
 
-  // ── Parse string rates from backend for comparisons ───────────────────────
+  // ── Parse string rate from backend for comparison ─────────────────────────
   const qualificationRate = parseFloat(
-    overview?.leads.qualificationRate ?? "0"
+    overview?.leads.qualificationRate ?? "0",
   );
-  const successRate = parseFloat(overview?.calls.successRate ?? "0");
 
   return (
     <div className="flex flex-col gap-6">
@@ -46,10 +43,6 @@ export default function DashboardPage() {
           subtitle={`${overview?.leads.qualified ?? 0} qualified`}
           icon={<Users size={18} />}
           iconColor="bg-info-100 text-info-600"
-          trend={{
-            value: `${overview?.leads.qualificationRate ?? "0%"} qualification rate`,
-            positive: qualificationRate > 50,
-          }}
         />
 
         <StatsCard
@@ -61,14 +54,14 @@ export default function DashboardPage() {
         />
 
         <StatsCard
-          title="Success Rate"
-          value={overview?.calls.successRate ?? "0%"}
-          subtitle="Calls reaching qualified leads"
+          title="Qualification Rate"
+          value={overview?.leads.qualificationRate ?? "0%"}
+          subtitle="Percentage of qualified leads"
           icon={<BarChart3 size={18} />}
           iconColor="bg-success-100 text-success-600"
           trend={{
-            value: successRate >= 50 ? "Above target" : "Below target",
-            positive: successRate >= 50,
+            value: qualificationRate >= 50 ? "Above target" : "Below target",
+            positive: qualificationRate >= 50,
           }}
         />
       </div>

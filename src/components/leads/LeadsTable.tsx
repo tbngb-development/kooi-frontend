@@ -2,7 +2,6 @@
 
 'use client';
 
-import { Badge } from '@/components/ui/Badge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Pagination } from '@/components/ui/Pagination';
 import { LeadStatusBadge } from './LeadStatusBadge';
