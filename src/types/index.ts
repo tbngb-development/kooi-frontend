@@ -679,11 +679,26 @@ export interface ParseLeadsResult {
 
 export interface LeadQueryParams {
   campaignId?: string;
-  status?: LeadStatus;
-  leadTemperature?: string;
+  status?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
   page?: number;
   limit?: number;
   search?: string;
+}
+
+export interface LeadStats {
+  total: number;
+  pending: number;
+  calling: number;
+  called: number;
+  failed: number;
+  noAnswer: number;
+  doNotCall: number;
+  qualified: number;
+  qualificationRate: string; // e.g. "42.9%"
 }
 
 export interface CallQueryParams {

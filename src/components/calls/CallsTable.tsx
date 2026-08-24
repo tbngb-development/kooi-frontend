@@ -109,7 +109,7 @@ export function CallsTable({
                   Duration
                 </th>
                 <th className="text-left px-5 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
-                  Date
+                  Date & Time
                 </th>
               </tr>
             </thead>

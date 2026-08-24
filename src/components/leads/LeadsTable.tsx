@@ -5,7 +5,10 @@
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Pagination } from "@/components/ui/Pagination";
 import { LeadStatusBadge } from "./LeadStatusBadge";
-import { formatDate } from "@/lib/utils/formatDate";
+import {
+  formatDateOnly,
+  formatTimeOnly,
+} from "@/lib/utils/formatDate";
 import type { Lead, PaginationMeta } from "@/types";
 import { Users } from "lucide-react";
 import Link from "next/link";
@@ -41,9 +44,7 @@ export function LeadsTable({
                 <th className="text-left px-5 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
                   Name
                 </th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
-                  Phone
-                </th>
+
                 <th className="text-left px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
                   Company
                 </th>
@@ -53,8 +54,11 @@ export function LeadsTable({
                 <th className="text-left px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
                   Campaign
                 </th>
+                <th className="text-left px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
+                  DND
+                </th>
                 <th className="text-left px-5 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
-                  Date
+                  Date & Time
                 </th>
               </tr>
             </thead>
@@ -80,9 +84,7 @@ export function LeadsTable({
                   <td className="px-4 py-3 text-text-secondary font-mono text-xs">
                     {lead.phone}
                   </td>
-                  <td className="px-4 py-3 text-text-muted">
-                    {lead.company ?? "—"}
-                  </td>
+
                   <td className="px-4 py-3">
                     <LeadStatusBadge status={lead.status} />
                   </td>
@@ -95,7 +97,22 @@ export function LeadsTable({
                     </Link>
                   </td>
                   <td className="px-5 py-3 text-text-muted text-xs">
-                    {formatDate(lead.createdAt)}
+                    {lead.doNotCall ? "Yes" : "No"}
+                  </td>
+
+                  <td className="px-5 py-3">
+                    {lead.createdAt ? (
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-sm font-medium text-text-primary leading-none">
+                          {formatTimeOnly(lead.createdAt)}
+                        </span>
+                        <span className="text-xs text-text-muted leading-none">
+                          {formatDateOnly(lead.createdAt)}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-text-muted">—</span>
+                    )}
                   </td>
                 </tr>
               ))}
