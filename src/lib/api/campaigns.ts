@@ -9,6 +9,7 @@ import type {
   UpdateCampaignInput,
   UploadResult,
   ParseLeadsResult,
+  CampaignPerformance,
 } from "@/types";
 
 interface StartCampaignResult {
@@ -140,6 +141,18 @@ export const campaignsApi = {
     if (!res.data.success || !res.data.data) {
       throw new Error(res.data.error ?? "Failed to fetch campaign stats");
     }
+    return res.data.data;
+  },
+
+  getCampaignPerformance: async (id: string): Promise<CampaignPerformance> => {
+    const res = await apiClient.get<ApiResponse<CampaignPerformance>>(
+      `/api/campaigns/${id}/performance`,
+    );
+    if (!res.data.success || !res.data.data) {
+      throw new Error(res.data.error ?? "Failed to fetch campaign stats");
+    }
+
+    console.log("campaign performance response data: ", res.data);
     return res.data.data;
   },
 };

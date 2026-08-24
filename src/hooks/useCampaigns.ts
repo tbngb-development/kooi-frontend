@@ -5,7 +5,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { campaignsApi } from "@/lib/api/campaigns";
-import type { CreateCampaignInput, ParseLeadsResult, UpdateCampaignInput } from "@/types";
+import type {
+  CampaignPerformance,
+  CreateCampaignInput,
+  ParseLeadsResult,
+  UpdateCampaignInput,
+} from "@/types";
 
 export const CAMPAIGNS_KEY = ["campaigns"] as const;
 
@@ -36,6 +41,14 @@ export function useCampaignStats(id: string, pollWhileRunning = false) {
     queryFn: () => campaignsApi.getStats(id),
     enabled: Boolean(id),
     refetchInterval: () => (pollWhileRunning ? 5000 : false),
+  });
+}
+
+export function useCampaignPerformance(id: string, enabled = true) {
+  return useQuery<CampaignPerformance>({
+    queryKey: ["campaigns", id, "performance"],
+    queryFn: () => campaignsApi.getCampaignPerformance(id),
+    enabled: enabled && !!id,
   });
 }
 

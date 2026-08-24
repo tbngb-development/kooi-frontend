@@ -242,6 +242,16 @@ export interface CampaignStats {
   completionRate: number;
 }
 
+export interface CampaignPerformance {
+  hotLeads: number;
+  callbacks: number;
+  siteVisits: number;
+  dnc: number;
+  totalCost: number;
+  costPerLead: number;
+  qualificationRate: number; // e.g. "45.2"
+}
+
 export type UpdateCampaignInput = Partial<CreateCampaignInput>;
 
 export interface UploadResult {
@@ -680,7 +690,7 @@ export interface CallQueryParams {
   campaignId?: string;
   leadId?: string;
   status?: CallStatus;
-  leadTemperature?: string; 
+  leadTemperature?: string;
   page?: number;
   limit?: number;
 }

@@ -1,5 +1,3 @@
-// src/app/(dashboard)/campaigns/[id]/page.tsx
-
 "use client";
 
 import { useState } from "react";
@@ -10,7 +8,7 @@ import { UploadLeadsModal } from "@/components/campaigns/UploadLeadsModal";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { PageSpinner } from "@/components/ui/Spinner";
-import { useCampaign } from "@/hooks/useCampaigns";
+import { useCampaign, useCampaignPerformance } from "@/hooks/useCampaigns"; // <─── Updated hook import
 import { formatDate } from "@/lib/utils/formatDate";
 import {
   Bot,
@@ -27,7 +25,6 @@ import { useParams } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 import type { CampaignStatus } from "@/types";
 
-// Statuses where uploading new leads is allowed
 const UPLOAD_ALLOWED_STATUSES: CampaignStatus[] = [
   "DRAFT",
   "PAUSED",
@@ -51,6 +48,10 @@ export default function CampaignDetailPage() {
   const [uploadOpen, setUploadOpen] = useState(false);
 
   const { data: campaign, isLoading } = useCampaign(id, true);
+
+  // ─── Query Performance Metrics ───
+  const { data: performance, isLoading: isLoadingPerf } =
+    useCampaignPerformance(id, !isLoading && !!campaign);
 
   if (isLoading) return <PageSpinner />;
   if (!campaign)
@@ -145,8 +146,12 @@ export default function CampaignDetailPage() {
         />
       </div>
 
-      {/* ─── Stats ─────────────────────────────────────────────────────── */}
-      <CampaignStats campaign={campaign} />
+      {/* ─── Stats (Performance Overview) ─────────────────────────────── */}
+      <CampaignStats
+        campaign={campaign}
+        performance={performance ?? null}
+        isLoadingPerformance={isLoadingPerf}
+      />
 
       {/* ─── Upload Button + Hint ──────────────────────────────────────── */}
       {showUploadButton && (
@@ -182,8 +187,6 @@ export default function CampaignDetailPage() {
     </div>
   );
 }
-
-// ─── Quick Action Card ────────────────────────────────────────────────────
 
 function QuickActionCard({
   href,

@@ -5,7 +5,7 @@
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Pagination } from "@/components/ui/Pagination";
 import { CallStatusBadge } from "./CallStatusBadge";
-import { formatDateTime } from "@/lib/utils/formatDate";
+import { formatDateOnly, formatTimeOnly } from "@/lib/utils/formatDate";
 import { formatDuration } from "@/lib/utils/formatDuration";
 import type {
   Call,
@@ -162,8 +162,19 @@ export function CallsTable({
                     <td className="px-4 py-3 text-right text-text-secondary">
                       {formatDuration(call.duration)}
                     </td>
-                    <td className="px-5 py-3 text-text-muted text-xs">
-                      {formatDateTime(call.startedAt)}
+                    <td className="px-5 py-3">
+                      {call.startedAt ? (
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-sm font-medium text-text-primary leading-none">
+                            {formatTimeOnly(call.startedAt)}
+                          </span>
+                          <span className="text-xs text-text-muted leading-none">
+                            {formatDateOnly(call.startedAt)}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-text-muted">—</span>
+                      )}
                     </td>
                   </tr>
                 );

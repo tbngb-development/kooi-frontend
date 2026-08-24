@@ -363,6 +363,7 @@ model Call {
   leadId             String
   status             CallStatus @default(PENDING)
   duration           Int?       // seconds
+  cost               Float?     // cent
   recording          String?    // URL
   transcript         String?    // plain text
   transcriptMessages Json?      // [{role, message, time}]
@@ -519,21 +520,19 @@ failed/error      → Call.status = FAILED + Lead.status = FAILED + completion c
 
 #### handleCallCompleted() flow:
 
-```
 1. Find Call by bolnaCallId
 2. Normalize transcript messages
 3. parseExtractionData(payload.extracted_data)
    → sanitizeEnum() validates ALL enum fields against allowed sets
    → unknown values become null (never crash Prisma)
    → returns null if all fields are null (no CallAnalysis created)
-4. Update Call: status, summary (from call_summary extraction), transcript, duration, recording
+4. Update Call: status, summary, transcript, duration, recording, cost (from payload.total_cost)
 5. Update Lead: status = CALLED
 6. If parsed: saveCallAnalysis() → create CallAnalysis record
 7. If doNotCall === YES: Lead.doNotCall = true
 8. Increment campaign.calledLeads
 9. If leadTemperature ∈ {HOT, WARM}: increment campaign.successLeads
 10. checkScheduledCampaignCompletion() — mark COMPLETED if scheduled + no active leads
-```
 
 #### checkScheduledCampaignCompletion() flow:
 
@@ -785,6 +784,7 @@ POST   /api/campaigns/:id/start         { scheduledAt?: string }   // ISO 8601 w
 POST   /api/campaigns/:id/pause
 POST   /api/campaigns/:id/cancel-schedule                          // Resets SCHEDULED → DRAFT
 GET    /api/campaigns/:id/stats
+GET    /api/campaigns/:id/performance
 ```
 
 ### Calls
@@ -922,6 +922,20 @@ CALL_ENDED_ABUSIVE
 - `failedLeads` — incremented on FAILED calls (webhook)
 - `successLeads` — **auto-incremented when `leadTemperature ∈ {HOT, WARM}`** (webhook)
 - `totalLeads` — incremented on successful CSV import
+
+### Performance Overview Metrics
+
+Calculated on-the-fly dynamically from relational tables (`CallAnalysis`, `Call`, `Lead`):
+
+| Metric                 | Source Fields                                      | Extraction Logic / Aggregations                                                          |
+| ---------------------- | -------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| **Hot Leads**          | `CallAnalysis.leadTemperature`                     | Count of records strictly equal to `HOT`                                                 |
+| **Callbacks**          | `CallAnalysis.preferredNextAction`                 | Count where action is `CONSULTANT_CALL` or `FOLLOWUP_CALL`                               |
+| **Site Visits**        | `CallAnalysis.disposition` / `preferredNextAction` | Count where disposition is `SITE_VISIT_INTEREST` OR next action is `SITE_VISIT`          |
+| **DNC**                | `CallAnalysis.doNotCall`                           | Count of records flagged `YES` in extraction data                                        |
+| **Total Cost**         | `Call.cost`                                        | Sum of call costs (stored in cents, divided by 100 in `campaign.service.ts` for dollars) |
+| **Cost Per Lead**      | Computed                                           | `(totalCost / 100) / campaign.calledLeads`                                               |
+| **Qualification Rate** | `CallAnalysis.disposition`                         | Count of qualifying dispositions / Total calls with any disposition                      |
 
 ---
 
