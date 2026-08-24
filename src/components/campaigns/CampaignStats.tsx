@@ -9,6 +9,8 @@ import {
   TrendingUp,
   Percent,
   XCircle,
+  Clock,
+  Building2,
 } from "lucide-react";
 
 interface CampaignStatsProps {
@@ -117,6 +119,51 @@ export function CampaignStats({
         />
       </div>
 
+      {/* ─── AI Call Insights & Preferences ─── */}
+      <div className="mb-6 border-t border-slate-300 pt-5">
+        <h4 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-3">
+          Insights & Lead Demand
+        </h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <InsightBadge
+            icon={<Clock size={15} />}
+            title="Best Pickup Window"
+            value={performance?.bestPickupTime ?? "—"}
+            subtitle="Highest connection rate"
+            color="text-brand-600"
+            bg="bg-brand-50"
+            loading={isLoadingPerformance}
+          />
+          <InsightBadge
+            icon={<TrendingUp size={15} />}
+            title="Best Conversion Time"
+            value={performance?.bestConversionTime ?? "—"}
+            subtitle="Peak HOT / WARM leads"
+            color="text-amber-600"
+            bg="bg-amber-50"
+            loading={isLoadingPerformance}
+          />
+          <InsightBadge
+            icon={<DollarSign size={15} />}
+            title="Top Requested Budget"
+            value={performance?.topBudget ?? "—"}
+            subtitle="Most frequent budget range"
+            color="text-emerald-600"
+            bg="bg-emerald-50"
+            loading={isLoadingPerformance}
+          />
+          <InsightBadge
+            icon={<Building2 size={15} />}
+            title="Popular Configuration"
+            value={performance?.topConfiguration ?? "—"}
+            subtitle="Most requested layout"
+            color="text-purple-600"
+            bg="bg-purple-50"
+            loading={isLoadingPerformance}
+          />
+        </div>
+      </div>
+
       {/* ─── Progress Bars ─── */}
       <div className="flex flex-col gap-3 pt-2">
         <div>
@@ -186,6 +233,46 @@ function StatCard({
         ) : (
           <p className={`text-xl font-bold tracking-tight ${color}`}>{value}</p>
         )}
+      </div>
+    </div>
+  );
+}
+
+function InsightBadge({
+  icon,
+  title,
+  value,
+  subtitle,
+  color,
+  bg,
+  loading,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  subtitle: string;
+  label?: string;
+  value: string | number;
+  color: string;
+  bg: string;
+  loading?: boolean;
+}) {
+  return (
+    <div className="rounded-xl border border-surface-border p-3 flex items-start gap-3 bg-surface">
+      <div className={`p-2 rounded-lg shrink-0 ${bg} ${color}`}>{icon}</div>
+      <div className="min-w-0">
+        <p className="text-[11px] font-medium text-text-muted uppercase tracking-wider">
+          {title}
+        </p>
+        {loading ? (
+          <div className="h-5 w-20 bg-surface-subtle animate-pulse rounded mt-1" />
+        ) : (
+          <p className="text-sm font-bold text-text-primary truncate mt-0.5">
+            {value}
+          </p>
+        )}
+        <p className="text-[10px] text-text-muted truncate mt-0.5">
+          {subtitle}
+        </p>
       </div>
     </div>
   );

@@ -249,7 +249,11 @@ export interface CampaignPerformance {
   dnc: number;
   totalCost: number;
   costPerLead: number;
-  qualificationRate: number; // e.g. "45.2"
+  qualificationRate: number;
+  bestPickupTime: string;
+  bestConversionTime: string;
+  topBudget: string;
+  topConfiguration: string;
 }
 
 export type UpdateCampaignInput = Partial<CreateCampaignInput>;
