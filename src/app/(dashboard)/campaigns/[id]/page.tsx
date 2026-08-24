@@ -48,6 +48,7 @@ export default function CampaignDetailPage() {
   const [uploadOpen, setUploadOpen] = useState(false);
 
   const { data: campaign, isLoading } = useCampaign(id, true);
+  console.log("campaign list: ", campaign)
 
   // ─── Query Performance Metrics ───
   const { data: performance, isLoading: isLoadingPerf } =
