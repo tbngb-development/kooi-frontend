@@ -1,11 +1,11 @@
 // src/lib/api/leads.ts
-
 import apiClient from "@/lib/axios";
 import type {
   ApiResponse,
   Lead,
   LeadDetail,
   LeadQueryParams,
+  LeadStats,
   PaginatedData,
   PaginatedResponse,
 } from "@/types";
@@ -20,7 +20,6 @@ export const leadsApi = {
     if (!res.data.success || !res.data.data) {
       throw new Error("Failed to fetch leads");
     }
-    console.log("res data", res.data.data);
     return res.data.data;
   },
 
@@ -31,8 +30,19 @@ export const leadsApi = {
     if (!res.data.success || !res.data.data) {
       throw new Error(res.data.error ?? "Failed to fetch lead");
     }
+    return res.data.data;
+  },
 
-    
+  getStats: async (params?: { campaignId?: string }): Promise<LeadStats> => {
+    const res = await apiClient.get<ApiResponse<LeadStats>>(
+      "/api/leads/stats",
+      {
+        params,
+      },
+    );
+    if (!res.data.success || !res.data.data) {
+      throw new Error(res.data.error ?? "Failed to fetch lead stats");
+    }
     return res.data.data;
   },
 };
