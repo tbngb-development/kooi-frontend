@@ -136,7 +136,7 @@ frontend/src/
 │   └── (dashboard)/               # Main tenant app
 │       ├── assistants/            # List, detail, create assistant
 │       ├── calls/                 # All calls list + [id] detail page
-│       ├── campaigns/             # List + [id] detail + [id]/calls + [id]/leads
+│       ├── campaigns/             # List + [id] detail + [id]/calls/ + [callId] details + + [id]/leads
 │       ├── dashboard/             # Main dashboard page
 │       ├── leads/                 # All leads list + [id] detail page
 │       └── users/                 # Team management
@@ -600,7 +600,19 @@ DASHBOARD_KEY = ['dashboard']
 [...CALLS_KEY, params]           // filtered call list
 [...CALLS_KEY, 'stats', params]  // call stats
 [...LEADS_KEY, 'stats', params]  // lead stats
+
+URL-Synced Filter State (Critical Pattern)
+On listing pages (Calls, Leads), filters are not stored in local useState. They are synced directly to the URL (?search=John&status=COMPLETED&page=2).
+
+Allows deep-linking and refreshing without losing context.
+Used in conjunction with router.replace({ scroll: false }) to avoid page jumps.
 ```
+
+Preserving State via router.back()
+When navigating from a filtered listing page to a detail page, the Back button triggers router.back(). This pops the browser history stack, restoring the exact URL parameters (filters/pagination) seamlessly.
+
+Interactive Stat Cards
+Summary stat cards at the top of listing pages double as quick filters. Clicking "Hot Leads" updates the URL parameter ?leadTemperature=HOT, automatically filtering the table below.
 
 ### Types (`src/types/index.ts`)
 

@@ -106,6 +106,9 @@ export function CallsTable({
                   Temperature
                 </th>
                 <th className="text-right px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
+                  Cost
+                </th>
+                <th className="text-right px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
                   Duration
                 </th>
                 <th className="text-left px-5 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
@@ -131,7 +134,7 @@ export function CallsTable({
                     </td>
                     <td className="px-4 py-3 text-text-secondary font-mono text-xs">
                       <Link
-                        href={`/calls/${call.id}`}
+                        href={`/campaigns/${call.campaignId}/calls/${call.id}`}
                         className="font-medium text-text-primary hover:text-brand-600 transition-colors"
                       >
                         {call.lead.phone}
@@ -159,6 +162,11 @@ export function CallsTable({
                       ) : (
                         <span className="text-xs text-text-muted">—</span>
                       )}
+                    </td>
+                    <td className="px-4 py-3 text-right text-text-secondary">
+                      {call?.cost != null
+                        ? `$${(call.cost / 100).toFixed(2)}`
+                        : "$0.00"}
                     </td>
                     <td className="px-4 py-3 text-right text-text-secondary">
                       {formatDuration(call.duration)}
