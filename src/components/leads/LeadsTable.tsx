@@ -1,14 +1,14 @@
 // src/components/leads/LeadsTable.tsx
 
-'use client';
+"use client";
 
-import { EmptyState } from '@/components/ui/EmptyState';
-import { Pagination } from '@/components/ui/Pagination';
-import { LeadStatusBadge } from './LeadStatusBadge';
-import { formatDate } from '@/lib/utils/formatDate';
-import type { Lead, PaginationMeta } from '@/types';
-import { Users } from 'lucide-react';
-import Link from 'next/link';
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Pagination } from "@/components/ui/Pagination";
+import { LeadStatusBadge } from "./LeadStatusBadge";
+import { formatDate } from "@/lib/utils/formatDate";
+import type { Lead, PaginationMeta } from "@/types";
+import { Users } from "lucide-react";
+import Link from "next/link";
 
 interface LeadsTableProps {
   leads: Lead[];
@@ -69,7 +69,7 @@ export function LeadsTable({
                       href={`/leads/${lead.id}`}
                       className="font-medium text-text-primary hover:text-brand-600 transition-colors"
                     >
-                      {lead.name}
+                      {lead.name.trim().length > 0 ? lead.name : "Unknown"}
                     </Link>
                     {lead.email && (
                       <p className="text-xs text-text-muted mt-0.5">
@@ -81,7 +81,7 @@ export function LeadsTable({
                     {lead.phone}
                   </td>
                   <td className="px-4 py-3 text-text-muted">
-                    {lead.company ?? '—'}
+                    {lead.company ?? "—"}
                   </td>
                   <td className="px-4 py-3">
                     <LeadStatusBadge status={lead.status} />

@@ -69,6 +69,7 @@ export function CallsTable({
   pagination,
   onPageChange,
 }: CallsTableProps) {
+  console.log("pagination data: ", pagination);
   if (calls.length === 0) {
     return (
       <EmptyState
@@ -122,10 +123,12 @@ export function CallsTable({
                   >
                     <td className="px-5 py-3">
                       <Link
-                        href={`/calls/${call.id}`}
+                        href={`/campaigns/${call.campaignId}/calls/${call.id}`}
                         className="font-medium text-text-primary hover:text-brand-600 transition-colors"
                       >
-                        {call.lead.name}
+                        {call.lead.name.length > 0
+                          ? call.lead.name
+                          : "Unknown"}
                       </Link>
                     </td>
                     <td className="px-4 py-3 text-text-secondary font-mono text-xs">

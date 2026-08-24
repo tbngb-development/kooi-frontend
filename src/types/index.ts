@@ -689,10 +689,16 @@ export interface LeadQueryParams {
 export interface CallQueryParams {
   campaignId?: string;
   leadId?: string;
-  status?: CallStatus;
+  status?: string;
+  disposition?: string;
   leadTemperature?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
   page?: number;
   limit?: number;
+  search?: string; // <─── ADD THIS
 }
 
 export interface ApiMeta {

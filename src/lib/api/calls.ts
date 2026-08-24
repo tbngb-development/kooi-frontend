@@ -42,4 +42,10 @@ export const callsApi = {
 
     return res.data.data;
   },
+
+  getCallStats: async (params?: { campaignId?: string }) => {
+    const res = await apiClient.get("/api/calls/stats", { params });
+    console.log("call stats, ", res)
+    return res.data.data;
+  },
 };
