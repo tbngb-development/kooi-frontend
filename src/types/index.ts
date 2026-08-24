@@ -524,6 +524,7 @@ export interface Call {
   campaignId: string;
   status: CallStatus;
   duration?: number;
+  cost?: number;
   recording?: string;
   transcript?: string;
   summary?: string;
