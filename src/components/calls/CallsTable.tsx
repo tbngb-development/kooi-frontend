@@ -131,7 +131,7 @@ export function CallsTable({
                     </td>
                     <td className="px-4 py-3 text-text-secondary font-mono text-xs">
                       <Link
-                        href={`/calls/${call.id}`}
+                        href={`/campaigns/${call.campaignId}/calls/${call.id}`}
                         className="font-medium text-text-primary hover:text-brand-600 transition-colors"
                       >
                         {call.lead.phone}
