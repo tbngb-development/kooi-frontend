@@ -32,7 +32,8 @@ import Link from "next/link";
 
 const STATUS_OPTIONS = [
   { label: "Completed", value: "COMPLETED" },
-  { label: "No Answer / Busy", value: "NO_ANSWER,BUSY" },
+  { label: "No Answer", value: "NO_ANSWER" },
+  { label: "Busy", value: "BUSY" },
   { label: "Failed", value: "FAILED" },
 ];
 
