@@ -72,7 +72,7 @@ export default function NotFound() {
         {/* Actions */}
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
           <Link
-            href={ADMIN_ROUTES.DASHBOARD}
+            href={"/dashboard"}
             className="
               inline-flex items-center justify-center gap-2
               w-full sm:w-auto
