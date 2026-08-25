@@ -9,8 +9,6 @@ import {
   TrendingUp,
   Percent,
   XCircle,
-  Clock,
-  Building2,
 } from "lucide-react";
 
 interface CampaignStatsProps {
@@ -41,7 +39,7 @@ export function CampaignStats({
       </h3>
 
       {/* ─── Stats Grid (Card Form) ─── */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols- gap-4 mb-8">
         <StatCard
           icon={<Flame size={16} />}
           label="Hot Leads"
@@ -79,7 +77,7 @@ export function CampaignStats({
           iconBg="bg-success-50"
           loading={isLoadingPerformance}
         />
-        {/* <StatCard
+        <StatCard
           icon={<DollarSign size={16} />}
           label="Total Cost"
           value={
@@ -101,8 +99,7 @@ export function CampaignStats({
           color="text-violet-600"
           iconBg="bg-violet-50"
           loading={isLoadingPerformance}
-        /> */}
-        
+        />
         <StatCard
           icon={<PhoneOff size={16} />}
           label="DNC Registered"
