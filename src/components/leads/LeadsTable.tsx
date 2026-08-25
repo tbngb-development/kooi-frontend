@@ -38,26 +38,26 @@ export function LeadsTable({
     <div className="flex flex-col gap-4">
       <div className="bg-surface rounded-lg border border-surface-border overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-base">
             <thead>
               <tr className="border-b border-surface-border bg-surface-subtle">
-                <th className="text-left px-5 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
+                <th className="text-left px-5 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
                   Name
                 </th>
 
-                <th className="text-left px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
+                <th className="text-left px-4 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
                   Company
                 </th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
+                <th className="text-left px-4 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
                   Status
                 </th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
+                <th className="text-left px-4 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
                   Campaign
                 </th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
+                <th className="text-left px-4 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
                   DND
                 </th>
-                <th className="text-left px-5 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
+                <th className="text-left px-5 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
                   Date & Time
                 </th>
               </tr>
@@ -76,12 +76,12 @@ export function LeadsTable({
                       {lead.name.trim().length > 0 ? lead.name : "Unknown"}
                     </Link>
                     {lead.email && (
-                      <p className="text-xs text-text-muted mt-0.5">
+                      <p className="text-sm text-text-muted mt-0.5">
                         {lead.email}
                       </p>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-text-secondary font-mono text-xs">
+                  <td className="px-4 py-3 text-text-secondary font-mono text-sm">
                     {lead.phone}
                   </td>
 
@@ -91,27 +91,27 @@ export function LeadsTable({
                   <td className="px-4 py-3">
                     <Link
                       href={`/campaigns/${lead.campaignId}`}
-                      className="text-text-muted hover:text-brand-600 text-xs transition-colors"
+                      className="text-text-muted hover:text-brand-600 text-sm transition-colors"
                     >
                       {lead.campaign.name}
                     </Link>
                   </td>
-                  <td className="px-5 py-3 text-text-muted text-xs">
+                  <td className="px-5 py-3 text-text-muted text-sm">
                     {lead.doNotCall ? "Yes" : "No"}
                   </td>
 
                   <td className="px-5 py-3">
                     {lead.createdAt ? (
                       <div className="flex flex-col gap-0.5">
-                        <span className="text-sm font-medium text-text-primary leading-none">
+                        <span className="text-base font-medium text-text-primary leading-none">
                           {formatTimeOnly(lead.createdAt)}
                         </span>
-                        <span className="text-xs text-text-muted leading-none">
+                        <span className="text-sm text-text-muted leading-none">
                           {formatDateOnly(lead.createdAt)}
                         </span>
                       </div>
                     ) : (
-                      <span className="text-xs text-text-muted">—</span>
+                      <span className="text-sm text-text-muted">—</span>
                     )}
                   </td>
                 </tr>
@@ -123,7 +123,7 @@ export function LeadsTable({
 
       {pagination && onPageChange && (
         <div className="flex items-center justify-between">
-          <p className="text-xs text-text-muted">
+          <p className="text-sm text-text-muted">
             Showing {leads.length} of {pagination.total} leads
           </p>
           <Pagination

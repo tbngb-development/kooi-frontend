@@ -28,15 +28,15 @@ export function StatsCard({
     <Card>
       <div className="flex items-start justify-between">
         <div className="min-w-0">
-          <p className="text-sm text-text-muted font-medium">{title}</p>
+          <p className="text-base text-text-muted font-medium">{title}</p>
           <p className="text-2xl font-bold text-text-primary mt-1">{value}</p>
           {subtitle && (
-            <p className="text-xs text-text-muted mt-0.5">{subtitle}</p>
+            <p className="text-sm text-text-muted mt-0.5">{subtitle}</p>
           )}
           {trend && (
             <p
               className={cn(
-                'text-xs font-medium mt-1',
+                'text-sm font-medium mt-1',
                 trend.positive ? 'text-success-600' : 'text-error-600'
               )}
             >

@@ -23,7 +23,7 @@ export function Spinner({ size = 'md', className, label }: SpinnerProps) {
         className="animate-spin text-brand-500"
       />
       {label && (
-        <span className="text-sm text-text-muted">{label}</span>
+        <span className="text-base text-text-muted">{label}</span>
       )}
     </div>
   );

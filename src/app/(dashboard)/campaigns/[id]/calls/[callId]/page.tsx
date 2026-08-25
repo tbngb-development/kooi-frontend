@@ -61,8 +61,8 @@ function AnalysisRow({
 }) {
   return (
     <div className="flex items-start justify-between gap-4 py-2 border-b border-surface-border last:border-0">
-      <span className="text-xs text-text-muted shrink-0 w-40">{label}</span>
-      <span className="text-xs text-text-primary text-right">
+      <span className="text-sm text-text-muted shrink-0 w-40">{label}</span>
+      <span className="text-sm text-text-primary text-right">
         {value &&
         value !== "NOT_SHARED" &&
         value !== "NOT_ASKED" &&
@@ -79,7 +79,7 @@ function CallAnalysisSection({ analysis }: { analysis: CallAnalysis }) {
     <Card>
       <div className="flex items-center gap-2 mb-4">
         <Target size={15} className="text-brand-600" />
-        <h3 className="text-sm font-semibold text-text-primary">
+        <h3 className="text-base font-semibold text-text-primary">
           Call Analysis
         </h3>
       </div>
@@ -87,20 +87,20 @@ function CallAnalysisSection({ analysis }: { analysis: CallAnalysis }) {
       {/* Outcome row */}
       <div className="flex items-center gap-3 mb-4 flex-wrap">
         {analysis.disposition && (
-          <span className="inline-flex items-center rounded-md bg-brand-50 px-2.5 py-1 text-xs font-medium text-brand-700 border border-brand-100">
+          <span className="inline-flex items-center rounded-md bg-brand-50 px-2.5 py-1 text-sm font-medium text-brand-700 border border-brand-100">
             {dispositionLabel[analysis.disposition]}
           </span>
         )}
         {analysis.leadTemperature && (
           <span
-            className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${temperatureStyle[analysis.leadTemperature]}`}
+            className={`inline-flex items-center rounded-full px-2.5 py-1 text-sm font-medium ${temperatureStyle[analysis.leadTemperature]}`}
           >
             <Thermometer size={10} className="mr-1" />
             {analysis.leadTemperature}
           </span>
         )}
         {analysis.doNotCall === "YES" && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-error-100 px-2.5 py-1 text-xs font-medium text-error-700">
+          <span className="inline-flex items-center gap-1 rounded-full bg-error-100 px-2.5 py-1 text-sm font-medium text-error-700">
             <AlertCircle size={10} />
             Do Not Call
           </span>
@@ -109,7 +109,7 @@ function CallAnalysisSection({ analysis }: { analysis: CallAnalysis }) {
 
       {/* Qualification details */}
       <div className="mb-4">
-        <p className="text-xs font-medium text-text-muted uppercase tracking-wide mb-2">
+        <p className="text-sm font-medium text-text-muted uppercase tracking-wide mb-2">
           Lead Qualification
         </p>
         <AnalysisRow
@@ -136,7 +136,7 @@ function CallAnalysisSection({ analysis }: { analysis: CallAnalysis }) {
 
       {/* Next action */}
       <div className="mb-4">
-        <p className="text-xs font-medium text-text-muted uppercase tracking-wide mb-2">
+        <p className="text-sm font-medium text-text-muted uppercase tracking-wide mb-2">
           Next Action
         </p>
         <AnalysisRow label="Next Action" value={analysis.preferredNextAction} />
@@ -152,7 +152,7 @@ function CallAnalysisSection({ analysis }: { analysis: CallAnalysis }) {
 
       {/* Compliance */}
       <div>
-        <p className="text-xs font-medium text-text-muted uppercase tracking-wide mb-2">
+        <p className="text-sm font-medium text-text-muted uppercase tracking-wide mb-2">
           Compliance
         </p>
         <AnalysisRow
@@ -175,7 +175,7 @@ export default function CampaignCallDetailPage() {
   const { data: call, isLoading: callLoading } = useCall(id);
 
   if (callLoading) return <PageSpinner />;
-  if (!call) return <p className="text-text-muted text-sm">Call not found.</p>;
+  if (!call) return <p className="text-text-muted text-base">Call not found.</p>;
 
   const analysis = call.callAnalysis ?? null;
 
@@ -195,7 +195,7 @@ export default function CampaignCallDetailPage() {
         <button
           type="button"
           onClick={handleBack}
-          className="inline-flex items-center gap-1.5 text-sm text-text-muted hover:text-text-primary mb-3 transition-colors cursor-pointer"
+          className="inline-flex items-center gap-1.5 text-base text-text-muted hover:text-text-primary mb-3 transition-colors cursor-pointer"
         >
           <ChevronLeft size={14} />
           Back to Calls
@@ -207,7 +207,7 @@ export default function CampaignCallDetailPage() {
           </h2>
           <CallStatusBadge status={call.status} />
         </div>
-        <p className="text-sm text-text-muted mt-1">
+        <p className="text-base text-text-muted mt-1">
           Campaign:{" "}
           <Link
             href={`/campaigns/${call.campaignId}`}
@@ -223,8 +223,8 @@ export default function CampaignCallDetailPage() {
         <Card padding="sm" className="flex items-center gap-2.5">
           <User size={15} className="text-text-muted shrink-0" />
           <div>
-            <p className="text-xs text-text-muted">Lead</p>
-            <p className="text-sm font-medium text-text-primary">
+            <p className="text-sm text-text-muted">Lead</p>
+            <p className="text-base font-medium text-text-primary">
               {call.lead.name}
             </p>
           </div>
@@ -232,8 +232,8 @@ export default function CampaignCallDetailPage() {
         <Card padding="sm" className="flex items-center gap-2.5">
           <Phone size={15} className="text-text-muted shrink-0" />
           <div>
-            <p className="text-xs text-text-muted">Phone</p>
-            <p className="text-sm font-medium text-text-primary font-mono">
+            <p className="text-sm text-text-muted">Phone</p>
+            <p className="text-base font-medium text-text-primary font-mono">
               {call.lead.phone}
             </p>
           </div>
@@ -241,8 +241,8 @@ export default function CampaignCallDetailPage() {
         <Card padding="sm" className="flex items-center gap-2.5">
           <Clock size={15} className="text-text-muted shrink-0" />
           <div>
-            <p className="text-xs text-text-muted">Duration</p>
-            <p className="text-sm font-medium text-text-primary">
+            <p className="text-sm text-text-muted">Duration</p>
+            <p className="text-base font-medium text-text-primary">
               {formatDuration(call.duration)}
             </p>
           </div>
@@ -250,8 +250,8 @@ export default function CampaignCallDetailPage() {
         <Card padding="sm" className="flex items-center gap-2.5">
           <Thermometer size={15} className="text-text-muted shrink-0" />
           <div>
-            <p className="text-xs text-text-muted">Temperature</p>
-            <p className="text-sm font-medium text-text-primary">
+            <p className="text-sm text-text-muted">Temperature</p>
+            <p className="text-base font-medium text-text-primary">
               {analysis?.leadTemperature ?? "—"}
             </p>
           </div>
@@ -260,7 +260,7 @@ export default function CampaignCallDetailPage() {
 
       {/* Timestamps */}
       <Card padding="sm">
-        <div className="flex items-center gap-6 text-xs text-text-muted">
+        <div className="flex items-center gap-6 text-sm text-text-muted">
           {call.startedAt && (
             <span>Started: {formatDateTime(call.startedAt)}</span>
           )}
@@ -273,7 +273,7 @@ export default function CampaignCallDetailPage() {
         <Card>
           <div className="flex items-center gap-2 mb-3">
             <Mic size={15} className="text-brand-600" />
-            <h3 className="text-sm font-semibold text-text-primary">
+            <h3 className="text-base font-semibold text-text-primary">
               Recording
             </h3>
           </div>
@@ -284,10 +284,10 @@ export default function CampaignCallDetailPage() {
       {/* AI Summary */}
       {call.summary && (
         <Card>
-          <h3 className="text-sm font-semibold text-text-primary mb-3">
+          <h3 className="text-base font-semibold text-text-primary mb-3">
             AI Summary
           </h3>
-          <p className="text-sm text-text-secondary leading-relaxed">
+          <p className="text-base text-text-secondary leading-relaxed">
             {call.summary}
           </p>
         </Card>
@@ -300,7 +300,7 @@ export default function CampaignCallDetailPage() {
       <Card>
         <div className="flex items-center gap-2 mb-4">
           <MessageSquare size={15} className="text-brand-600" />
-          <h3 className="text-sm font-semibold text-text-primary">
+          <h3 className="text-base font-semibold text-text-primary">
             Transcript
           </h3>
         </div>

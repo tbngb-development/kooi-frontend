@@ -71,7 +71,7 @@ export function BrochureReviewForm({
             <AlertCircle size={16} className="text-amber-500 mt-0.5 shrink-0" />
           )}
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-text-primary">
+            <p className="text-base font-medium text-text-primary">
               AI Extraction{' '}
               <span className={edited.confidence >= 0.7 ? 'text-green-600' : 'text-amber-600'}>
                 {Math.round(edited.confidence * 100)}% confident
@@ -80,7 +80,7 @@ export function BrochureReviewForm({
             {edited.extractionWarnings.length > 0 && (
               <ul className="mt-1.5 space-y-0.5">
                 {edited.extractionWarnings.map((w, i) => (
-                  <li key={i} className="text-xs text-text-muted">
+                  <li key={i} className="text-sm text-text-muted">
                     • {w}
                   </li>
                 ))}
@@ -94,7 +94,7 @@ export function BrochureReviewForm({
       {missingCritical.length > 0 && (
         <div className="rounded-lg bg-blue-50 border border-blue-100 p-3 flex items-start gap-2">
           <Info size={14} className="text-blue-500 mt-0.5 shrink-0" />
-          <p className="text-xs text-blue-700">
+          <p className="text-sm text-blue-700">
             Some important fields are missing:{' '}
             <span className="font-medium">
               {missingCritical.join(', ')}
@@ -106,7 +106,7 @@ export function BrochureReviewForm({
 
       {/* ── Core Identity ─────────────────────────────────────────────────── */}
       <Card>
-        <h3 className="text-sm font-semibold text-text-primary mb-4">
+        <h3 className="text-base font-semibold text-text-primary mb-4">
           Project Identity
         </h3>
         <div className="grid grid-cols-2 gap-3">
@@ -139,7 +139,7 @@ export function BrochureReviewForm({
 
       {/* ── Location ──────────────────────────────────────────────────────── */}
       <Card>
-        <h3 className="text-sm font-semibold text-text-primary mb-4">
+        <h3 className="text-base font-semibold text-text-primary mb-4">
           Location
         </h3>
         <div className="grid grid-cols-2 gap-3">
@@ -168,20 +168,20 @@ export function BrochureReviewForm({
 
       {/* ── Property Specs ─────────────────────────────────────────────────── */}
       <Card>
-        <h3 className="text-sm font-semibold text-text-primary mb-4">
+        <h3 className="text-base font-semibold text-text-primary mb-4">
           Property Specs
         </h3>
         <div className="flex flex-col gap-3">
           {/* Configurations */}
           <div>
-            <label className="text-sm font-medium text-text-primary">
+            <label className="text-base font-medium text-text-primary">
               Configurations
             </label>
             <div className="flex flex-wrap gap-2 mt-2">
               {edited.configurations.map((c, i) => (
                 <span
                   key={i}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium"
                 >
                   {c}
                   <button
@@ -199,7 +199,7 @@ export function BrochureReviewForm({
                 </span>
               ))}
             </div>
-            <p className="text-xs text-text-muted mt-1">
+            <p className="text-sm text-text-muted mt-1">
               {edited.configurations.length === 0 &&
                 'No configurations extracted — add manually if needed'}
             </p>
@@ -239,7 +239,7 @@ export function BrochureReviewForm({
 
       {/* ── Pricing ───────────────────────────────────────────────────────── */}
       <Card>
-        <h3 className="text-sm font-semibold text-text-primary mb-4">
+        <h3 className="text-base font-semibold text-text-primary mb-4">
           Pricing
         </h3>
         <div className="grid grid-cols-2 gap-3">
@@ -254,7 +254,7 @@ export function BrochureReviewForm({
               placeholder="14400000"
             />
             {edited.startingPrice && (
-              <p className="text-xs text-text-muted mt-1">
+              <p className="text-sm text-text-muted mt-1">
                 = {formatPrice(edited.startingPrice)}
               </p>
             )}
@@ -270,7 +270,7 @@ export function BrochureReviewForm({
               placeholder="32400000"
             />
             {edited.maxPrice && (
-              <p className="text-xs text-text-muted mt-1">
+              <p className="text-sm text-text-muted mt-1">
                 = {formatPrice(edited.maxPrice)}
               </p>
             )}
@@ -295,7 +295,7 @@ export function BrochureReviewForm({
 
       {/* ── Timeline ──────────────────────────────────────────────────────── */}
       <Card>
-        <h3 className="text-sm font-semibold text-text-primary mb-4">
+        <h3 className="text-base font-semibold text-text-primary mb-4">
           Timeline
         </h3>
         <div className="grid grid-cols-2 gap-3">
@@ -306,13 +306,13 @@ export function BrochureReviewForm({
             placeholder="December 2031"
           />
           <div>
-            <label className="text-sm font-medium text-text-primary">
+            <label className="text-base font-medium text-text-primary">
               Construction status
             </label>
             <select
               value={edited.constructionStatus ?? 'unknown'}
               onChange={(e) => updateField('constructionStatus', e.target.value)}
-              className="w-full h-10 px-3 mt-1.5 rounded-md border border-border bg-surface text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+              className="w-full h-10 px-3 mt-1.5 rounded-md border border-border bg-surface text-base text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
             >
               <option value="pre-launch">Pre-launch</option>
               <option value="under-construction">Under Construction</option>
@@ -326,16 +326,16 @@ export function BrochureReviewForm({
 
       {/* ── Qualification Questions ────────────────────────────────────────── */}
       <Card>
-        <h3 className="text-sm font-semibold text-text-primary mb-1">
+        <h3 className="text-base font-semibold text-text-primary mb-1">
           AI Qualifying Questions
         </h3>
-        <p className="text-xs text-text-muted mb-4">
+        <p className="text-sm text-text-muted mb-4">
           These are asked by your AI agent during calls
         </p>
         <div className="flex flex-col gap-2">
           {edited.keyQualifyingQuestions.map((q, i) => (
             <div key={i} className="flex items-start gap-2">
-              <span className="text-xs text-text-muted font-medium w-5 pt-2.5 shrink-0">
+              <span className="text-sm text-text-muted font-medium w-5 pt-2.5 shrink-0">
                 {i + 1}.
               </span>
               <input
@@ -345,7 +345,7 @@ export function BrochureReviewForm({
                   updated[i] = e.target.value;
                   updateField('keyQualifyingQuestions', updated);
                 }}
-                className="flex-1 h-9 px-3 rounded-md border border-border bg-surface text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                className="flex-1 h-9 px-3 rounded-md border border-border bg-surface text-base text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
               />
               <button
                 type="button"
@@ -369,7 +369,7 @@ export function BrochureReviewForm({
                 '',
               ])
             }
-            className="text-xs text-primary hover:underline text-left mt-1"
+            className="text-sm text-primary hover:underline text-left mt-1"
           >
             + Add question
           </button>

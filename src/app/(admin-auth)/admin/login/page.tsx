@@ -35,7 +35,7 @@ export default function AdminLoginPage() {
         <h2 className="text-xl font-bold text-text-primary">
           Super Admin Login
         </h2>
-        <p className="text-sm text-text-muted mt-1">
+        <p className="text-base text-text-muted mt-1">
           Restricted access — authorized personnel only
         </p>
       </div>

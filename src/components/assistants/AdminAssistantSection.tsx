@@ -78,10 +78,10 @@ export function AdminAssistantSection({
       {/* Section header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-semibold text-text-primary">
+          <h3 className="text-base font-semibold text-text-primary">
             AI Assistants
           </h3>
-          <p className="text-xs text-text-muted mt-0.5">
+          <p className="text-sm text-text-muted mt-0.5">
             Manage Bolna voice agents for this tenant
           </p>
         </div>

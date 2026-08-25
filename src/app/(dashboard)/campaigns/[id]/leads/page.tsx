@@ -112,7 +112,7 @@ export default function CampaignLeadsPage() {
       <div>
         <Link
           href={`/campaigns/${campaignId}`}
-          className="inline-flex items-center gap-1.5 text-sm text-text-muted hover:text-text-primary mb-3 transition-colors"
+          className="inline-flex items-center gap-1.5 text-base text-text-muted hover:text-text-primary mb-3 transition-colors"
         >
           <ChevronLeft size={14} />
           Back to Campaign

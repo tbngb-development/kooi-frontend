@@ -36,7 +36,7 @@ export const FloatingInput = forwardRef<HTMLInputElement, FloatingInputProps>(
             }}
             className={clsx(
               // base
-              "peer w-full rounded-lg border bg-surface text-sm text-text-primary",
+              "peer w-full rounded-lg border bg-surface text-base text-text-primary",
               "px-3.5 pt-4 pb-2 h-14",
               "focus:outline-none transition-colors",
               "placeholder-transparent",
@@ -60,9 +60,9 @@ export const FloatingInput = forwardRef<HTMLInputElement, FloatingInputProps>(
               "bg-surface px-1",
               isFloating
                 ? // Floating position — top of border
-                  "top-0 -translate-y-1/2 text-xs"
+                  "top-0 -translate-y-1/2 text-sm"
                 : // Resting position — center
-                  "top-1/2 -translate-y-1/2 text-sm",
+                  "top-1/2 -translate-y-1/2 text-base",
               error
                 ? "text-error"
                 : isFocused
@@ -74,7 +74,7 @@ export const FloatingInput = forwardRef<HTMLInputElement, FloatingInputProps>(
           </label>
         </div>
 
-        {error && <p className="mt-1 text-xs text-error px-1">{error}</p>}
+        {error && <p className="mt-1 text-sm text-error px-1">{error}</p>}
       </div>
     );
   },

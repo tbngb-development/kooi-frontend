@@ -90,7 +90,7 @@ export default function NewCampaignPage() {
       <div>
         <Link
           href="/campaigns"
-          className="inline-flex items-center gap-1.5 text-sm text-text-muted hover:text-text-primary mb-3 transition-colors"
+          className="inline-flex items-center gap-1.5 text-base text-text-muted hover:text-text-primary mb-3 transition-colors"
         >
           <ChevronLeft size={14} />
           Back to Campaigns
@@ -98,7 +98,7 @@ export default function NewCampaignPage() {
         <h2 className="text-lg font-semibold text-text-primary">
           Create Campaign
         </h2>
-        <p className="text-sm text-text-muted mt-0.5">
+        <p className="text-base text-text-muted mt-0.5">
           Set up a new lead qualification campaign
         </p>
       </div>
@@ -136,7 +136,7 @@ export default function NewCampaignPage() {
                 <div className="flex flex-col">
                   <span
                     className={[
-                      "text-xs font-medium leading-none",
+                      "text-sm font-medium leading-none",
                       isCurrent || isCompleted
                         ? "text-text-primary"
                         : "text-text-muted",
@@ -146,7 +146,7 @@ export default function NewCampaignPage() {
                   </span>
                   <span
                     className={[
-                      "text-sm font-semibold mt-1",
+                      "text-base font-semibold mt-1",
                       isCurrent
                         ? "text-primary"
                         : isCompleted

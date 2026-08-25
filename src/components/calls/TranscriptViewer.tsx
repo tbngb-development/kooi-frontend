@@ -73,7 +73,7 @@ export function TranscriptViewer({
 
   if (resolvedMessages.length === 0) {
     return (
-      <p className="text-sm text-text-muted text-center py-8">
+      <p className="text-base text-text-muted text-center py-8">
         No transcript available.
       </p>
     );
@@ -112,11 +112,11 @@ export function TranscriptViewer({
               <p className="text-[10px] font-bold text-text-muted mb-1 uppercase tracking-wider">
                 {isAssistant ? "AI Assistant" : "Lead"}
               </p>
-              <p className="text-sm text-text-primary leading-relaxed whitespace-pre-line">
+              <p className="text-base text-text-primary leading-relaxed whitespace-pre-line">
                 {msg.message}
               </p>
               {msg.time && (
-                <p className="text-xs text-text-placeholder mt-1 text-right">
+                <p className="text-sm text-text-placeholder mt-1 text-right">
                   {formatTranscriptDuration(msg.secondsFromStart)}
                 </p>
               )}

@@ -222,21 +222,21 @@ export function UploadLeadsModal({
               <div>
                 {parsing ? (
                   <>
-                    <p className="text-sm font-medium text-text-primary">
+                    <p className="text-base font-medium text-text-primary">
                       Parsing file…
                     </p>
-                    <p className="text-xs text-text-muted mt-0.5">
+                    <p className="text-sm text-text-muted mt-0.5">
                       Checking for duplicates and validating rows
                     </p>
                   </>
                 ) : (
                   <>
-                    <p className="text-sm font-medium text-text-primary">
+                    <p className="text-base font-medium text-text-primary">
                       {dragging
                         ? "Release to upload"
                         : "Drop your file here or click to browse"}
                     </p>
-                    <p className="text-xs text-text-muted mt-0.5">
+                    <p className="text-sm text-text-muted mt-0.5">
                       .csv · .xls · .xlsx (max {MAX_FILE_SIZE_MB} MB)
                     </p>
                   </>
@@ -251,19 +251,19 @@ export function UploadLeadsModal({
                 size={14}
                 className="text-error-500 shrink-0 mt-0.5"
               />
-              <p className="text-xs text-error-600">{validationError}</p>
+              <p className="text-sm text-error-600">{validationError}</p>
             </div>
           )}
 
           <div className="rounded-md bg-info-50 border border-info-100 p-3">
-            <p className="text-xs font-medium text-info-600 mb-1.5">
+            <p className="text-sm font-medium text-info-600 mb-1.5">
               Required columns
             </p>
-            <p className="text-xs text-text-muted font-mono">phone</p>
-            <p className="text-xs text-text-muted mt-1.5 font-medium">
+            <p className="text-sm text-text-muted font-mono">phone</p>
+            <p className="text-sm text-text-muted mt-1.5 font-medium">
               Optional columns
             </p>
-            <p className="text-xs text-text-muted font-mono">
+            <p className="text-sm text-text-muted font-mono">
               name (min 3 chars), email, company
             </p>
           </div>
@@ -278,10 +278,10 @@ export function UploadLeadsModal({
             <div className="flex items-center gap-2 min-w-0">
               <FileText size={16} className="text-brand-600 shrink-0" />
               <div className="min-w-0">
-                <p className="text-sm font-medium text-text-primary truncate">
+                <p className="text-base font-medium text-text-primary truncate">
                   {file.name}
                 </p>
-                <p className="text-xs text-text-muted">
+                <p className="text-sm text-text-muted">
                   {(file.size / 1024).toFixed(1)} KB · {parseResult.total} rows
                 </p>
               </div>
@@ -317,7 +317,7 @@ export function UploadLeadsModal({
             <div className="flex items-start gap-2.5 rounded-md bg-success-50 border border-success-100 p-3">
               <Users size={14} className="text-success-600 shrink-0 mt-0.5" />
               <div>
-                <p className="text-xs font-semibold text-success-700">
+                <p className="text-sm font-semibold text-success-700">
                   {parseResult.readyToImport} new lead
                   {parseResult.readyToImport !== 1 ? "s" : ""} will be added to
                   this campaign
@@ -336,7 +336,7 @@ export function UploadLeadsModal({
                 size={14}
                 className="text-warning-600 shrink-0 mt-0.5"
               />
-              <p className="text-xs text-warning-700">
+              <p className="text-sm text-warning-700">
                 <span className="font-semibold">{parseResult.invalid}</span> row
                 {parseResult.invalid !== 1 ? "s" : ""} will be skipped — missing
                 phone number.
@@ -358,7 +358,7 @@ export function UploadLeadsModal({
                     className="text-warning-600 shrink-0 mt-0.5"
                   />
                   <div>
-                    <p className="text-xs font-semibold text-warning-700">
+                    <p className="text-sm font-semibold text-warning-700">
                       {parseResult.inFileDuplicates + parseResult.dbDuplicates}{" "}
                       duplicate number
                       {parseResult.inFileDuplicates +
@@ -416,7 +416,7 @@ export function UploadLeadsModal({
               disabled={uploading}
               className="h-3.5 w-3.5 rounded border-surface-border accent-brand-600"
             />
-            <span className="text-xs text-text-muted">
+            <span className="text-sm text-text-muted">
               Allow duplicate contacts (Dev)
             </span>
           </label>

@@ -20,14 +20,14 @@ export default function LeadDetailPage() {
   console.log("leads data from detail page: ", lead);
 
   if (isLoading) return <PageSpinner />;
-  if (!lead) return <p className="text-text-muted text-sm">Lead not found.</p>;
+  if (!lead) return <p className="text-text-muted text-base">Lead not found.</p>;
 
   return (
     <div className="flex flex-col gap-5 max-w-3xl">
       <div>
         <Link
           href="/leads"
-          className="inline-flex items-center gap-1.5 text-sm text-text-muted hover:text-text-primary mb-3 transition-colors"
+          className="inline-flex items-center gap-1.5 text-base text-text-muted hover:text-text-primary mb-3 transition-colors"
         >
           <ChevronLeft size={14} />
           Back to Leads
@@ -36,7 +36,7 @@ export default function LeadDetailPage() {
           <h2 className="text-xl font-bold text-text-primary">{lead.name}</h2>
           <LeadStatusBadge status={lead.status} />
         </div>
-        <p className="text-sm text-text-muted mt-1">
+        <p className="text-base text-text-muted mt-1">
           Campaign:{" "}
           <Link
             href={`/campaigns/${lead.campaignId}`}
@@ -49,15 +49,15 @@ export default function LeadDetailPage() {
 
       {/* Contact Info */}
       <Card>
-        <h3 className="text-sm font-semibold text-text-primary mb-4">
+        <h3 className="text-base font-semibold text-text-primary mb-4">
           Contact Information
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="flex items-center gap-2.5">
             <User size={15} className="text-text-muted shrink-0" />
             <div>
-              <p className="text-xs text-text-muted">Full Name</p>
-              <p className="text-sm font-medium text-text-primary">
+              <p className="text-sm text-text-muted">Full Name</p>
+              <p className="text-base font-medium text-text-primary">
                 {lead.name}
               </p>
             </div>
@@ -65,8 +65,8 @@ export default function LeadDetailPage() {
           <div className="flex items-center gap-2.5">
             <Phone size={15} className="text-text-muted shrink-0" />
             <div>
-              <p className="text-xs text-text-muted">Phone</p>
-              <p className="text-sm font-medium text-text-primary font-mono">
+              <p className="text-sm text-text-muted">Phone</p>
+              <p className="text-base font-medium text-text-primary font-mono">
                 {lead.phone}
               </p>
             </div>
@@ -75,8 +75,8 @@ export default function LeadDetailPage() {
             <div className="flex items-center gap-2.5">
               <Mail size={15} className="text-text-muted shrink-0" />
               <div>
-                <p className="text-xs text-text-muted">Email</p>
-                <p className="text-sm font-medium text-text-primary">
+                <p className="text-sm text-text-muted">Email</p>
+                <p className="text-base font-medium text-text-primary">
                   {lead.email}
                 </p>
               </div>
@@ -86,8 +86,8 @@ export default function LeadDetailPage() {
             <div className="flex items-center gap-2.5">
               <Building2 size={15} className="text-text-muted shrink-0" />
               <div>
-                <p className="text-xs text-text-muted">Company</p>
-                <p className="text-sm font-medium text-text-primary">
+                <p className="text-sm text-text-muted">Company</p>
+                <p className="text-base font-medium text-text-primary">
                   {lead.company}
                 </p>
               </div>
@@ -95,7 +95,7 @@ export default function LeadDetailPage() {
           )}
         </div>
         <div className="mt-4 pt-4 border-t border-surface-border">
-          <p className="text-xs text-text-muted">
+          <p className="text-sm text-text-muted">
             Added {formatDate(lead.createdAt)}
           </p>
         </div>
@@ -103,7 +103,7 @@ export default function LeadDetailPage() {
 
       {/* Call History */}
       <Card>
-        <h3 className="text-sm font-semibold text-text-primary mb-4">
+        <h3 className="text-base font-semibold text-text-primary mb-4">
           Call History
         </h3>
         {lead.calls && lead.calls.length > 0 ? (
@@ -113,15 +113,15 @@ export default function LeadDetailPage() {
                 <div className="flex items-center justify-between">
                   <Link
                     href={`/calls/${call.id}`}
-                    className="text-sm font-medium text-brand-600 hover:underline"
+                    className="text-base font-medium text-brand-600 hover:underline"
                   >
                     View Call Details
                   </Link>
-                  <span className="text-xs text-text-muted">
+                  <span className="text-sm text-text-muted">
                     {formatDateTime(call.startedAt)}
                   </span>
                 </div>
-                <div className="flex items-center gap-4 mt-1 text-xs text-text-muted">
+                <div className="flex items-center gap-4 mt-1 text-sm text-text-muted">
                   <span>Status: {call.status}</span>
                   {call.duration && (
                     <span>Duration: {formatDuration(call.duration)}</span>
@@ -131,7 +131,7 @@ export default function LeadDetailPage() {
             ))}
           </div>
         ) : (
-          <p className="text-sm text-text-muted">
+          <p className="text-base text-text-muted">
             No calls made to this lead yet.
           </p>
         )}

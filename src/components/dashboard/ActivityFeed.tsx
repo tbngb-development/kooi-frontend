@@ -39,20 +39,20 @@ function QualifiedLeadItem({ lead }: { lead: DashboardQualifiedLead }) {
       {/* Content */}
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2 flex-wrap">
-          <p className="text-sm font-medium text-text-primary">{lead.name}</p>
+          <p className="text-base font-medium text-text-primary">{lead.name}</p>
           {lead.leadTemperature && (
             <span
-              className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${tempColor}`}
+              className={`inline-flex items-center rounded-full px-2 py-0.5 text-sm font-medium ${tempColor}`}
             >
               {lead.leadTemperature}
             </span>
           )}
         </div>
-        <p className="text-xs text-text-muted mt-0.5">
+        <p className="text-sm text-text-muted mt-0.5">
           {dispositionLabel[lead.disposition] ?? lead.disposition} ·{" "}
           {lead.campaign}
         </p>
-        <p className="text-xs text-text-placeholder mt-0.5">
+        <p className="text-sm text-text-placeholder mt-0.5">
           {formatRelative(lead.qualifiedAt)}
         </p>
       </div>
@@ -77,8 +77,8 @@ export function ActivityFeed({ data }: ActivityFeedProps) {
 
       {qualifiedLeads.length === 0 ? (
         <div className="px-5 py-8 text-center">
-          <p className="text-sm text-text-muted">No qualified leads yet.</p>
-          <p className="text-xs text-text-placeholder mt-1">
+          <p className="text-base text-text-muted">No qualified leads yet.</p>
+          <p className="text-sm text-text-placeholder mt-1">
             Leads that agree to a callback or site visit will appear here.
           </p>
         </div>

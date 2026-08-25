@@ -166,7 +166,7 @@ export function CampaignVariablesStep({
       <Card>
         <div className="flex items-center justify-center gap-3 py-12">
           <Spinner size="sm" />
-          <p className="text-sm text-text-muted">
+          <p className="text-base text-text-muted">
             Loading agent configuration...
           </p>
         </div>
@@ -180,7 +180,7 @@ export function CampaignVariablesStep({
       <Card>
         <div className="flex flex-col items-center gap-3 py-12">
           <AlertCircle size={24} className="text-error" />
-          <p className="text-sm text-error">
+          <p className="text-base text-error">
             Failed to load agent variables. Please go back and try again.
           </p>
           <Button variant="outline" onClick={onBack}>
@@ -198,10 +198,10 @@ export function CampaignVariablesStep({
         <Card>
           <div className="flex flex-col items-center gap-3 py-8">
             <CheckCircle2 size={24} className="text-success" />
-            <p className="text-sm font-medium text-text-primary">
+            <p className="text-base font-medium text-text-primary">
               No configuration needed
             </p>
-            <p className="text-xs text-text-muted">
+            <p className="text-sm text-text-muted">
               This agent does not require any campaign variables.
             </p>
           </div>
@@ -228,10 +228,10 @@ export function CampaignVariablesStep({
       {/* ── Header ────────────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-semibold text-text-primary">
+          <p className="text-base font-semibold text-text-primary">
             Fill in your prompt variables
           </p>
-          <p className="text-xs text-text-muted mt-0.5">
+          <p className="text-sm text-text-muted mt-0.5">
             Configuring{" "}
             <span className="font-medium text-text-primary">
               {assistantName}
@@ -247,10 +247,10 @@ export function CampaignVariablesStep({
         <div className="flex items-center gap-3 rounded-lg bg-green-50 border border-green-100 p-3">
           <CheckCircle2 size={16} className="text-green-500 shrink-0" />
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-green-800 truncate">
+            <p className="text-base font-medium text-green-800 truncate">
               {brochureName}
             </p>
-            <p className="text-xs text-green-600">
+            <p className="text-sm text-green-600">
               {autoFilledKeys.size} field
               {autoFilledKeys.size !== 1 ? "s" : ""} auto-filled from brochure
             </p>
@@ -266,7 +266,7 @@ export function CampaignVariablesStep({
       ) : extracting ? (
         <div className="flex items-center gap-3 rounded-lg border border-border p-3">
           <Spinner size="sm" />
-          <p className="text-sm text-text-primary">
+          <p className="text-base text-text-primary">
             Extracting property data...
           </p>
         </div>
@@ -276,7 +276,7 @@ export function CampaignVariablesStep({
           onClick={() =>
             document.getElementById("brochure-upload-input")?.click()
           }
-          className="flex items-center justify-center gap-2 py-2.5 rounded-lg border border-dashed border-border hover:border-primary/50 hover:bg-surface-secondary/30 text-sm text-text-muted hover:text-text-primary transition-colors"
+          className="flex items-center justify-center gap-2 py-2.5 rounded-lg border border-dashed border-border hover:border-primary/50 hover:bg-surface-secondary/30 text-base text-text-muted hover:text-text-primary transition-colors"
         >
           <Upload size={14} />
           Upload brochure PDF to auto-fill matching fields
@@ -306,7 +306,7 @@ export function CampaignVariablesStep({
             return (
               <div key={variable.key} className="relative">
                 <div className="relative h-14 rounded-lg border border-dashed border-border bg-surface-secondary/40 flex items-center px-3.5">
-                  <span className="text-sm text-text-muted">
+                  <span className="text-base text-text-muted">
                     {variable.key}
                   </span>
                   <span className="absolute -top-2 left-3 px-1 bg-surface text-[10px] font-medium text-text-muted uppercase tracking-wide">
@@ -332,7 +332,7 @@ export function CampaignVariablesStep({
       </div>
 
       {/* ── Info footer ───────────────────────────────────────────────────── */}
-      <div className="flex items-start gap-2 text-xs text-text-muted">
+      <div className="flex items-start gap-2 text-sm text-text-muted">
         <FileText size={12} className="mt-0.5 shrink-0" />
         <p>
           Empty fields will be handled gracefully by the agent using its

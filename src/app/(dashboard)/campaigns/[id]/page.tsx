@@ -56,7 +56,7 @@ export default function CampaignDetailPage() {
 
   if (isLoading) return <PageSpinner />;
   if (!campaign)
-    return <p className="text-text-muted text-sm">Campaign not found.</p>;
+    return <p className="text-text-muted text-base">Campaign not found.</p>;
 
   const showUploadButton =
     canEdit && UPLOAD_ALLOWED_STATUSES.includes(campaign.status);
@@ -68,7 +68,7 @@ export default function CampaignDetailPage() {
       <div>
         <Link
           href="/campaigns"
-          className="inline-flex items-center gap-1.5 text-sm text-text-muted hover:text-text-primary mb-3 transition-colors"
+          className="inline-flex items-center gap-1.5 text-base text-text-muted hover:text-text-primary mb-3 transition-colors"
         >
           <ChevronLeft size={14} />
           Back to Campaigns
@@ -83,12 +83,12 @@ export default function CampaignDetailPage() {
               <CampaignStatusBadge status={campaign.status} />
             </div>
             {campaign.description && (
-              <p className="text-sm text-text-muted mt-1">
+              <p className="text-base text-text-muted mt-1">
                 {campaign.description}
               </p>
             )}
             <div className="flex flex-col gap-1.5 mt-2.5">
-              <div className="flex items-center gap-4 text-xs text-text-muted">
+              <div className="flex items-center gap-4 text-sm text-text-muted">
                 <span className="flex items-center gap-1">
                   <Bot size={12} />
                   {campaign.assistant.name}
@@ -100,7 +100,7 @@ export default function CampaignDetailPage() {
               </div>
 
               {campaign.status === "SCHEDULED" && campaign.scheduledAt && (
-                <div className="flex items-center gap-1.5 text-xs text-brand-600 font-medium">
+                <div className="flex items-center gap-1.5 text-sm text-brand-600 font-medium">
                   <CalendarDays size={13} />
                   <span>
                     Scheduled to launch on {formatDate(campaign.scheduledAt)}
@@ -159,13 +159,13 @@ export default function CampaignDetailPage() {
         <Card>
           <div className="flex items-start justify-between gap-3 flex-wrap">
             <div className="flex-1 min-w-0">
-              <h3 className="text-sm font-semibold text-text-primary">
+              <h3 className="text-base font-semibold text-text-primary">
                 Upload Leads
               </h3>
               {uploaderHint && (
                 <div className="flex items-start gap-2 mt-2">
                   <Info size={13} className="text-text-muted shrink-0 mt-0.5" />
-                  <p className="text-xs text-text-muted">{uploaderHint}</p>
+                  <p className="text-sm text-text-muted">{uploaderHint}</p>
                 </div>
               )}
             </div>
@@ -218,8 +218,8 @@ function QuickActionCard({
             </span>
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-text-primary">{title}</p>
-            <p className="text-xs text-text-muted truncate">{subtitle}</p>
+            <p className="text-base font-semibold text-text-primary">{title}</p>
+            <p className="text-sm text-text-muted truncate">{subtitle}</p>
           </div>
         </div>
       </Card>

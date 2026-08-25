@@ -63,10 +63,10 @@ export function CampaignDetailsForm({
         <div className="flex items-center gap-3 rounded-lg bg-green-50 border border-green-100 p-3">
           <CheckCircle2 size={16} className="text-green-500 shrink-0" />
           <div>
-            <p className="text-sm font-medium text-green-800">
+            <p className="text-base font-medium text-green-800">
               Property brochure linked
             </p>
-            <p className="text-xs text-green-600">
+            <p className="text-sm text-green-600">
               {brochureName
                 ? `"${brochureName}" details will be injected into every call`
                 : "Brochure data will be injected into every call"}
@@ -78,14 +78,14 @@ export function CampaignDetailsForm({
       {!hasBrochure && (
         <div className="flex items-center gap-3 rounded-lg bg-surface-secondary border border-border p-3">
           <Building2 size={16} className="text-text-muted shrink-0" />
-          <p className="text-xs text-text-muted">
+          <p className="text-sm text-text-muted">
             {` No brochure linked — calls will use your assistant's base prompt only.`}
           </p>
         </div>
       )}
 
       <Card>
-        <h3 className="text-sm font-semibold text-text-primary mb-4">
+        <h3 className="text-base font-semibold text-text-primary mb-4">
           Campaign Details
         </h3>
         <div className="flex flex-col gap-4">
@@ -104,7 +104,7 @@ export function CampaignDetailsForm({
 
           {assistantOptions.length === 0 ? (
             <div className="rounded-md bg-amber-50 border border-amber-100 p-3">
-              <p className="text-sm text-amber-700">
+              <p className="text-base text-amber-700">
                 No assistants found.{" "}
                 <Link href="/assistants/new" className="underline font-medium">
                   Register an assistant first

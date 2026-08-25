@@ -117,7 +117,7 @@ export function AssistantForm({
     >
 
       <Card>
-        <h2 className="text-sm font-semibold text-text-primary mb-4">
+        <h2 className="text-base font-semibold text-text-primary mb-4">
           {editMode ? 'Update Assistant' : 'Register Agent'}
         </h2>
         <div className="flex flex-col gap-4">
@@ -126,7 +126,7 @@ export function AssistantForm({
           {!editMode && (
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="text-sm font-medium text-text-primary">
+                <label className="text-base font-medium text-text-primary">
                   Bolna Agent
                 </label>
                 <div className="flex items-center gap-2">
@@ -137,7 +137,7 @@ export function AssistantForm({
                         inputMode === "select" ? "manual" : "select"
                       )
                     }
-                    className="text-xs text-text-muted hover:text-text-primary transition-colors"
+                    className="text-sm text-text-muted hover:text-text-primary transition-colors"
                   >
                     {inputMode === "select"
                       ? "Enter ID manually"
@@ -147,7 +147,7 @@ export function AssistantForm({
                     <button
                       type="button"
                       onClick={() => refetch()}
-                      className="text-xs text-text-muted hover:text-text-primary transition-colors"
+                      className="text-sm text-text-muted hover:text-text-primary transition-colors"
                     >
                       <RefreshCw size={12} />
                     </button>
@@ -159,13 +159,13 @@ export function AssistantForm({
                 agentsLoading ? (
                   <div className="flex items-center gap-2 h-10 px-3 rounded-md border border-border bg-surface-secondary">
                     <Spinner size="sm" />
-                    <span className="text-sm text-text-muted">
+                    <span className="text-base text-text-muted">
                       Fetching agents from Bolna...
                     </span>
                   </div>
                 ) : bolnaAgentOptions.length === 0 ? (
                   <div className="rounded-md bg-amber-50 border border-amber-100 p-3">
-                    <p className="text-sm text-amber-700">
+                    <p className="text-base text-amber-700">
                       No agents found in your Bolna dashboard.{" "}
                       <a
                         href="https://app.bolna.dev"
@@ -181,7 +181,7 @@ export function AssistantForm({
                 ) : (
                   <select
                     onChange={handleAgentSelect}
-                    className="w-full h-10 px-3 rounded-md border border-border bg-surface text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                    className="w-full h-10 px-3 rounded-md border border-border bg-surface text-base text-text-primary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                   >
                     <option value="">Select a Bolna agent...</option>
                     {bolnaAgentOptions.map((opt) => (
@@ -205,13 +205,13 @@ export function AssistantForm({
               )}
 
               {(errors as { bolnaId?: { message?: string } }).bolnaId && (
-                <p className="text-xs text-error mt-1">
+                <p className="text-sm text-error mt-1">
                   {(errors as { bolnaId?: { message?: string } }).bolnaId?.message}
                 </p>
               )}
 
               {selectedBolnaId && (
-                <p className="text-xs text-text-muted mt-1.5 font-mono">
+                <p className="text-sm text-text-muted mt-1.5 font-mono">
                   ID: {selectedBolnaId}
                 </p>
               )}
@@ -221,13 +221,13 @@ export function AssistantForm({
           {/* ── Bolna ID read-only display when editing ── */}
           {editMode && defaultValues?.bolnaId && (
             <div>
-              <p className="text-sm font-medium text-text-primary mb-1.5">
+              <p className="text-base font-medium text-text-primary mb-1.5">
                 Bolna Agent ID
               </p>
-              <div className="flex items-center gap-2 px-3 py-2 rounded-md border border-surface-border bg-surface-subtle font-mono text-xs text-text-muted">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-md border border-surface-border bg-surface-subtle font-mono text-sm text-text-muted">
                 {defaultValues.bolnaId}
               </div>
-              <p className="text-xs text-text-muted mt-1">
+              <p className="text-sm text-text-muted mt-1">
                 Agent ID cannot be changed. Delete and re-register to use a different agent.
               </p>
             </div>

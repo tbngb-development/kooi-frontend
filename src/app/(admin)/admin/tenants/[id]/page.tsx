@@ -70,12 +70,12 @@ function StatCard({
     <Card padding="md">
       <div className="flex items-start justify-between gap-3">
         <div className="flex flex-col gap-1 min-w-0">
-          <p className="text-xs font-medium text-text-muted uppercase tracking-wide">
+          <p className="text-sm font-medium text-text-muted uppercase tracking-wide">
             {label}
           </p>
           <p className={`text-2xl font-bold ${classes.value}`}>{value}</p>
           {description && (
-            <p className="text-xs text-text-muted">{description}</p>
+            <p className="text-sm text-text-muted">{description}</p>
           )}
         </div>
         <div
@@ -105,8 +105,8 @@ function CountBadgeCard({
         {icon}
       </div>
       <div className="min-w-0">
-        <p className="text-sm font-semibold text-text-primary">{count}</p>
-        <p className="text-xs text-text-muted">{label}</p>
+        <p className="text-base font-semibold text-text-primary">{count}</p>
+        <p className="text-sm text-text-muted">{label}</p>
       </div>
     </div>
   );
@@ -182,7 +182,7 @@ export default function TenantDetailPage({
             </div>
             <div className="flex items-center gap-1.5 mt-0.5">
               <Mail size={12} className="text-text-muted" />
-              <p className="text-sm text-text-muted">{tenant.email}</p>
+              <p className="text-base text-text-muted">{tenant.email}</p>
             </div>
           </div>
         </div>
@@ -201,7 +201,7 @@ export default function TenantDetailPage({
 
       {/* Info Row */}
       <div className="flex flex-wrap gap-4">
-        <div className="flex items-center gap-1.5 text-sm text-text-muted">
+        <div className="flex items-center gap-1.5 text-base text-text-muted">
           <Calendar size={13} />
           <span>Registered {formatDate(tenant.createdAt)}</span>
         </div>
@@ -234,7 +234,7 @@ export default function TenantDetailPage({
       {/* Performance Stats */}
       {stats ? (
         <div>
-          <h3 className="text-sm font-semibold text-text-primary mb-3">
+          <h3 className="text-base font-semibold text-text-primary mb-3">
             Performance Stats
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -281,7 +281,7 @@ export default function TenantDetailPage({
         </div>
       ) : (
         <Card padding="md">
-          <p className="text-sm text-text-muted text-center py-4">
+          <p className="text-base text-text-muted text-center py-4">
             No performance stats available yet.
           </p>
         </Card>
@@ -296,15 +296,15 @@ export default function TenantDetailPage({
       <Card padding="md">
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-text-primary">
+            <h3 className="text-base font-semibold text-text-primary">
               API Key
             </h3>
-            <p className="text-xs text-text-muted">
+            <p className="text-sm text-text-muted">
               Keep this secret — do not share publicly
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <div className="flex-1 flex items-center gap-2 px-3 py-2 rounded-md border border-surface-border bg-surface-subtle font-mono text-xs text-text-secondary overflow-hidden">
+            <div className="flex-1 flex items-center gap-2 px-3 py-2 rounded-md border border-surface-border bg-surface-subtle font-mono text-sm text-text-secondary overflow-hidden">
               <span className="truncate">
                 {showApiKey ? tenant.apiKey : maskedApiKey}
               </span>

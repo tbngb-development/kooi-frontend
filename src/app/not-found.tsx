@@ -64,7 +64,7 @@ export default function NotFound() {
           Page Not Found
         </h1>
 
-        <p className="text-sm sm:text-base text-text-muted leading-relaxed mb-8 max-w-sm">
+        <p className="text-base sm:text-base text-text-muted leading-relaxed mb-8 max-w-sm">
           The page you&apos;re looking for doesn&apos;t exist or may have been
           moved.
         </p>
@@ -77,7 +77,7 @@ export default function NotFound() {
               inline-flex items-center justify-center gap-2
               w-full sm:w-auto
               px-5 py-2.5
-              text-sm font-medium
+              text-base font-medium
               text-white bg-brand-500
               rounded-lg shadow-xs
               hover:bg-brand-600
@@ -104,7 +104,7 @@ export default function NotFound() {
           <GoBackButton className="w-full sm:w-auto" />
         </div>
 
-        <p className="mt-10 text-xs text-text-placeholder">
+        <p className="mt-10 text-sm text-text-placeholder">
           Need help?{" "}
           <a
             href="mailto:support@leadqualify.ai"
@@ -132,7 +132,7 @@ export default function NotFound() {
             />
           </svg>
         </div>
-        <span className="text-xs font-semibold text-text-placeholder tracking-wide">
+        <span className="text-sm font-semibold text-text-placeholder tracking-wide">
           LeadQualify AI
         </span>
       </div>

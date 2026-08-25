@@ -84,7 +84,7 @@ export default function UsersPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold text-text-primary">Team</h2>
-          <p className="text-sm text-text-muted mt-0.5">
+          <p className="text-base text-text-muted mt-0.5">
             Manage your team members
           </p>
         </div>
@@ -98,16 +98,16 @@ export default function UsersPage() {
 
       {users && users.length > 0 ? (
         <div className="bg-surface rounded-lg border border-surface-border overflow-hidden">
-          <table className="w-full text-sm">
+          <table className="w-full text-base">
             <thead>
               <tr className="border-b border-surface-border bg-surface-subtle">
-                <th className="text-left px-5 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
+                <th className="text-left px-5 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
                   Member
                 </th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
+                <th className="text-left px-4 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
                   Role
                 </th>
-                <th className="text-left px-5 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
+                <th className="text-left px-5 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
                   Joined
                 </th>
                 <th className="px-5 py-3" />
@@ -118,19 +118,19 @@ export default function UsersPage() {
                 <tr key={u.id} className="hover:bg-surface-hover transition-colors">
                   <td className="px-5 py-3">
                     <div className="flex items-center gap-2.5">
-                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-100 text-brand-600 text-xs font-semibold shrink-0">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-100 text-brand-600 text-sm font-semibold shrink-0">
                         {u.name.charAt(0).toUpperCase()}
                       </div>
                       <div>
                         <p className="font-medium text-text-primary">{u.name}</p>
-                        <p className="text-xs text-text-muted">{u.email}</p>
+                        <p className="text-sm text-text-muted">{u.email}</p>
                       </div>
                     </div>
                   </td>
                   <td className="px-4 py-3">
                     <RoleBadge role={u.role} />
                   </td>
-                  <td className="px-5 py-3 text-text-muted text-xs">
+                  <td className="px-5 py-3 text-text-muted text-sm">
                     {formatDate(u.createdAt)}
                   </td>
                   <td className="px-5 py-3 text-right">

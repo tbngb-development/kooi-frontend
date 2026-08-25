@@ -94,10 +94,10 @@ export function BrochureUploader({
           </div>
 
           <div className="text-center">
-            <p className="text-sm font-semibold text-text-primary">
+            <p className="text-base font-semibold text-text-primary">
               {currentStage}
             </p>
-            <p className="text-xs text-text-muted mt-1">{selectedFile.name}</p>
+            <p className="text-sm text-text-muted mt-1">{selectedFile.name}</p>
           </div>
 
           {/* Progress bar */}
@@ -108,7 +108,7 @@ export function BrochureUploader({
                 style={{ width: `${Math.max(uploadProgress, 5)}%` }}
               />
             </div>
-            <p className="text-xs text-text-muted text-center mt-1.5">
+            <p className="text-sm text-text-muted text-center mt-1.5">
               This may take up to 30 seconds
             </p>
           </div>
@@ -129,7 +129,7 @@ export function BrochureUploader({
                   )}
                   <span
                     className={[
-                      "text-xs",
+                      "text-sm",
                       active
                         ? "text-text-primary font-medium"
                         : "text-text-muted",
@@ -151,10 +151,10 @@ export function BrochureUploader({
     <div className="flex flex-col gap-4">
       <Card>
         <div className="flex flex-col gap-1 mb-4">
-          <h3 className="text-sm font-semibold text-text-primary">
+          <h3 className="text-base font-semibold text-text-primary">
             Upload Property Brochure
           </h3>
-          <p className="text-xs text-text-muted">
+          <p className="text-sm text-text-muted">
             {`Upload a PDF brochure and we'll automatically extract property
             details, pricing, and generate qualification questions for your
             AI agent. `}
@@ -195,12 +195,12 @@ export function BrochureUploader({
               />
             </div>
             <div>
-              <p className="text-sm font-medium text-text-primary">
+              <p className="text-base font-medium text-text-primary">
                 {isDragging
                   ? "Drop your PDF here"
                   : "Drag & drop or click to upload"}
               </p>
-              <p className="text-xs text-text-muted mt-0.5">
+              <p className="text-sm text-text-muted mt-0.5">
                 PDF files only, up to 100MB
               </p>
             </div>
@@ -211,7 +211,7 @@ export function BrochureUploader({
         {fileError && (
           <div className="flex items-center gap-2 mt-3 text-error">
             <AlertCircle size={14} />
-            <p className="text-sm">{fileError}</p>
+            <p className="text-base">{fileError}</p>
           </div>
         )}
       </Card>
@@ -219,14 +219,14 @@ export function BrochureUploader({
       {/* Skip option */}
       <div className="flex items-center gap-3">
         <div className="h-px flex-1 bg-border" />
-        <span className="text-xs text-text-muted">or</span>
+        <span className="text-sm text-text-muted">or</span>
         <div className="h-px flex-1 bg-border" />
       </div>
 
       <button
         type="button"
         onClick={onSkip}
-        className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border border-dashed border-border text-sm text-text-muted hover:text-text-primary hover:border-text-muted transition-colors"
+        className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border border-dashed border-border text-base text-text-muted hover:text-text-primary hover:border-text-muted transition-colors"
       >
         <SkipForward size={14} />
         Skip brochure — create campaign without property context
