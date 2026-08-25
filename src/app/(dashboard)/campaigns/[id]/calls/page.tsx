@@ -160,7 +160,7 @@ export default function CampaignCallsPage() {
       <div>
         <Link
           href={`/campaigns/${campaignId}`}
-          className="inline-flex items-center gap-1.5 text-sm text-text-muted hover:text-text-primary mb-3 transition-colors"
+          className="inline-flex items-center gap-1.5 text-base text-text-muted hover:text-text-primary mb-3 transition-colors"
         >
           <ChevronLeft size={14} />
           Back to Campaign
@@ -280,7 +280,7 @@ export default function CampaignCallsPage() {
 
       {/* ─── Active Filter Badges ─── */}
       {hasActiveFilters && (
-        <div className="flex flex-wrap items-center gap-2 text-xs">
+        <div className="flex flex-wrap items-center gap-2 text-sm">
           {status === "NO_ANSWER,BUSY" && (
             <FilterBadge
               icon={<PhoneMissed size={12} />}

@@ -52,7 +52,7 @@ export function AssistantModal({
           <h2 className="text-base font-semibold text-text-primary">
             {isEdit ? 'Edit Assistant' : 'Add Assistant'}
           </h2>
-          <p className="text-sm text-text-muted mt-0.5">
+          <p className="text-base text-text-muted mt-0.5">
             {isEdit
               ? 'Update the assistant display name'
               : 'Register a Bolna agent for this tenant'}

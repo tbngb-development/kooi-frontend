@@ -28,19 +28,19 @@ export function CampaignPerformance({ campaigns }: CampaignPerformanceProps) {
         <CardTitle>Campaign Performance</CardTitle>
       </CardHeader>
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full text-base">
           <thead>
             <tr className="border-y border-surface-border bg-surface-subtle">
-              <th className="text-left px-5 py-2.5 text-xs font-medium text-text-muted uppercase tracking-wide">
+              <th className="text-left px-5 py-2.5 text-sm font-medium text-text-muted uppercase tracking-wide">
                 Campaign
               </th>
-              <th className="text-left px-4 py-2.5 text-xs font-medium text-text-muted uppercase tracking-wide">
+              <th className="text-left px-4 py-2.5 text-sm font-medium text-text-muted uppercase tracking-wide">
                 Status
               </th>
-              <th className="text-right px-4 py-2.5 text-xs font-medium text-text-muted uppercase tracking-wide">
+              <th className="text-right px-4 py-2.5 text-sm font-medium text-text-muted uppercase tracking-wide">
                 Progress
               </th>
-              <th className="text-right px-5 py-2.5 text-xs font-medium text-text-muted uppercase tracking-wide">
+              <th className="text-right px-5 py-2.5 text-sm font-medium text-text-muted uppercase tracking-wide">
                 Success
               </th>
             </tr>
@@ -80,7 +80,7 @@ export function CampaignPerformance({ campaigns }: CampaignPerformanceProps) {
                               }}
                             />
                           </div>
-                          <span className="w-10 text-right text-xs text-text-muted">
+                          <span className="w-10 text-right text-sm text-text-muted">
                             {c.progress}
                           </span>
                         </>

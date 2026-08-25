@@ -38,10 +38,10 @@ export function AssistantCard({
               <Bot size={18} className="text-brand-600" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-text-primary">
+              <h3 className="text-base font-semibold text-text-primary">
                 {assistant.name}
               </h3>
-              <p className="text-xs text-text-muted mt-0.5">
+              <p className="text-sm text-text-muted mt-0.5">
                 Created {formatDate(assistant.createdAt)}
               </p>
             </div>
@@ -52,7 +52,7 @@ export function AssistantCard({
         </div>
 
         {/* Bolna ID */}
-        <div className="text-xs text-text-muted border-t border-surface-border pt-3 font-mono">
+        <div className="text-sm text-text-muted border-t border-surface-border pt-3 font-mono">
           ID:{' '}
           <span className="font-medium text-text-secondary">
             {assistant.bolnaId.slice(0, 8)}…
@@ -61,7 +61,7 @@ export function AssistantCard({
 
         {/* Voice config if present */}
         {assistant.config?.voice && (
-          <div className="text-xs text-text-muted">
+          <div className="text-sm text-text-muted">
             Voice:{' '}
             <span className="font-medium text-text-secondary">
               {String(assistant.config.voice?.voiceId ?? '—')}

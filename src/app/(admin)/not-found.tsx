@@ -33,7 +33,7 @@ export default function AdminNotFound() {
           Page Not Found
         </h1>
 
-        <p className="text-sm text-text-muted leading-relaxed mb-6 max-w-xs">
+        <p className="text-base text-text-muted leading-relaxed mb-6 max-w-xs">
           This page doesn&apos;t exist in the admin panel. It may have been
           moved or removed.
         </p>
@@ -44,7 +44,7 @@ export default function AdminNotFound() {
             className="
               inline-flex items-center gap-2
               px-4 py-2
-              text-sm font-medium
+              text-base font-medium
               text-white bg-brand-500
               rounded-lg shadow-xs
               hover:bg-brand-600

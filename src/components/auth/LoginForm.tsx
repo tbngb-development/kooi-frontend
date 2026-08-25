@@ -38,7 +38,7 @@ export function LoginForm() {
     <Card>
       <div className="mb-6">
         <h2 className="text-xl font-bold text-text-primary">Welcome back</h2>
-        <p className="text-sm text-text-muted mt-1">
+        <p className="text-base text-text-muted mt-1">
           Sign in to your account to continue
         </p>
       </div>
@@ -80,7 +80,7 @@ export function LoginForm() {
         </Button>
       </form>
 
-      <p className="text-center text-sm text-text-muted mt-5">
+      <p className="text-center text-base text-text-muted mt-5">
         Don&apos;t have an account?{' '}
         <Link
           href="/register"

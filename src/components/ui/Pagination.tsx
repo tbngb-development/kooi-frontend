@@ -54,7 +54,7 @@ export function Pagination({
 
       {pages.map((p, idx) =>
         p === '...' ? (
-          <span key={`dots-${idx}`} className="flex h-8 w-8 items-center justify-center text-text-muted text-sm">
+          <span key={`dots-${idx}`} className="flex h-8 w-8 items-center justify-center text-text-muted text-base">
             …
           </span>
         ) : (
@@ -62,7 +62,7 @@ export function Pagination({
             key={p}
             onClick={() => onPageChange(p as number)}
             className={cn(
-              'flex h-8 w-8 items-center justify-center rounded-md text-sm font-medium transition-colors',
+              'flex h-8 w-8 items-center justify-center rounded-md text-base font-medium transition-colors',
               p === page
                 ? 'bg-brand-600 text-text-inverse'
                 : 'text-text-secondary hover:bg-surface-hover border border-surface-border'

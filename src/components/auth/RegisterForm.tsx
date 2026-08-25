@@ -50,7 +50,7 @@ export function RegisterForm() {
         <h2 className="text-xl font-bold text-text-primary">
           Create your account
         </h2>
-        <p className="text-sm text-text-muted mt-1">
+        <p className="text-base text-text-muted mt-1">
           Start qualifying leads with AI today
         </p>
       </div>
@@ -125,7 +125,7 @@ export function RegisterForm() {
         </Button>
       </form>
 
-      <p className="text-center text-sm text-text-muted mt-5">
+      <p className="text-center text-base text-text-muted mt-5">
         Already have an account?{' '}
         <Link
           href="/login"

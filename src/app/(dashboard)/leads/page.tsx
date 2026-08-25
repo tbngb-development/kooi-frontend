@@ -56,7 +56,7 @@ export default function LeadsPage() {
     <div className="flex flex-col gap-5">
       <div>
         <h2 className="text-lg font-semibold text-text-primary">Leads</h2>
-        <p className="text-sm text-text-muted mt-0.5">
+        <p className="text-base text-text-muted mt-0.5">
           All leads across your campaigns
         </p>
       </div>

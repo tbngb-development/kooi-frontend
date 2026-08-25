@@ -20,7 +20,7 @@ export default function AssistantsPage() {
         <h2 className="text-lg font-semibold text-text-primary">
           AI Assistants
         </h2>
-        <p className="text-sm text-text-muted mt-0.5">
+        <p className="text-base text-text-muted mt-0.5">
           AI voice agents configured for your organisation
         </p>
       </div>

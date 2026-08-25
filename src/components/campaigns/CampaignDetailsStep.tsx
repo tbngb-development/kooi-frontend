@@ -53,7 +53,7 @@ export function CampaignDetailsStep({
   return (
     <form onSubmit={handleSubmit(onNext)} className="flex flex-col gap-5">
       <Card>
-        <h3 className="text-sm font-semibold text-text-primary mb-4">
+        <h3 className="text-base font-semibold text-text-primary mb-4">
           Campaign Details
         </h3>
         <div className="flex flex-col gap-4">
@@ -72,7 +72,7 @@ export function CampaignDetailsStep({
 
           {assistantOptions.length === 0 ? (
             <div className="rounded-md bg-amber-50 border border-amber-100 p-3">
-              <p className="text-sm text-amber-700">
+              <p className="text-base text-amber-700">
                 No assistants found.{" "}
                 <Link href="/assistants/new" className="underline font-medium">
                   Register an assistant first

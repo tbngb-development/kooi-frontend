@@ -60,31 +60,31 @@ export default function AdminDashboardPage() {
       {/* Tenants Table */}
       <div className="bg-surface rounded-lg border border-surface-border overflow-hidden">
         <div className="px-5 py-4 border-b border-surface-border">
-          <h3 className="text-sm font-semibold text-text-primary">
+          <h3 className="text-base font-semibold text-text-primary">
             All Tenants
           </h3>
         </div>
         {tenants && tenants.length > 0 ? (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-base">
               <thead>
                 <tr className="border-b border-surface-border bg-surface-subtle">
-                  <th className="text-left px-5 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
+                  <th className="text-left px-5 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
                     Tenant
                   </th>
-                  <th className="text-right px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
+                  <th className="text-right px-4 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
                     Users
                   </th>
-                  <th className="text-right px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
+                  <th className="text-right px-4 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
                     Campaigns
                   </th>
-                  <th className="text-right px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
+                  <th className="text-right px-4 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
                     Leads
                   </th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
+                  <th className="text-left px-4 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
                     Status
                   </th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
+                  <th className="text-left px-4 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
                     Joined
                   </th>
                   <th className="px-5 py-3" />
@@ -103,7 +103,7 @@ export default function AdminDashboardPage() {
                       >
                         {t.name}
                       </Link>
-                      <p className="text-xs text-text-muted mt-0.5">
+                      <p className="text-sm text-text-muted mt-0.5">
                         {t.email}
                       </p>
                     </td>
@@ -127,7 +127,7 @@ export default function AdminDashboardPage() {
                         </Badge>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-text-muted text-xs">
+                    <td className="px-4 py-3 text-text-muted text-sm">
                       {formatDate(t.createdAt)}
                     </td>
                     <td className="px-5 py-3 text-right">

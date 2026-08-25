@@ -1100,6 +1100,14 @@ NEXT_PUBLIC_API_URL=http://localhost:3001
 7. Run `prisma migrate dev` + `prisma generate`
 8. Display in `calls/[id]/page.tsx` CallAnalysisSection
 
+### Typography Standard
+
+- Root font-size: **16px** (set in `globals.css` on `html`)
+- Default body text: **`text-base`** (1rem = 16px)
+- `text-sm` (14px): secondary labels, table headers, sidebar nav only
+- `text-xs` (12px): badges, timestamps, captions only
+- Never use `text-sm` as default body text — always `text-base`
+
 ### Prisma schema change checklist
 
 ```
@@ -1124,9 +1132,7 @@ The following are intentionally deferred to V1:
 - Zod validation on all backend routes
 - Structured logging (Winston/Pino)
 - Rate limiting on API routes
-- BullMQ — not needed (Bolna handles concurrency, including scheduling)
 - LeadBatch model — per-upload batch tracking with independent stats
-- Block lead upload on RUNNING and SCHEDULED campaigns (currently only FAILED is blocked)
 - Retry failed leads per batch
 - Batch-level pause/resume
 

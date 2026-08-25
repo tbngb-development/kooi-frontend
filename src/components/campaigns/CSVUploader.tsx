@@ -171,17 +171,17 @@ export function CSVUploader({ campaignId }: CSVUploaderProps) {
           <div>
             {isPending ? (
               <>
-                <p className="text-sm font-medium text-text-primary">
+                <p className="text-base font-medium text-text-primary">
                   Uploading leads…
                 </p>
-                <p className="text-xs text-text-muted mt-0.5">Please wait</p>
+                <p className="text-sm text-text-muted mt-0.5">Please wait</p>
               </>
             ) : (
               <>
-                <p className="text-sm font-medium text-text-primary">
+                <p className="text-base font-medium text-text-primary">
                   {dragging ? "Release to upload" : "Drop your file here"}
                 </p>
-                <p className="text-xs text-text-muted mt-0.5">
+                <p className="text-sm text-text-muted mt-0.5">
                   or{" "}
                   <span className="text-brand-600 hover:underline">
                     browse files
@@ -197,23 +197,23 @@ export function CSVUploader({ campaignId }: CSVUploaderProps) {
       {validationError && (
         <div className="flex items-start gap-2 rounded-md bg-error-50 border border-error-100 p-3">
           <AlertCircle size={14} className="text-error-500 shrink-0 mt-0.5" />
-          <p className="text-xs text-error-600">{validationError}</p>
+          <p className="text-sm text-error-600">{validationError}</p>
         </div>
       )}
 
       {/* Format hint */}
       <div className="rounded-md bg-info-50 border border-info-100 p-3">
-        <p className="text-xs font-medium text-info-600 mb-1.5">
+        <p className="text-sm font-medium text-info-600 mb-1.5">
           Accepted Formats
         </p>
-        <p className="text-xs text-text-muted font-mono">
+        <p className="text-sm text-text-muted font-mono">
           .csv &nbsp;·&nbsp; .xls &nbsp;·&nbsp; .xlsx
         </p>
-        <p className="text-xs text-text-muted mt-1.5 font-medium">
+        <p className="text-sm text-text-muted mt-1.5 font-medium">
           Required columns
         </p>
-        <p className="text-xs text-text-muted font-mono mt-0.5">name, phone</p>
-        <p className="text-xs text-text-muted mt-0.5">
+        <p className="text-sm text-text-muted font-mono mt-0.5">name, phone</p>
+        <p className="text-sm text-text-muted mt-0.5">
           Optional: email, company
         </p>
       </div>
@@ -226,7 +226,7 @@ export function CSVUploader({ campaignId }: CSVUploaderProps) {
           disabled={isPending}
           className="h-3.5 w-3.5 rounded border-surface-border accent-brand-600"
         />
-        <span className="text-xs text-text-muted">
+        <span className="text-sm text-text-muted">
           Allow duplicate contacts
         </span>
       </label>
@@ -237,10 +237,10 @@ export function CSVUploader({ campaignId }: CSVUploaderProps) {
           <div className="flex items-center gap-2 min-w-0">
             <FileText size={16} className="text-brand-600 shrink-0" />
             <div className="min-w-0">
-              <p className="text-sm font-medium text-text-primary truncate">
+              <p className="text-base font-medium text-text-primary truncate">
                 {selectedFile.name}
               </p>
-              <p className="text-xs text-text-muted">
+              <p className="text-sm text-text-muted">
                 {(selectedFile.size / 1024).toFixed(1)} KB
               </p>
             </div>

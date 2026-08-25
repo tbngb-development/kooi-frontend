@@ -3,6 +3,26 @@
 @import "tailwindcss";
 
 @theme {
+  /* ── Text Scale (anchored to 16px root) ── */
+  --text-xs:   0.75rem;   /* 12px — captions, badges only */
+  --text-sm:   0.875rem;  /* 14px — secondary / helper text */
+  --text-base: 1rem;      /* 16px — ✅ DEFAULT body text */
+  --text-lg:   1.125rem;  /* 18px */
+  --text-xl:   1.25rem;   /* 20px */
+  --text-2xl:  1.5rem;    /* 24px */
+  --text-3xl:  1.875rem;  /* 30px */
+  --text-4xl:  2.25rem;   /* 36px */
+
+  /* Leading (line-height) paired with each size */
+  --leading-xs:   1rem;
+  --leading-sm:   1.25rem;
+  --leading-base: 1.5rem;
+  --leading-lg:   1.75rem;
+  --leading-xl:   1.75rem;
+  --leading-2xl:  2rem;
+  --leading-3xl:  2.25rem;
+  --leading-4xl:  2.5rem;
+
   /* Brand - Nature Green */
   --color-brand-600: #15803d;
   --color-brand-500: #16a34a;
@@ -80,20 +100,32 @@
     0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
 }
 
-/* Base styles */
+/* ── Base styles ── */
 * {
   box-sizing: border-box;
 }
 
+/*
+ * ROOT FONT SIZE — locked to 16px.
+ * All rem-based Tailwind utilities (text-base = 1rem = 16px) derive from this.
+ * Do NOT change this value; adjust individual components with Tailwind classes.
+ */
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
   font-family: var(--font-sans);
+  font-size: 1rem;          /* 16px — project-wide default */
+  line-height: 1.5rem;      /* 24px — comfortable reading */
   color: var(--color-text-primary);
   background-color: var(--color-surface-muted);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Scrollbar */
+/* ── Scrollbar ── */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -103,7 +135,6 @@ body {
   scrollbar-width: none;
 }
 
-/* Custom thin scrollbar */
 .thin-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: #cbd5e1 transparent;
@@ -126,7 +157,7 @@ body {
   background-color: #94a3b8;
 }
 
-/* Sidebar animation */
+/* ── Sidebar animation ── */
 @keyframes slideIn {
   from {
     opacity: 0;
@@ -142,7 +173,7 @@ body {
   animation: slideIn 0.2s ease-out forwards;
 }
 
-/* Focus ring utility */
+/* ── Focus ring utility ── */
 .focus-ring {
   outline: none;
 }
@@ -153,10 +184,10 @@ body {
   border-radius: var(--radius-md);
 }
 
-
+/* ── Animations ── */
 @keyframes fadeIn {
   from { opacity: 0; }
-  to { opacity: 1; }
+  to   { opacity: 1; }
 }
 
 @keyframes scaleIn {

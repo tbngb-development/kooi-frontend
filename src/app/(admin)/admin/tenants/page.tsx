@@ -23,7 +23,7 @@ export default function TenantsPage() {
     <div className="flex flex-col gap-5">
       <div>
         <h2 className="text-lg font-semibold text-text-primary">Tenants</h2>
-        <p className="text-sm text-text-muted mt-0.5">
+        <p className="text-base text-text-muted mt-0.5">
           All registered organisations
         </p>
       </div>
@@ -31,28 +31,28 @@ export default function TenantsPage() {
       {tenants && tenants.length > 0 ? (
         <div className="bg-surface rounded-lg border border-surface-border overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-base">
               <thead>
                 <tr className="border-b border-surface-border bg-surface-subtle">
-                  <th className="text-left px-5 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
+                  <th className="text-left px-5 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
                     Organisation
                   </th>
-                  <th className="text-right px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
+                  <th className="text-right px-4 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
                     Users
                   </th>
-                  <th className="text-right px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
+                  <th className="text-right px-4 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
                     Campaigns
                   </th>
-                  <th className="text-right px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
+                  <th className="text-right px-4 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
                     Leads
                   </th>
-                  <th className="text-right px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
+                  <th className="text-right px-4 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
                     Calls
                   </th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
+                  <th className="text-left px-4 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
                     Status
                   </th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
+                  <th className="text-left px-4 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
                     Created
                   </th>
                   <th className="px-5 py-3" />
@@ -66,7 +66,7 @@ export default function TenantsPage() {
                   >
                     <td className="px-5 py-3">
                       <p className="font-medium text-text-primary">{t.name}</p>
-                      <p className="text-xs text-text-muted">{t.email}</p>
+                      <p className="text-sm text-text-muted">{t.email}</p>
                     </td>
                     <td className="px-4 py-3 text-right text-text-secondary">
                       {t._count.users}
@@ -91,7 +91,7 @@ export default function TenantsPage() {
                         </Badge>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-text-muted text-xs">
+                    <td className="px-4 py-3 text-text-muted text-sm">
                       {formatDate(t.createdAt)}
                     </td>
                     <td className="px-5 py-3">

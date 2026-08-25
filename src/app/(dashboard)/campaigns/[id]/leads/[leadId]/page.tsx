@@ -26,7 +26,7 @@ export default function CampaignLeadDetailPage() {
   const { data: lead, isLoading } = useLead(leadId);
 
   if (isLoading) return <PageSpinner />;
-  if (!lead) return <p className="text-text-muted text-sm">Lead not found.</p>;
+  if (!lead) return <p className="text-text-muted text-base">Lead not found.</p>;
 
   const handleBack = () => {
     if (typeof window !== "undefined" && window.history.length > 2) {
@@ -43,7 +43,7 @@ export default function CampaignLeadDetailPage() {
         <button
           type="button"
           onClick={handleBack}
-          className="inline-flex items-center gap-1.5 text-sm text-text-muted hover:text-text-primary mb-3 transition-colors cursor-pointer"
+          className="inline-flex items-center gap-1.5 text-base text-text-muted hover:text-text-primary mb-3 transition-colors cursor-pointer"
         >
           <ChevronLeft size={14} />
           Back to Leads
@@ -55,7 +55,7 @@ export default function CampaignLeadDetailPage() {
           </h2>
           <LeadStatusBadge status={lead.status} />
           {lead.doNotCall && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-error-100 px-2.5 py-1 text-xs font-medium text-error-700 border border-error-200">
+            <span className="inline-flex items-center gap-1 rounded-full bg-error-100 px-2.5 py-1 text-sm font-medium text-error-700 border border-error-200">
               <AlertCircle size={10} />
               Do Not Call
             </span>
@@ -66,10 +66,10 @@ export default function CampaignLeadDetailPage() {
       {/* Main Info */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Card>
-          <h3 className="text-sm font-semibold text-text-primary mb-4">
+          <h3 className="text-base font-semibold text-text-primary mb-4">
             Contact Information
           </h3>
-          <div className="flex flex-col gap-3 text-sm">
+          <div className="flex flex-col gap-3 text-base">
             <div className="flex items-center gap-3 text-text-secondary">
               <Phone size={16} className="text-text-muted" />
               <span className="font-mono">{lead.phone}</span>
@@ -91,15 +91,15 @@ export default function CampaignLeadDetailPage() {
 
         {/* Metadata display (e.g. from CSV import) */}
         <Card>
-          <h3 className="text-sm font-semibold text-text-primary mb-4">
+          <h3 className="text-base font-semibold text-text-primary mb-4">
             Import Metadata
           </h3>
           {lead.metadata && Object.keys(lead.metadata).length > 0 ? (
-            <div className="bg-surface-subtle p-3 rounded-md text-xs font-mono text-text-secondary overflow-x-auto">
+            <div className="bg-surface-subtle p-3 rounded-md text-sm font-mono text-text-secondary overflow-x-auto">
               <pre>{JSON.stringify(lead.metadata, null, 2)}</pre>
             </div>
           ) : (
-            <p className="text-sm text-text-muted">
+            <p className="text-base text-text-muted">
               No additional metadata found.
             </p>
           )}
@@ -108,7 +108,7 @@ export default function CampaignLeadDetailPage() {
 
       {/* Related Calls Section */}
       <Card>
-        <h3 className="text-sm font-semibold text-text-primary mb-4">
+        <h3 className="text-base font-semibold text-text-primary mb-4">
           Call History
         </h3>
         {lead.calls && lead.calls.length > 0 ? (
@@ -119,10 +119,10 @@ export default function CampaignLeadDetailPage() {
                 className="p-3 border border-surface-border rounded-lg flex items-center justify-between"
               >
                 <div>
-                  <p className="text-sm font-medium">
+                  <p className="text-base font-medium">
                     {formatDate(call.startedAt)}
                   </p>
-                  <p className="text-xs text-text-muted uppercase mt-0.5">
+                  <p className="text-sm text-text-muted uppercase mt-0.5">
                     {call.status}
                   </p>
                 </div>
@@ -130,7 +130,7 @@ export default function CampaignLeadDetailPage() {
                   onClick={() =>
                     router.push(`/campaigns/${campaignId}/calls/${call.id}`)
                   }
-                  className="text-sm font-medium text-brand-600 hover:underline"
+                  className="text-base font-medium text-brand-600 hover:underline"
                 >
                   View Call Details
                 </button>
@@ -138,7 +138,7 @@ export default function CampaignLeadDetailPage() {
             ))}
           </div>
         ) : (
-          <p className="text-sm text-text-muted">
+          <p className="text-base text-text-muted">
             No calls made to this lead yet.
           </p>
         )}

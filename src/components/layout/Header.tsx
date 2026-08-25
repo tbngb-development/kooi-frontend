@@ -43,10 +43,10 @@ export function Header() {
           <Bell size={16} />
         </button>
         <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-100 text-brand-600 text-xs font-semibold">
+          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-100 text-brand-600 text-sm font-semibold">
             {user?.name?.charAt(0).toUpperCase() ?? 'U'}
           </div>
-          <span className="hidden sm:block text-sm font-medium text-text-secondary">
+          <span className="hidden sm:block text-base font-medium text-text-secondary">
             {user?.name}
           </span>
         </div>

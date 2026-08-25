@@ -49,7 +49,7 @@ const temperatureStyle: Record<LeadTemperature, string> = {
 function TemperatureBadge({ value }: { value: LeadTemperature }) {
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${temperatureStyle[value]}`}
+      className={`inline-flex items-center rounded-full px-2 py-0.5 text-sm font-medium ${temperatureStyle[value]}`}
     >
       {value}
     </span>
@@ -84,34 +84,34 @@ export function CallsTable({
     <div className="flex flex-col gap-4">
       <div className="bg-surface rounded-lg border border-surface-border overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="w-full text-base">
             <thead>
               <tr className="border-b border-surface-border bg-surface-subtle">
-                <th className="text-left px-5 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
+                <th className="text-left px-5 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
                   Lead
                 </th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
+                <th className="text-left px-4 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
                   Phone
                 </th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
+                <th className="text-left px-4 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
                   Campaign
                 </th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
+                <th className="text-left px-4 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
                   Status
                 </th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
+                <th className="text-left px-4 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
                   Disposition
                 </th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
+                <th className="text-left px-4 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
                   Temperature
                 </th>
-                <th className="text-right px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
+                <th className="text-right px-4 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
                   Cost
                 </th>
-                <th className="text-right px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
+                <th className="text-right px-4 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
                   Duration
                 </th>
-                <th className="text-left px-5 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
+                <th className="text-left px-5 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
                   Date & Time
                 </th>
               </tr>
@@ -132,7 +132,7 @@ export function CallsTable({
                         {call.lead.name || "Unknown"}
                       </Link>
                     </td>
-                    <td className="px-4 py-3 text-text-secondary font-mono text-xs">
+                    <td className="px-4 py-3 text-text-secondary font-mono text-sm">
                       <Link
                         href={`/campaigns/${call.campaignId}/calls/${call.id}`}
                         className="font-medium text-text-primary hover:text-brand-600 transition-colors"
@@ -143,7 +143,7 @@ export function CallsTable({
                     <td className="px-4 py-3">
                       <Link
                         href={`/campaigns/${call.campaignId}`}
-                        className="text-text-muted hover:text-brand-600 text-xs transition-colors"
+                        className="text-text-muted hover:text-brand-600 text-sm transition-colors"
                       >
                         {call.campaign.name}
                       </Link>
@@ -151,7 +151,7 @@ export function CallsTable({
                     <td className="px-4 py-3">
                       <CallStatusBadge status={call.status} />
                     </td>
-                    <td className="px-4 py-3 text-xs text-text-secondary">
+                    <td className="px-4 py-3 text-sm text-text-secondary">
                       {analysis?.disposition
                         ? dispositionLabel[analysis.disposition]
                         : "—"}
@@ -160,7 +160,7 @@ export function CallsTable({
                       {analysis?.leadTemperature ? (
                         <TemperatureBadge value={analysis.leadTemperature} />
                       ) : (
-                        <span className="text-xs text-text-muted">—</span>
+                        <span className="text-sm text-text-muted">—</span>
                       )}
                     </td>
                     <td className="px-4 py-3 text-right text-text-secondary">
@@ -174,15 +174,15 @@ export function CallsTable({
                     <td className="px-5 py-3">
                       {call.startedAt ? (
                         <div className="flex flex-col gap-0.5">
-                          <span className="text-sm font-medium text-text-primary leading-none">
+                          <span className="text-base font-medium text-text-primary leading-none">
                             {formatTimeOnly(call.startedAt)}
                           </span>
-                          <span className="text-xs text-text-muted leading-none">
+                          <span className="text-sm text-text-muted leading-none">
                             {formatDateOnly(call.startedAt)}
                           </span>
                         </div>
                       ) : (
-                        <span className="text-xs text-text-muted">—</span>
+                        <span className="text-sm text-text-muted">—</span>
                       )}
                     </td>
                   </tr>
@@ -195,7 +195,7 @@ export function CallsTable({
 
       {pagination && onPageChange && (
         <div className="flex items-center justify-between">
-          <p className="text-xs text-text-muted">
+          <p className="text-sm text-text-muted">
             Showing {calls.length} of {pagination.total} calls
           </p>
           <Pagination

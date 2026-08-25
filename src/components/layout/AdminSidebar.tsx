@@ -37,8 +37,8 @@ export function AdminSidebar() {
           <Shield size={16} className="text-white" />
         </div>
         <div>
-          <p className="text-sm font-semibold text-text-primary">Super Admin</p>
-          <p className="text-xs text-text-muted">Control Panel</p>
+          <p className="text-base font-semibold text-text-primary">Super Admin</p>
+          <p className="text-sm text-text-muted">Control Panel</p>
         </div>
       </div>
 
@@ -57,7 +57,7 @@ export function AdminSidebar() {
                   href={item.href}
                   onClick={() => setMobileOpen(false)}
                   className={cn(
-                    'flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors',
+                    'flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium transition-colors',
                     isActive
                       ? 'bg-brand-50 text-brand-600'
                       : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary'
@@ -78,19 +78,19 @@ export function AdminSidebar() {
       {/* User */}
       <div className="border-t border-surface-border p-3">
         <div className="flex items-center gap-2.5 px-2 mb-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-100 text-brand-600 text-xs font-semibold shrink-0">
+          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-100 text-brand-600 text-sm font-semibold shrink-0">
             {user?.name?.charAt(0).toUpperCase() ?? 'A'}
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-medium text-text-primary truncate">
+            <p className="text-base font-medium text-text-primary truncate">
               {user?.name}
             </p>
-            <p className="text-xs text-text-muted">Super Admin</p>
+            <p className="text-sm text-text-muted">Super Admin</p>
           </div>
         </div>
         <button
           onClick={logout}
-          className="flex w-full items-center gap-3 px-3 py-2 rounded-md text-sm text-text-muted hover:bg-surface-hover hover:text-error-600 transition-colors"
+          className="flex w-full items-center gap-3 px-3 py-2 rounded-md text-base text-text-muted hover:bg-surface-hover hover:text-error-600 transition-colors"
         >
           <LogOut size={15} />
           Sign out

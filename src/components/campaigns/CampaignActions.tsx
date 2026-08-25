@@ -192,7 +192,7 @@ export function CampaignActions({ campaignId, status }: CampaignActionsProps) {
 
             {/* ── Peak Time Quick Chips ──────────────────────────────── */}
             <div className="flex flex-col gap-2">
-              <label className="text-xs font-semibold text-text-secondary flex items-center gap-1.5">
+              <label className="text-sm font-semibold text-text-secondary flex items-center gap-1.5">
                 <Zap size={12} className="text-amber-500" />
                 Peak Pickup Times
               </label>
@@ -211,7 +211,7 @@ export function CampaignActions({ campaignId, status }: CampaignActionsProps) {
                           : "border-surface-border bg-white hover:border-brand-300 hover:bg-brand-50/30"
                       }`}
                     >
-                      <span className="text-xs font-semibold">
+                      <span className="text-sm font-semibold">
                         {preset.label}
                       </span>
                       <span className="text-[10px] text-text-muted">
@@ -225,7 +225,7 @@ export function CampaignActions({ campaignId, status }: CampaignActionsProps) {
 
             {/* ── Custom Date-Time Picker ────────────────────────────── */}
             <div className="flex flex-col gap-2">
-              <label className="text-xs font-semibold text-text-secondary flex items-center gap-1.5">
+              <label className="text-sm font-semibold text-text-secondary flex items-center gap-1.5">
                 <Clock size={12} />
                 Or Pick a Custom Time
               </label>
@@ -238,7 +238,7 @@ export function CampaignActions({ campaignId, status }: CampaignActionsProps) {
                 dateFormat="MMM d, yyyy · h:mm aa"
                 minDate={new Date()}
                 placeholderText="Select date & time..."
-                className="w-full text-sm px-3 py-2.5 rounded-lg border border-surface-border bg-white text-text-primary placeholder:text-text-muted/50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                className="w-full text-base px-3 py-2.5 rounded-lg border border-surface-border bg-white text-text-primary placeholder:text-text-muted/50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
               />
             </div>
 
@@ -246,7 +246,7 @@ export function CampaignActions({ campaignId, status }: CampaignActionsProps) {
             {selectedDate && (
               <div className="flex items-center gap-2 rounded-lg bg-brand-50 border border-brand-200 px-3 py-2.5">
                 <Calendar size={14} className="text-brand-600 shrink-0" />
-                <p className="text-xs text-brand-700 font-medium">
+                <p className="text-sm text-brand-700 font-medium">
                   Campaign will launch on{" "}
                   {selectedDate.toLocaleDateString("en-IN", {
                     weekday: "long",

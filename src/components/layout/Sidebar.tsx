@@ -57,10 +57,10 @@ export function Sidebar() {
           <Zap size={16} className="text-white" />
         </div>
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-text-primary truncate">
+          <p className="text-base font-semibold text-text-primary truncate">
             {tenant?.name ?? 'LeadAI'}
           </p>
-          <p className="text-xs text-text-muted">AI Lead System</p>
+          <p className="text-sm text-text-muted">AI Lead System</p>
         </div>
       </div>
 
@@ -79,7 +79,7 @@ export function Sidebar() {
                   href={item.href}
                   onClick={() => setMobileOpen(false)}
                   className={cn(
-                    'flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150',
+                    'flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium transition-colors duration-150',
                     isActive
                       ? 'bg-brand-50 text-brand-600'
                       : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary'
@@ -100,21 +100,21 @@ export function Sidebar() {
       {/* User + Logout */}
       <div className="border-t border-surface-border p-3 shrink-0">
         <div className="flex items-center gap-2.5 px-2 mb-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-100 text-brand-600 text-xs font-semibold shrink-0">
+          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-100 text-brand-600 text-sm font-semibold shrink-0">
             {user?.name?.charAt(0).toUpperCase() ?? 'U'}
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-medium text-text-primary truncate">
+            <p className="text-base font-medium text-text-primary truncate">
               {user?.name}
             </p>
-            <p className="text-xs text-text-muted capitalize">
+            <p className="text-sm text-text-muted capitalize">
               {user?.role?.toLowerCase()}
             </p>
           </div>
         </div>
         <button
           onClick={logout}
-          className="flex w-full items-center gap-3 px-3 py-2 rounded-md text-sm text-text-muted hover:bg-surface-hover hover:text-error-600 transition-colors duration-150"
+          className="flex w-full items-center gap-3 px-3 py-2 rounded-md text-base text-text-muted hover:bg-surface-hover hover:text-error-600 transition-colors duration-150"
         >
           <LogOut size={15} />
           Sign out

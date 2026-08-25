@@ -24,7 +24,7 @@ export default function CampaignsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold text-text-primary">Campaigns</h2>
-          <p className="text-sm text-text-muted mt-0.5">
+          <p className="text-base text-text-muted mt-0.5">
             Manage your outreach campaigns
           </p>
         </div>
@@ -38,28 +38,28 @@ export default function CampaignsPage() {
       {campaigns && campaigns.length > 0 ? (
         <div className="bg-surface rounded-lg border border-surface-border overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-base">
               <thead>
                 <tr className="border-b border-surface-border bg-surface-subtle">
-                  <th className="text-left px-5 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
+                  <th className="text-left px-5 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
                     Campaign
                   </th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
+                  <th className="text-left px-4 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
                     Status
                   </th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
+                  <th className="text-left px-4 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
                     Assistant
                   </th>
-                  <th className="text-right px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
+                  <th className="text-right px-4 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
                     Leads
                   </th>
-                  <th className="text-right px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
+                  <th className="text-right px-4 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
                     Called
                   </th>
-                  <th className="text-right px-4 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
+                  <th className="text-right px-4 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
                     Qualified
                   </th>
-                  <th className="text-left px-5 py-3 text-xs font-medium text-text-muted uppercase tracking-wide">
+                  <th className="text-left px-5 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
                     Created
                   </th>
                 </tr>
@@ -76,7 +76,7 @@ export default function CampaignsPage() {
                           {c.name}
                         </p>
                         {c.description && (
-                          <p className="text-xs text-text-muted mt-0.5 truncate max-w-xs">
+                          <p className="text-sm text-text-muted mt-0.5 truncate max-w-xs">
                             {c.description}
                           </p>
                         )}

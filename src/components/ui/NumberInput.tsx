@@ -145,7 +145,7 @@ export default function NumberInput({
         readOnly={readOnly}
         aria-readonly={readOnly}
         className={clsx(
-          "min-w-0 flex-1 py-2.5 text-sm text-center outline-none",
+          "min-w-0 flex-1 py-2.5 text-base text-center outline-none",
           readOnly
             ? "px-4 bg-surface-subtle cursor-default"
             : "px-3 bg-transparent",

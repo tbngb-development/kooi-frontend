@@ -14,7 +14,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
           </div>
           <div>
             <p className="text-lg font-bold text-text-primary">LeadAI</p>
-            <p className="text-xs text-text-muted leading-tight">
+            <p className="text-sm text-text-muted leading-tight">
               AI Lead Qualification
             </p>
           </div>

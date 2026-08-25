@@ -328,7 +328,7 @@ export default function LandingPage() {
                 key={link.id}
                 onClick={() => scrollToSection(link.id)}
                 className={`
-                  px-4 py-2 text-sm font-medium rounded-full transition-all duration-300
+                  px-4 py-2 text-base font-medium rounded-full transition-all duration-300
                   hover:bg-brand-50 hover:text-brand-600
                   ${scrolled ? "text-text-secondary" : "text-text-secondary"}
                 `}
@@ -343,7 +343,7 @@ export default function LandingPage() {
             <a
               href="/login"
               className={`
-                px-5 py-2.5 text-sm font-semibold rounded-full transition-all duration-300
+                px-5 py-2.5 text-base font-semibold rounded-full transition-all duration-300
                 ${scrolled ? "text-text-secondary hover:text-brand-600" : "text-text-secondary hover:text-brand-600"}
               `}
             >
@@ -351,7 +351,7 @@ export default function LandingPage() {
             </a>
             <a
               href="/register"
-              className="px-6 py-2.5 text-sm font-semibold text-white rounded-full bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-400 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5"
+              className="px-6 py-2.5 text-base font-semibold text-white rounded-full bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-400 shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5"
             >
               Start Free Trial
             </a>
@@ -384,7 +384,7 @@ export default function LandingPage() {
             <button
               key={link.id}
               onClick={() => scrollToSection(link.id)}
-              className="block w-full text-left px-4 py-3 text-sm font-medium text-text-secondary hover:text-brand-600 hover:bg-brand-50 rounded-xl transition-colors"
+              className="block w-full text-left px-4 py-3 text-base font-medium text-text-secondary hover:text-brand-600 hover:bg-brand-50 rounded-xl transition-colors"
             >
               {link.label}
             </button>
@@ -392,13 +392,13 @@ export default function LandingPage() {
           <div className="pt-3 space-y-2 border-t border-surface-border mt-3">
             <a
               href="/login"
-              className="block w-full text-center px-4 py-3 text-sm font-semibold text-text-secondary hover:text-brand-600 rounded-xl transition-colors"
+              className="block w-full text-center px-4 py-3 text-base font-semibold text-text-secondary hover:text-brand-600 rounded-xl transition-colors"
             >
               Sign In
             </a>
             <a
               href="/register"
-              className="block w-full text-center px-5 py-3 text-sm font-semibold text-white rounded-xl bg-gradient-to-r from-brand-600 to-brand-500"
+              className="block w-full text-center px-5 py-3 text-base font-semibold text-white rounded-xl bg-gradient-to-r from-brand-600 to-brand-500"
             >
               Start Free Trial
             </a>
@@ -424,7 +424,7 @@ export default function LandingPage() {
             {/* Badge */}
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-100/80 border border-brand-200/60 mb-8 animate-[fadeIn_0.6s_ease-out]">
               <Sparkles className="w-4 h-4 text-brand-600" />
-              <span className="text-sm font-semibold text-brand-700">
+              <span className="text-base font-semibold text-brand-700">
                 AI-Powered Voice Agents
               </span>
             </div>
@@ -490,7 +490,7 @@ export default function LandingPage() {
             </div>
 
             {/* Trust */}
-            <div className="flex items-center gap-4 justify-center lg:justify-start text-sm text-text-muted animate-[fadeIn_1.4s_ease-out]">
+            <div className="flex items-center gap-4 justify-center lg:justify-start text-base text-text-muted animate-[fadeIn_1.4s_ease-out]">
               <div className="flex items-center gap-1.5">
                 <CheckCircle2 className="w-4 h-4 text-brand-500" />
                 <span>No credit card required</span>
@@ -518,10 +518,10 @@ export default function LandingPage() {
                       <Mic className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-text-primary">
+                      <p className="text-base font-semibold text-text-primary">
                         Kooi Agent
                       </p>
-                      <p className="text-xs text-brand-600 font-medium">
+                      <p className="text-sm text-brand-600 font-medium">
                         ● Live — Qualifying leads
                       </p>
                     </div>
@@ -536,7 +536,7 @@ export default function LandingPage() {
                       <Bot className="w-3.5 h-3.5 text-brand-600" />
                     </div>
                     <div className="bg-brand-50 rounded-2xl rounded-tl-md px-4 py-2.5 max-w-[80%]">
-                      <p className="text-sm text-text-primary">
+                      <p className="text-base text-text-primary">
                         Hi Sarah! I&apos;m calling about the Greenview
                         Residences. Do you have a couple of minutes?
                       </p>
@@ -544,7 +544,7 @@ export default function LandingPage() {
                   </div>
                   <div className="flex gap-3 justify-end">
                     <div className="bg-surface-subtle rounded-2xl rounded-tr-md px-4 py-2.5 max-w-[80%]">
-                      <p className="text-sm text-text-primary">
+                      <p className="text-base text-text-primary">
                         Yes, I&apos;ve been looking at 2 BHK options.
                         What&apos;s the starting price?
                       </p>
@@ -558,7 +558,7 @@ export default function LandingPage() {
                       <Bot className="w-3.5 h-3.5 text-brand-600" />
                     </div>
                     <div className="bg-brand-50 rounded-2xl rounded-tl-md px-4 py-2.5 max-w-[80%]">
-                      <p className="text-sm text-text-primary">
+                      <p className="text-base text-text-primary">
                         Great choice! 2 BHK starts at ₹72 lakhs. Would you like
                         to schedule a site visit?
                       </p>
@@ -568,16 +568,16 @@ export default function LandingPage() {
 
                 {/* Extraction Tags */}
                 <div className="flex flex-wrap gap-2 pt-4 border-t border-surface-border/60">
-                  <span className="px-3 py-1 text-xs font-semibold bg-red-50 text-red-600 rounded-full">
+                  <span className="px-3 py-1 text-sm font-semibold bg-red-50 text-red-600 rounded-full">
                     🔥 Hot Lead
                   </span>
-                  <span className="px-3 py-1 text-xs font-medium bg-brand-50 text-brand-700 rounded-full">
+                  <span className="px-3 py-1 text-sm font-medium bg-brand-50 text-brand-700 rounded-full">
                     Site Visit Interest
                   </span>
-                  <span className="px-3 py-1 text-xs font-medium bg-secondary-50 text-secondary-700 rounded-full">
+                  <span className="px-3 py-1 text-sm font-medium bg-secondary-50 text-secondary-700 rounded-full">
                     Budget: ₹72-85L
                   </span>
-                  <span className="px-3 py-1 text-xs font-medium bg-info-50 text-info-600 rounded-full">
+                  <span className="px-3 py-1 text-sm font-medium bg-info-50 text-info-600 rounded-full">
                     Timeline: 3 months
                   </span>
                 </div>
@@ -590,8 +590,8 @@ export default function LandingPage() {
                     <TrendingUp className="w-4 h-4 text-success-600" />
                   </div>
                   <div>
-                    <p className="text-xs text-text-muted">Qualified Today</p>
-                    <p className="text-sm font-bold text-text-primary">
+                    <p className="text-sm text-text-muted">Qualified Today</p>
+                    <p className="text-base font-bold text-text-primary">
                       47 leads
                     </p>
                   </div>
@@ -604,8 +604,8 @@ export default function LandingPage() {
                     <Clock className="w-4 h-4 text-warning-600" />
                   </div>
                   <div>
-                    <p className="text-xs text-text-muted">Avg Call Time</p>
-                    <p className="text-sm font-bold text-text-primary">
+                    <p className="text-sm text-text-muted">Avg Call Time</p>
+                    <p className="text-base font-bold text-text-primary">
                       2m 34s
                     </p>
                   </div>
@@ -630,7 +630,7 @@ export default function LandingPage() {
   const SocialProof = (
     <section className="relative py-16 bg-surface-muted border-y border-surface-border/50 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <p className="text-center text-sm font-medium text-text-muted mb-10 tracking-wide uppercase">
+        <p className="text-center text-base font-medium text-text-muted mb-10 tracking-wide uppercase">
           Trusted by forward-thinking teams
         </p>
 
@@ -645,7 +645,7 @@ export default function LandingPage() {
               <div className="text-3xl sm:text-4xl font-extrabold bg-gradient-to-r from-brand-600 to-secondary-600 bg-clip-text text-transparent">
                 <AnimatedCounter end={stat.value} suffix={stat.suffix} />
               </div>
-              <p className="text-sm text-text-muted mt-1">{stat.label}</p>
+              <p className="text-base text-text-muted mt-1">{stat.label}</p>
             </Stagger>
           ))}
         </div>
@@ -706,7 +706,7 @@ export default function LandingPage() {
           <Stagger>
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-50 border border-brand-100 mb-6">
               <Sparkles className="w-4 h-4 text-brand-600" />
-              <span className="text-sm font-semibold text-brand-700">
+              <span className="text-base font-semibold text-brand-700">
                 Powerful Features
               </span>
             </div>
@@ -741,7 +741,7 @@ export default function LandingPage() {
                 <h3 className="text-lg font-bold text-text-primary mb-2.5">
                   {feature.title}
                 </h3>
-                <p className="text-sm text-text-secondary leading-relaxed">
+                <p className="text-base text-text-secondary leading-relaxed">
                   {feature.description}
                 </p>
 
@@ -798,7 +798,7 @@ export default function LandingPage() {
           <Stagger>
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary-50 border border-secondary-100 mb-6">
               <Activity className="w-4 h-4 text-secondary-600" />
-              <span className="text-sm font-semibold text-secondary-700">
+              <span className="text-base font-semibold text-secondary-700">
                 How It Works
               </span>
             </div>
@@ -843,7 +843,7 @@ export default function LandingPage() {
                   <h3 className="text-lg font-bold text-text-primary mb-2">
                     {step.title}
                   </h3>
-                  <p className="text-sm text-text-secondary leading-relaxed">
+                  <p className="text-base text-text-secondary leading-relaxed">
                     {step.description}
                   </p>
                 </div>
@@ -902,7 +902,7 @@ export default function LandingPage() {
           <Stagger>
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 border border-white/10 mb-6">
               <Zap className="w-4 h-4 text-brand-400" />
-              <span className="text-sm font-semibold text-brand-300">
+              <span className="text-base font-semibold text-brand-300">
                 Why Kooi
               </span>
             </div>
@@ -937,12 +937,12 @@ export default function LandingPage() {
                         <span className="text-2xl font-extrabold bg-gradient-to-r from-brand-400 to-secondary-400 bg-clip-text text-transparent">
                           {benefit.stat}
                         </span>
-                        <p className="text-xs text-slate-500">
+                        <p className="text-sm text-slate-500">
                           {benefit.statLabel}
                         </p>
                       </div>
                     </div>
-                    <p className="text-sm text-slate-400 leading-relaxed">
+                    <p className="text-base text-slate-400 leading-relaxed">
                       {benefit.description}
                     </p>
                   </div>
@@ -990,7 +990,7 @@ export default function LandingPage() {
           <Stagger>
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-warning-50 border border-warning-100 mb-6">
               <Star className="w-4 h-4 text-warning-600" />
-              <span className="text-sm font-semibold text-warning-700">
+              <span className="text-base font-semibold text-warning-700">
                 Customer Stories
               </span>
             </div>
@@ -1025,14 +1025,14 @@ export default function LandingPage() {
                 </blockquote>
 
                 <div className="flex items-center gap-3 pt-5 border-t border-surface-border/60">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-400 to-secondary-400 flex items-center justify-center text-white font-bold text-sm">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-400 to-secondary-400 flex items-center justify-center text-white font-bold text-base">
                     {t.name.charAt(0)}
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-text-primary">
+                    <p className="text-base font-semibold text-text-primary">
                       {t.name}
                     </p>
-                    <p className="text-xs text-text-muted">
+                    <p className="text-sm text-text-muted">
                       {t.role}, {t.company}
                     </p>
                   </div>
@@ -1108,7 +1108,7 @@ export default function LandingPage() {
           <Stagger>
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-50 border border-brand-100 mb-6">
               <Sparkles className="w-4 h-4 text-brand-600" />
-              <span className="text-sm font-semibold text-brand-700">
+              <span className="text-base font-semibold text-brand-700">
                 Simple Pricing
               </span>
             </div>
@@ -1132,7 +1132,7 @@ export default function LandingPage() {
             <div className="inline-flex items-center gap-3 bg-white rounded-full p-1.5 border border-surface-border shadow-sm">
               <button
                 onClick={() => setBillingPeriod("monthly")}
-                className={`px-5 py-2 text-sm font-semibold rounded-full transition-all duration-300 ${
+                className={`px-5 py-2 text-base font-semibold rounded-full transition-all duration-300 ${
                   billingPeriod === "monthly"
                     ? "bg-brand-500 text-white shadow-md"
                     : "text-text-muted hover:text-text-primary"
@@ -1142,14 +1142,14 @@ export default function LandingPage() {
               </button>
               <button
                 onClick={() => setBillingPeriod("annual")}
-                className={`px-5 py-2 text-sm font-semibold rounded-full transition-all duration-300 ${
+                className={`px-5 py-2 text-base font-semibold rounded-full transition-all duration-300 ${
                   billingPeriod === "annual"
                     ? "bg-brand-500 text-white shadow-md"
                     : "text-text-muted hover:text-text-primary"
                 }`}
               >
                 Annual
-                <span className="ml-1.5 text-xs font-bold text-brand-400">
+                <span className="ml-1.5 text-sm font-bold text-brand-400">
                   -20%
                 </span>
               </button>
@@ -1172,7 +1172,7 @@ export default function LandingPage() {
               >
                 {plan.popular && (
                   <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                    <span className="px-4 py-1.5 text-xs font-bold text-white bg-gradient-to-r from-brand-600 to-brand-500 rounded-full shadow-md">
+                    <span className="px-4 py-1.5 text-sm font-bold text-white bg-gradient-to-r from-brand-600 to-brand-500 rounded-full shadow-md">
                       Most Popular
                     </span>
                   </div>
@@ -1182,7 +1182,7 @@ export default function LandingPage() {
                   <h3 className="text-xl font-bold text-text-primary mb-1">
                     {plan.name}
                   </h3>
-                  <p className="text-sm text-text-muted">{plan.description}</p>
+                  <p className="text-base text-text-muted">{plan.description}</p>
                 </div>
 
                 <div className="mb-6">
@@ -1202,7 +1202,7 @@ export default function LandingPage() {
                     </div>
                   )}
                   {billingPeriod === "annual" && plan.monthlyPrice !== null && (
-                    <p className="text-xs text-brand-600 font-medium mt-1">
+                    <p className="text-sm text-brand-600 font-medium mt-1">
                       Billed annually · Save $
                       {(plan.monthlyPrice - (plan.annualPrice ?? 0)) * 12}/yr
                     </p>
@@ -1213,7 +1213,7 @@ export default function LandingPage() {
                   {plan.features.map((feature, j) => (
                     <li key={j} className="flex items-start gap-2.5">
                       <Check className="w-4 h-4 text-brand-500 mt-0.5 flex-shrink-0" />
-                      <span className="text-sm text-text-secondary">
+                      <span className="text-base text-text-secondary">
                         {feature}
                       </span>
                     </li>
@@ -1223,7 +1223,7 @@ export default function LandingPage() {
                 <a
                   href={plan.name === "Enterprise" ? "#contact" : "/register"}
                   className={`
-                    block w-full text-center px-6 py-3.5 text-sm font-semibold rounded-xl transition-all duration-300
+                    block w-full text-center px-6 py-3.5 text-base font-semibold rounded-xl transition-all duration-300
                     ${
                       plan.popular
                         ? "text-white bg-gradient-to-r from-brand-600 to-brand-500 hover:from-brand-500 hover:to-brand-400 shadow-lg shadow-brand-500/25 hover:shadow-xl hover:-translate-y-0.5"
@@ -1280,7 +1280,7 @@ export default function LandingPage() {
           <Stagger>
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary-50 border border-secondary-100 mb-6">
               <MessageSquare className="w-4 h-4 text-secondary-600" />
-              <span className="text-sm font-semibold text-secondary-700">
+              <span className="text-base font-semibold text-secondary-700">
                 FAQ
               </span>
             </div>
@@ -1333,7 +1333,7 @@ export default function LandingPage() {
                     ${activeFaq === i ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}
                   `}
                 >
-                  <p className="px-6 pb-5 text-sm text-text-secondary leading-relaxed">
+                  <p className="px-6 pb-5 text-base text-text-secondary leading-relaxed">
                     {faq.a}
                   </p>
                 </div>
@@ -1367,7 +1367,7 @@ export default function LandingPage() {
             <Stagger>
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/15 backdrop-blur-sm border border-white/20 mb-8">
                 <Sparkles className="w-4 h-4 text-white" />
-                <span className="text-sm font-semibold text-white">
+                <span className="text-base font-semibold text-white">
                   Start Today — It&apos;s Free
                 </span>
               </div>
@@ -1406,7 +1406,7 @@ export default function LandingPage() {
             </Stagger>
 
             <Stagger index={4}>
-              <div className="flex items-center justify-center gap-6 mt-10 text-sm text-white/70">
+              <div className="flex items-center justify-center gap-6 mt-10 text-base text-white/70">
                 <span className="flex items-center gap-1.5">
                   <CheckCircle2 className="w-4 h-4" />
                   14-day free trial
@@ -1440,7 +1440,7 @@ export default function LandingPage() {
               </div>
               <span className="text-xl font-bold">Kooi</span>
             </div>
-            <p className="text-sm text-slate-400 leading-relaxed max-w-sm mb-6">
+            <p className="text-base text-slate-400 leading-relaxed max-w-sm mb-6">
               AI-powered voice agents that qualify your leads 24/7. Built for
               SMBs who want enterprise-grade lead qualification without the
               enterprise price tag.
@@ -1450,7 +1450,7 @@ export default function LandingPage() {
                 <a
                   key={i}
                   href="#"
-                  className="w-9 h-9 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-xs font-bold text-slate-400 hover:text-white transition-all duration-300"
+                  className="w-9 h-9 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center text-sm font-bold text-slate-400 hover:text-white transition-all duration-300"
                 >
                   {label}
                 </a>
@@ -1460,7 +1460,7 @@ export default function LandingPage() {
 
           {/* Product */}
           <div>
-            <h4 className="text-sm font-semibold text-white mb-4">Product</h4>
+            <h4 className="text-base font-semibold text-white mb-4">Product</h4>
             <ul className="space-y-3">
               {[
                 "Features",
@@ -1472,7 +1472,7 @@ export default function LandingPage() {
                 <li key={link}>
                   <a
                     href="#"
-                    className="text-sm text-slate-400 hover:text-white transition-colors"
+                    className="text-base text-slate-400 hover:text-white transition-colors"
                   >
                     {link}
                   </a>
@@ -1483,13 +1483,13 @@ export default function LandingPage() {
 
           {/* Company */}
           <div>
-            <h4 className="text-sm font-semibold text-white mb-4">Company</h4>
+            <h4 className="text-base font-semibold text-white mb-4">Company</h4>
             <ul className="space-y-3">
               {["About", "Blog", "Careers", "Press", "Contact"].map((link) => (
                 <li key={link}>
                   <a
                     href="#"
-                    className="text-sm text-slate-400 hover:text-white transition-colors"
+                    className="text-base text-slate-400 hover:text-white transition-colors"
                   >
                     {link}
                   </a>
@@ -1500,13 +1500,13 @@ export default function LandingPage() {
 
           {/* Legal */}
           <div>
-            <h4 className="text-sm font-semibold text-white mb-4">Legal</h4>
+            <h4 className="text-base font-semibold text-white mb-4">Legal</h4>
             <ul className="space-y-3">
               {["Privacy", "Terms", "Security", "GDPR", "SLA"].map((link) => (
                 <li key={link}>
                   <a
                     href="#"
-                    className="text-sm text-slate-400 hover:text-white transition-colors"
+                    className="text-base text-slate-400 hover:text-white transition-colors"
                   >
                     {link}
                   </a>
@@ -1517,10 +1517,10 @@ export default function LandingPage() {
         </div>
 
         <div className="mt-12 pt-8 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-slate-500">
+          <p className="text-base text-slate-500">
             © {new Date().getFullYear()} Kooi. All rights reserved.
           </p>
-          <p className="text-sm text-slate-500">
+          <p className="text-base text-slate-500">
             Made with{" "}
             <span className="text-brand-400" aria-label="love">
               ♥
