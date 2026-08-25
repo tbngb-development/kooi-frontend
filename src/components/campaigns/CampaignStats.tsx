@@ -41,7 +41,7 @@ export function CampaignStats({
       </h3>
 
       {/* ─── Stats Grid (Card Form) ─── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
         <StatCard
           icon={<Flame size={16} />}
           label="Hot Leads"
@@ -79,7 +79,7 @@ export function CampaignStats({
           iconBg="bg-success-50"
           loading={isLoadingPerformance}
         />
-        <StatCard
+        {/* <StatCard
           icon={<DollarSign size={16} />}
           label="Total Cost"
           value={
@@ -101,7 +101,8 @@ export function CampaignStats({
           color="text-violet-600"
           iconBg="bg-violet-50"
           loading={isLoadingPerformance}
-        />
+        /> */}
+        
         <StatCard
           icon={<PhoneOff size={16} />}
           label="DNC Registered"
@@ -120,7 +121,7 @@ export function CampaignStats({
       </div>
 
       {/* ─── AI Call Insights & Preferences ─── */}
-      <div className="mb-6 border-t border-slate-300 pt-5">
+      {/* <div className="mb-6 border-t border-slate-300 pt-5">
         <h4 className="text-xs font-semibold text-text-muted uppercase tracking-wider mb-3">
           Insights & Lead Demand
         </h4>
@@ -162,7 +163,7 @@ export function CampaignStats({
             loading={isLoadingPerformance}
           />
         </div>
-      </div>
+      </div> */}
 
       {/* ─── Progress Bars ─── */}
       <div className="flex flex-col gap-3 pt-2">
