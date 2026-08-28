@@ -31,12 +31,11 @@ export function ConfirmModal({
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} size="sm">
       <div className="flex flex-col gap-4 sm:gap-5">
-        <p className="text-sm sm:text-base text-text-muted leading-relaxed wrap-break-word">
+        <p className="text-sm sm:text-base text-text-muted leading-relaxed whitespace-normal wrap-break-word">
           {description}
         </p>
 
-        {/* Responsive action buttons: stacked on mobile, inline on tablet/desktop */}
-        <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2 sm:gap-3 pt-2 sm:pt-0">
+        <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2 sm:gap-3 pt-1">
           <Button
             variant="outline"
             size="sm"
@@ -46,7 +45,6 @@ export function ConfirmModal({
           >
             {cancelLabel}
           </Button>
-
           <Button
             variant={variant}
             size="sm"
