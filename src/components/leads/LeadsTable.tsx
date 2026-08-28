@@ -5,10 +5,7 @@
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Pagination } from "@/components/ui/Pagination";
 import { LeadStatusBadge } from "./LeadStatusBadge";
-import {
-  formatDateOnly,
-  formatTimeOnly,
-} from "@/lib/utils/formatDate";
+import { formatDateOnly, formatTimeOnly } from "@/lib/utils/formatDate";
 import type { Lead, PaginationMeta } from "@/types";
 import { Users } from "lucide-react";
 import Link from "next/link";
@@ -73,7 +70,7 @@ export function LeadsTable({
                       href={`/leads/${lead.id}`}
                       className="font-medium text-text-primary hover:text-brand-600 transition-colors"
                     >
-                      {lead.name.trim().length > 0 ? lead.name : "Unknown"}
+                      {lead?.name ?? "Unknown"}
                     </Link>
                     {lead.email && (
                       <p className="text-sm text-text-muted mt-0.5">
@@ -93,7 +90,7 @@ export function LeadsTable({
                       href={`/campaigns/${lead.campaignId}`}
                       className="text-text-muted hover:text-brand-600 text-sm transition-colors"
                     >
-                      {lead.campaign.name}
+                      {lead.campaign?.name ?? "Unknown"}
                     </Link>
                   </td>
                   <td className="px-5 py-3 text-text-muted text-sm">

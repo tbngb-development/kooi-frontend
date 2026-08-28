@@ -1,14 +1,18 @@
 // src/types/index.ts
 
+export type {
+  LeadBatch,
+  RetryConfig,
+  BatchStatus,
+  BatchCreateResponse,
+  BatchCreateStats,
+  BatchStats,
+} from "./batch";
+import type { LeadBatch, RetryConfig } from "./batch";
+
 export type UserRole = "SUPER_ADMIN" | "ADMIN" | "USER";
 
-export type CampaignStatus =
-  | "DRAFT"
-  | "RUNNING"
-  | "SCHEDULED"
-  | "PAUSED"
-  | "COMPLETED"
-  | "FAILED";
+export type CampaignStatus = "DRAFT" | "RUNNING" | "COMPLETED" | "FAILED";
 
 export type LeadStatus =
   | "PENDING"
@@ -204,24 +208,24 @@ export interface BolnaAgent {
 export interface Campaign {
   id: string;
   name: string;
-  description?: string;
+  description: string | null;
   status: CampaignStatus;
+  tenantId: string;
   assistantId: string;
-  brochureId?: string | null;
-  variables?: Record<string, string> | null;
+  brochureId: string | null;
+  variables: Record<string, string> | null;
+  defaultRetryConfig: RetryConfig | null;
   totalLeads: number;
   calledLeads: number;
-  successLeads: number;
+  completedLeads: number;
   failedLeads: number;
-  scheduledAt?: string;
-  startedAt?: string;
-  completedAt?: string;
   createdAt: string;
-  assistant: {
-    name: string;
-    bolnaId: string;
-  };
-  brochure?: BrochureSummary | null;
+  updatedAt: string;
+  startedAt: string | null;
+  completedAt: string | null;
+  assistant?: Assistant;
+  brochure?: Brochure | null;
+  batches?: LeadBatch[];
 }
 
 export interface CreateCampaignInput {
@@ -235,7 +239,7 @@ export interface CreateCampaignInput {
 export interface CampaignStats {
   totalLeads: number;
   calledLeads: number;
-  successLeads: number;
+  completedLeads: number;
   failedLeads: number;
   pendingLeads: number;
   qualificationRate: number;
@@ -478,18 +482,20 @@ export interface PropertyDetails {
 
 export interface Lead {
   id: string;
-  name: string;
+  name: string | null;
   phone: string;
-  email?: string;
-  company?: string;
+  email: string | null;
+  company: string | null;
   status: LeadStatus;
   doNotCall: boolean;
+  tenantId: string;
+  batchId: string | null;
   campaignId: string;
-  metadata?: Record<string, unknown>;
+  campaign?: Pick<Campaign, "id" | "name">;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  metadata: Record<string, any> | null;
   createdAt: string;
-  campaign: {
-    name: string;
-  };
+  updatedAt: string;
 }
 
 export interface LeadDetail extends Lead {
@@ -521,27 +527,38 @@ export interface CallAnalysis {
 
 // ─── Call ─────────────────────────────────────────────────────────────────────
 
+export interface CallHistoryItem {
+  attempt: number;
+  bolnaCallId: string;
+  status: string;
+  duration: number | null;
+  cost: number | null;
+  timestamp: string;
+  errorMessage: string | null;
+}
+
 export interface Call {
   id: string;
-  bolnaCallId?: string;
-  leadId: string;
+  bolnaCallId: string | null;
+  tenantId: string;
   campaignId: string;
+  leadId: string;
+  batchId: string | null;
   status: CallStatus;
-  duration?: number;
-  cost?: number;
-  recording?: string;
-  transcript?: string;
-  summary?: string;
-  startedAt?: string;
-  endedAt?: string;
-  lead: {
-    name: string;
-    phone: string;
-  };
-  campaign: {
-    name: string;
-  };
+  duration: number | null;
+  cost: number | null;
+  recording: string | null;
+  transcript: string | null;
+  transcriptMessages: TranscriptMessage[] | null;
+  summary: string | null;
+  callHistory: CallHistoryItem[] | null;
+  campaign?: Pick<Campaign, "id" | "name">;
+  startedAt: string | null;
+  endedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
   callAnalysis?: CallAnalysis | null;
+  lead?: Lead;
 }
 
 export interface TranscriptMessage {
@@ -621,7 +638,7 @@ export interface DashboardCampaign {
   assistant: string;
   totalLeads: number;
   calledLeads: number;
-  successLeads: number;
+  completedLeads: number;
   failedLeads: number;
   successRate: string;
   progress: string;
@@ -672,14 +689,16 @@ export interface UpdateUserInput {
 // ─── Query Params ─────────────────────────────────────────────────────────────
 
 export interface ParseLeadsResult {
-  total: number; // total rows in file
-  valid: number; // rows with a phone number
-  invalid: number; // rows missing phone
-  inFileDuplicates: number; // duplicates within the uploaded file
+  total: number;
+  valid: number;
+  invalid: number;
+  nonIndian: number;
+  nonIndianNumbers: string[];
+  inFileDuplicates: number;
   inFileDuplicateNumbers: string[];
-  dbDuplicates: number; // duplicates against existing DB leads
+  dbDuplicates: number;
   dbDuplicateNumbers: string[];
-  readyToImport: number; // net-new leads that will be inserted
+  readyToImport: number;
 }
 
 export interface LeadQueryParams {

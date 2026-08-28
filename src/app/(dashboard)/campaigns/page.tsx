@@ -1,21 +1,21 @@
 // src/app/(dashboard)/campaigns/page.tsx
 
-'use client';
+"use client";
 
-import { Button } from '@/components/ui/Button';
-import { EmptyState } from '@/components/ui/EmptyState';
-import { PageSpinner } from '@/components/ui/Spinner';
-import { CampaignStatusBadge } from '@/components/campaigns/CampaignStatusBadge';
-import { useCampaigns } from '@/hooks/useCampaigns';
-import { useAuthStore } from '@/store/authStore';
-import { formatDate } from '@/lib/utils/formatDate';
-import { Plus, Target } from 'lucide-react';
-import Link from 'next/link';
+import { Button } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { PageSpinner } from "@/components/ui/Spinner";
+import { CampaignStatusBadge } from "@/components/campaigns/CampaignStatusBadge";
+import { useCampaigns } from "@/hooks/useCampaigns";
+import { useAuthStore } from "@/store/authStore";
+import { formatDate } from "@/lib/utils/formatDate";
+import { Plus, Target } from "lucide-react";
+import Link from "next/link";
 
 export default function CampaignsPage() {
   const { data: campaigns, isLoading } = useCampaigns();
   const { user } = useAuthStore();
-  const canCreate = user?.role !== 'USER';
+  const canCreate = user?.role !== "USER";
 
   if (isLoading) return <PageSpinner />;
 
@@ -86,7 +86,7 @@ export default function CampaignsPage() {
                       <CampaignStatusBadge status={c.status} />
                     </td>
                     <td className="px-4 py-3 text-text-secondary">
-                      {c.assistant.name}
+                      {c.assistant?.name ?? "Unknown"}
                     </td>
                     <td className="px-4 py-3 text-right text-text-secondary">
                       {c.totalLeads}
@@ -95,7 +95,7 @@ export default function CampaignsPage() {
                       {c.calledLeads}
                     </td>
                     <td className="px-4 py-3 text-right text-success-600 font-medium">
-                      {c.successLeads}
+                      {c.completedLeads}
                     </td>
                     <td className="px-5 py-3 text-text-muted">
                       {formatDate(c.createdAt)}

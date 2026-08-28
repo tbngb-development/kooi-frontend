@@ -20,7 +20,8 @@ export default function LeadDetailPage() {
   console.log("leads data from detail page: ", lead);
 
   if (isLoading) return <PageSpinner />;
-  if (!lead) return <p className="text-text-muted text-base">Lead not found.</p>;
+  if (!lead)
+    return <p className="text-text-muted text-base">Lead not found.</p>;
 
   return (
     <div className="flex flex-col gap-5 max-w-3xl">
@@ -42,7 +43,7 @@ export default function LeadDetailPage() {
             href={`/campaigns/${lead.campaignId}`}
             className="text-brand-600 hover:underline"
           >
-            {lead.campaign.name}
+            {lead.campaign?.name ?? "Unknown"}
           </Link>
         </p>
       </div>

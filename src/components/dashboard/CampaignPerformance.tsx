@@ -89,7 +89,7 @@ export function CampaignPerformance({ campaigns }: CampaignPerformanceProps) {
                   </div>
                 </td>
                 <td className="px-5 py-3 text-right font-medium text-success-600">
-                  {c.successLeads}
+                  {c.completedLeads}
                 </td>
               </tr>
             ))}

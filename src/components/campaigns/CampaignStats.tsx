@@ -27,7 +27,7 @@ export function CampaignStats({
 
   const successRate =
     campaign.calledLeads > 0
-      ? Math.round((campaign.successLeads / campaign.calledLeads) * 100)
+      ? Math.round((campaign.completedLeads / campaign.calledLeads) * 100)
       : 0;
 
   return (

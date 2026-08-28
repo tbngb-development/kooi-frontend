@@ -177,7 +177,8 @@ export default function CallDetailPage() {
   //   useCallTranscript(id);
 
   if (callLoading) return <PageSpinner />;
-  if (!call) return <p className="text-text-muted text-base">Call not found.</p>;
+  if (!call)
+    return <p className="text-text-muted text-base">Call not found.</p>;
 
   // Prefer analysis from call object, fall back to transcript response
   const analysis = call.callAnalysis ?? null;
@@ -195,7 +196,7 @@ export default function CallDetailPage() {
         </Link>
         <div className="flex items-center gap-3">
           <h2 className="text-xl font-bold text-text-primary">
-            Call with {call.lead.name}
+            Call with {call.lead?.name ?? "Unknown"}
           </h2>
           <CallStatusBadge status={call.status} />
         </div>
@@ -205,7 +206,7 @@ export default function CallDetailPage() {
             href={`/campaigns/${call.campaignId}`}
             className="text-brand-600 hover:underline"
           >
-            {call.campaign.name}
+            {call.campaign?.name ?? "Unknown"}
           </Link>
         </p>
       </div>
@@ -217,7 +218,7 @@ export default function CallDetailPage() {
           <div>
             <p className="text-sm text-text-muted">Lead</p>
             <p className="text-base font-medium text-text-primary">
-              {call.lead.name}
+              {call.lead?.phone ?? "—"}
             </p>
           </div>
         </Card>
@@ -226,7 +227,7 @@ export default function CallDetailPage() {
           <div>
             <p className="text-sm text-text-muted">Phone</p>
             <p className="text-base font-medium text-text-primary font-mono">
-              {call.lead.phone}
+              {call.lead?.phone ?? "—"}
             </p>
           </div>
         </Card>
@@ -296,7 +297,7 @@ export default function CallDetailPage() {
             Transcript
           </h3>
         </div>
-        {!call.transcript  ? (
+        {!call.transcript ? (
           <PageSpinner />
         ) : (
           <TranscriptViewer rawTranscript={call.transcript} />
