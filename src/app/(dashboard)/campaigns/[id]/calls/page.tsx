@@ -324,6 +324,7 @@ export default function CampaignCallsPage() {
           calls={data?.calls ?? []}
           pagination={data?.pagination}
           onPageChange={(p) => updateFilter("page", p)}
+          showAttempts={true}
         />
       )}
     </div>

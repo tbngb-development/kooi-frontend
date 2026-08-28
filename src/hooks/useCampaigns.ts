@@ -30,7 +30,7 @@ export function useCampaign(id: string, pollWhileRunning = false) {
     refetchInterval: (query) => {
       if (!pollWhileRunning) return false;
       const status = query.state.data?.status;
-      return status === "RUNNING" || status === "SCHEDULED" ? 5000 : false;
+      return status === "RUNNING" ? 5000 : false;
     },
   });
 }

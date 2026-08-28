@@ -1,32 +1,32 @@
-// src/components/campaigns/CampaignStatusBadge.tsx
-
 import { Badge } from "@/components/ui/Badge";
 import type { CampaignStatus } from "@/types";
 
-const config: Record<
+const STATUS_CONFIG: Record<
   CampaignStatus,
   {
-    variant: "gray" | "success" | "warning" | "info" | "error";
     label: string;
-    animate?: boolean;
+    variant: "default" | "success" | "warning" | "error" | "info" | "gray";
   }
 > = {
-  DRAFT: { variant: "gray", label: "Draft" },
-  SCHEDULED: { variant: "info", label: "Scheduled" }, 
-  RUNNING: { variant: "success", label: "Running", animate: true },
-  PAUSED: { variant: "warning", label: "Paused" },
-  COMPLETED: { variant: "info", label: "Completed" },
-  FAILED: { variant: "error", label: "Failed" },
+  DRAFT: { label: "Draft", variant: "gray" },
+  RUNNING: { label: "Running", variant: "success" },
+  COMPLETED: { label: "Completed", variant: "info" },
+  FAILED: { label: "Failed", variant: "error" },
 };
 
-export function CampaignStatusBadge({ status }: { status: CampaignStatus }) {
-  const { variant, label, animate } = config[status] ?? {
-    variant: "gray",
+interface CampaignStatusBadgeProps {
+  status: CampaignStatus;
+}
+
+export function CampaignStatusBadge({ status }: CampaignStatusBadgeProps) {
+  const config = STATUS_CONFIG[status] ?? {
     label: status,
+    variant: "gray" as const,
   };
+
   return (
-    <Badge variant={variant} dot animate={animate}>
-      {label}
+    <Badge variant={config.variant} dot>
+      {config.label}
     </Badge>
   );
 }

@@ -2,17 +2,16 @@
 
 import { useState } from "react";
 import { CampaignStats } from "@/components/campaigns/CampaignStats";
-import { CampaignActions } from "@/components/campaigns/CampaignActions";
 import { CampaignStatusBadge } from "@/components/campaigns/CampaignStatusBadge";
 import { UploadLeadsModal } from "@/components/campaigns/UploadLeadsModal";
+import { BatchList } from "@/components/campaigns/BatchList";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { PageSpinner } from "@/components/ui/Spinner";
-import { useCampaign, useCampaignPerformance } from "@/hooks/useCampaigns"; // <─── Updated hook import
+import { useCampaign, useCampaignPerformance } from "@/hooks/useCampaigns";
 import { formatDate } from "@/lib/utils/formatDate";
 import {
   Bot,
-  CalendarDays,
   ChevronLeft,
   Flame,
   Info,
@@ -27,16 +26,14 @@ import type { CampaignStatus } from "@/types";
 
 const UPLOAD_ALLOWED_STATUSES: CampaignStatus[] = [
   "DRAFT",
-  "PAUSED",
+  "RUNNING",
   "COMPLETED",
 ];
 
 const UPLOAD_HINT: Partial<Record<CampaignStatus, string>> = {
-  DRAFT: "Upload leads to get this campaign ready to start.",
-  PAUSED:
-    "Campaign is paused. Any leads you upload will be called when you resume.",
-  COMPLETED:
-    'Campaign finished. Upload new leads and click "Run Now" to run another batch.',
+  DRAFT: "Upload leads to create your first batch.",
+  RUNNING: "Campaign is active. Upload a new batch to add more leads.",
+  COMPLETED: "Campaign finished. Upload new leads to start a fresh batch.",
 };
 
 export default function CampaignDetailPage() {
@@ -48,9 +45,7 @@ export default function CampaignDetailPage() {
   const [uploadOpen, setUploadOpen] = useState(false);
 
   const { data: campaign, isLoading } = useCampaign(id, true);
-  console.log("campaign list: ", campaign)
 
-  // ─── Query Performance Metrics ───
   const { data: performance, isLoading: isLoadingPerf } =
     useCampaignPerformance(id, !isLoading && !!campaign);
 
@@ -91,35 +86,19 @@ export default function CampaignDetailPage() {
               <div className="flex items-center gap-4 text-sm text-text-muted">
                 <span className="flex items-center gap-1">
                   <Bot size={12} />
-                  {campaign.assistant.name}
+                  {campaign.assistant?.name ?? "Unknown"}
                 </span>
                 <span>Created {formatDate(campaign.createdAt)}</span>
                 {campaign.startedAt && (
                   <span>Started {formatDate(campaign.startedAt)}</span>
                 )}
               </div>
-
-              {campaign.status === "SCHEDULED" && campaign.scheduledAt && (
-                <div className="flex items-center gap-1.5 text-sm text-brand-600 font-medium">
-                  <CalendarDays size={13} />
-                  <span>
-                    Scheduled to launch on {formatDate(campaign.scheduledAt)}
-                  </span>
-                </div>
-              )}
             </div>
           </div>
-
-          {canEdit && (
-            <CampaignActions
-              campaignId={campaign.id}
-              status={campaign.status}
-            />
-          )}
         </div>
       </div>
 
-      {/* ─── Quick Action Cards (3 in a row) ───────────────────────────── */}
+      {/* ─── Quick Action Cards ────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <QuickActionCard
           href={`/campaigns/${id}/leads`}
@@ -143,7 +122,7 @@ export default function CampaignDetailPage() {
           iconBg="bg-amber-100 group-hover:bg-amber-500"
           iconColor="text-amber-600"
           title="Qualified Calls"
-          subtitle={`${campaign.successLeads} qualified (HOT / WARM)`}
+          subtitle={`${campaign.completedLeads} completed (HOT / WARM)`}
         />
       </div>
 
@@ -154,30 +133,32 @@ export default function CampaignDetailPage() {
         isLoadingPerformance={isLoadingPerf}
       />
 
-      {/* ─── Upload Button + Hint ──────────────────────────────────────── */}
-      {showUploadButton && (
-        <Card>
-          <div className="flex items-start justify-between gap-3 flex-wrap">
-            <div className="flex-1 min-w-0">
-              <h3 className="text-base font-semibold text-text-primary">
-                Upload Leads
-              </h3>
-              {uploaderHint && (
-                <div className="flex items-start gap-2 mt-2">
-                  <Info size={13} className="text-text-muted shrink-0 mt-0.5" />
-                  <p className="text-sm text-text-muted">{uploaderHint}</p>
-                </div>
-              )}
-            </div>
+      {/* ─── V1: Lead Batches Section ─────────────────────────────────── */}
+      <Card>
+        <div className="flex items-start justify-between gap-3 flex-wrap mb-4">
+          <div className="flex-1 min-w-0">
+            <h3 className="text-base font-semibold text-text-primary">
+              Lead Batches
+            </h3>
+            {uploaderHint && (
+              <div className="flex items-start gap-2 mt-2">
+                <Info size={13} className="text-text-muted shrink-0 mt-0.5" />
+                <p className="text-sm text-text-muted">{uploaderHint}</p>
+              </div>
+            )}
+          </div>
+          {showUploadButton && (
             <Button
               leftIcon={<Upload size={14} />}
               onClick={() => setUploadOpen(true)}
             >
-              Upload File
+              Upload Leads
             </Button>
-          </div>
-        </Card>
-      )}
+          )}
+        </div>
+
+        <BatchList campaignId={id} />
+      </Card>
 
       {/* ─── Upload Modal ──────────────────────────────────────────────── */}
       <UploadLeadsModal

@@ -1,17 +1,17 @@
-// src/components/campaigns/CampaignDetailsStep.tsx
-
 "use client";
 
+import { useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { TextArea } from "@/components/ui/TextArea";
 import { Select } from "@/components/ui/Select";
+import { RetryConfigEditor } from "./RetryConfigEditor";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod/v4";
 import Link from "next/link";
-import type { Assistant } from "@/types";
+import type { Assistant, RetryConfig } from "@/types";
 
 const schema = z.object({
   name: z.string().min(2, "Campaign name must be at least 2 characters"),
@@ -23,8 +23,8 @@ type FormValues = z.infer<typeof schema>;
 
 interface CampaignDetailsStepProps {
   assistants: Assistant[];
-  initialValues: FormValues | null;
-  onNext: (data: FormValues) => void;
+  initialValues: (FormValues & { defaultRetryConfig?: RetryConfig }) | null;
+  onNext: (data: FormValues & { defaultRetryConfig?: RetryConfig }) => void;
 }
 
 export function CampaignDetailsStep({
@@ -32,6 +32,10 @@ export function CampaignDetailsStep({
   initialValues,
   onNext,
 }: CampaignDetailsStepProps) {
+  const [retryConfig, setRetryConfig] = useState<RetryConfig | undefined>(
+    initialValues?.defaultRetryConfig ?? undefined,
+  );
+
   const {
     register,
     handleSubmit,
@@ -50,8 +54,15 @@ export function CampaignDetailsStep({
     label: a.name,
   }));
 
+  const onSubmit = (data: FormValues) => {
+    onNext({
+      ...data,
+      defaultRetryConfig: retryConfig,
+    });
+  };
+
   return (
-    <form onSubmit={handleSubmit(onNext)} className="flex flex-col gap-5">
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
       <Card>
         <h3 className="text-base font-semibold text-text-primary mb-4">
           Campaign Details
@@ -90,6 +101,17 @@ export function CampaignDetailsStep({
             />
           )}
         </div>
+      </Card>
+
+      <Card>
+        <h3 className="text-base font-semibold text-text-primary mb-2">
+          Default Batch Auto-Retry Strategy
+        </h3>
+        <p className="text-sm text-text-muted mb-4">
+          All new lead batches in this campaign will inherit these settings
+          unless overridden during upload.
+        </p>
+        <RetryConfigEditor value={retryConfig} onChange={setRetryConfig} />
       </Card>
 
       <div className="flex items-center gap-3">
