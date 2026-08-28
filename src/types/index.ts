@@ -731,6 +731,7 @@ export interface CallQueryParams {
   status?: string;
   disposition?: string;
   leadTemperature?: string;
+   locationMatch?: string;
   dateFrom?: string;
   dateTo?: string;
   sortBy?: string;

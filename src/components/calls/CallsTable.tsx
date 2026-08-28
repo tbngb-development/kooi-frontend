@@ -32,6 +32,8 @@ const dispositionLabel: Record<Disposition, string> = {
   CALL_DROPPED: "Dropped",
 };
 
+
+
 const temperatureStyle: Record<LeadTemperature, string> = {
   HOT: "bg-error-100 text-error-700",
   WARM: "bg-warning-100 text-warning-700",
@@ -54,7 +56,7 @@ interface CallsTableProps {
   calls: Call[];
   pagination?: PaginationMeta;
   onPageChange?: (page: number) => void;
-  showAttempts?: boolean; 
+  showAttempts?: boolean;
 }
 
 export function CallsTable({
