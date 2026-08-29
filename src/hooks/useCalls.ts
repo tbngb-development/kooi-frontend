@@ -29,11 +29,3 @@ export function useCallStats(params?: { campaignId?: string }) {
     queryFn: () => callsApi.getCallStats(params), // from lib/api/calls.ts
   });
 }
-
-// export function useCallTranscript(id: string) {
-//   return useQuery({
-//     queryKey: [...CALLS_KEY, id, 'transcript'],
-//     queryFn: () => callsApi.getTranscript(id),
-//     enabled: Boolean(id),
-//   });
-// }

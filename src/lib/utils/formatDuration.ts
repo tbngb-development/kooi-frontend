@@ -1,7 +1,7 @@
 // src/lib/utils/formatDuration.ts
 
 export function formatDuration(seconds: number | undefined | null): string {
-  if (seconds == null) return '—';
+  if (seconds == null) return '0.0';
   if (seconds < 60) return `${seconds}s`;
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;

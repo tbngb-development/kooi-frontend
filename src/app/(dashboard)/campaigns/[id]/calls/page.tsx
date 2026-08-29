@@ -25,6 +25,7 @@ import {
   CheckCircle2,
   X,
   PhoneMissed,
+  MapPin,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -57,6 +58,20 @@ const TEMP_OPTIONS = [
   { label: "Cold", value: "COLD" },
 ];
 
+const LOCATION_MATCH_OPTIONS = [
+  { label: "Match", value: "MATCH" },
+  { label: "Mismatch", value: "MISMATCH" },
+  { label: "Not Asked", value: "NOT_ASKED" },
+  { label: "Not Mentioned", value: "NOT_MENTIONED" },
+];
+
+const LOCATION_MATCH_LABELS: Record<string, string> = {
+  MATCH: "Location Match",
+  MISMATCH: "Location Mismatch",
+  NOT_ASKED: "Location Not Asked",
+  NOT_MENTIONED: "Location Not Mentioned",
+};
+
 const SORT_OPTIONS = [
   { label: "Date", value: "startedAt" },
   { label: "Duration", value: "duration" },
@@ -75,6 +90,7 @@ export default function CampaignCallsPage() {
   const status = searchParams.get("status") ?? "";
   const disposition = searchParams.get("disposition") ?? "";
   const leadTemperature = searchParams.get("leadTemperature") ?? "";
+  const locationMatch = searchParams.get("locationMatch") ?? "";
   const sortBy = searchParams.get("sortBy") ?? "startedAt";
   const sortOrder = (searchParams.get("sortOrder") as "asc" | "desc") ?? "desc";
 
@@ -141,12 +157,18 @@ export default function CampaignCallsPage() {
     status,
     disposition,
     leadTemperature,
+    locationMatch,
     sortBy,
     sortOrder,
   });
 
   const hasActiveFilters = Boolean(
-    urlSearch || status || disposition || leadTemperature || page > 1,
+    urlSearch ||
+    status ||
+    disposition ||
+    leadTemperature ||
+    locationMatch ||
+    page > 1,
   );
 
   const callbacksCount =
@@ -268,6 +290,13 @@ export default function CampaignCallsPage() {
           onChange={(val) => updateFilter("leadTemperature", val)}
           options={TEMP_OPTIONS}
         />
+
+        <FilterSelect
+          label="Location"
+          value={locationMatch}
+          onChange={(val) => updateFilter("locationMatch", val)}
+          options={LOCATION_MATCH_OPTIONS}
+        />
         <div className="ml-auto hidden md:block" />
         <SortSelect
           sortBy={sortBy}
@@ -311,6 +340,15 @@ export default function CampaignCallsPage() {
               label="HOT Leads"
               onClear={() => updateFilter("leadTemperature", null)}
               color="bg-amber-50 text-amber-700 border-amber-200"
+            />
+          )}
+
+          {locationMatch && (
+            <FilterBadge
+              icon={<MapPin size={12} />}
+              label={LOCATION_MATCH_LABELS[locationMatch] ?? locationMatch}
+              onClear={() => updateFilter("locationMatch", null)}
+              color="bg-emerald-50 text-emerald-700 border-emerald-200"
             />
           )}
         </div>
