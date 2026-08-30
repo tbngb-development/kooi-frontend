@@ -107,7 +107,7 @@ export function CampaignDetailsStep({
         <h3 className="text-base font-semibold text-text-primary mb-2">
           Default Batch Auto-Retry Strategy
         </h3>
-        <p className="text-sm text-text-muted mb-4">
+        <p className="text-base text-text-muted mb-4">
           All new lead batches in this campaign will inherit these settings
           unless overridden during upload.
         </p>

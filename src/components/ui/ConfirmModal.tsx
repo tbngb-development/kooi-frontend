@@ -31,7 +31,7 @@ export function ConfirmModal({
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} size="sm">
       <div className="flex flex-col gap-4 sm:gap-5">
-        <p className="text-sm sm:text-base text-text-muted leading-relaxed whitespace-normal wrap-break-word">
+        <p className="text-base sm:text-base text-text-muted leading-relaxed whitespace-normal wrap-break-word">
           {description}
         </p>
 

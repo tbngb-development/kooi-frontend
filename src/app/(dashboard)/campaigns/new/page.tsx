@@ -136,7 +136,7 @@ export default function NewCampaignPage() {
                 <div className="flex flex-col">
                   <span
                     className={[
-                      "text-sm font-medium leading-none",
+                      "text-base font-medium leading-none",
                       isCurrent || isCompleted
                         ? "text-text-primary"
                         : "text-text-muted",

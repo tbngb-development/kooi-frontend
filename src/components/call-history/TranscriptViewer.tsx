@@ -116,7 +116,7 @@ export function TranscriptViewer({
                 {msg.message}
               </p>
               {msg.time && (
-                <p className="text-sm text-text-placeholder mt-1 text-right">
+                <p className="text-base text-text-placeholder mt-1 text-right">
                   {formatTranscriptDuration(msg.secondsFromStart)}
                 </p>
               )}

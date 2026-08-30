@@ -143,7 +143,7 @@ export function BatchActions({
         <Button
           size="sm"
           variant="ghost"
-          leftIcon={<Trash2 size={12} className="text-error-500" />}
+          leftIcon={<Trash2 size={12} className="text-red-500" />}
           onClick={() => setShowDeleteConfirm(true)}
           loading={deleteBatch.isPending}
         >
@@ -161,9 +161,9 @@ export function BatchActions({
       {showStopConfirm && (
         <ConfirmModal
           isOpen={showStopConfirm}
-          title="Stop Batch?"
-          description="In-flight calls will still complete. Only pending calls will be halted."
-          confirmLabel="Stop"
+          title="Stop Batch Progress?"
+          description="In-flight voice calls will proceed to complete. Only queued pending calls will be halted."
+          confirmLabel="Stop Queue"
           variant="danger"
           onConfirm={handleStop}
           onClose={() => setShowStopConfirm(false)}
@@ -174,8 +174,8 @@ export function BatchActions({
         <ConfirmModal
           isOpen={showDeleteConfirm}
           title="Delete Batch?"
-          description="This will delete the batch and all its leads. This cannot be undone."
-          confirmLabel="Delete"
+          description="This action clears the selected lead batch data permanently. Halted call metrics remain stored on historical endpoints."
+          confirmLabel="Delete Batch"
           variant="danger"
           onConfirm={handleDelete}
           onClose={() => setShowDeleteConfirm(false)}
@@ -196,7 +196,6 @@ function ScheduleModal({ onConfirm, onCancel }: ScheduleModalProps) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Must be at least 3 minutes in the future in local time
   const [minDateString] = useState(() => {
     const minDateObj = new Date(Date.now() + 3 * 60 * 1000);
     return toDateTimeLocalString(minDateObj);
@@ -226,31 +225,33 @@ function ScheduleModal({ onConfirm, onCancel }: ScheduleModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl">
-        <h3 className="mb-4 text-base font-semibold text-text-primary">
-          Schedule Batch
-        </h3>
-        <p className="mb-4 text-sm text-text-muted">
-          Select a date and time. Bolna requires at least 2 minutes in the
-          future and rounds to the nearest 10-minute mark.
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="w-full max-w-md rounded-lg bg-zinc-900 border border-zinc-800 p-6 shadow-xl text-white">
+        <h3 className="mb-2 text-base font-semibold">Schedule Batch Trigger</h3>
+        <p className="mb-4 text-base text-zinc-400">
+          Select a precise target trigger date and time. Scheduler execution
+          rounds dynamically to match backend scheduling intervals.
         </p>
 
         <input
           type="datetime-local"
-          className="mb-2 w-full rounded-lg border border-surface-border px-3 py-2.5 text-base text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-500"
+          className="mb-2 w-full rounded-lg bg-zinc-950 border border-zinc-800 text-white px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-brand-500"
           min={minDateString}
           onChange={handleDateChange}
         />
 
-        {error && <p className="mb-4 text-xs text-error-500">{error}</p>}
+        {error && <p className="mb-4 text-base text-red-500">{error}</p>}
 
         <div className="flex justify-end gap-2 mt-4">
-          <Button variant="outline" onClick={onCancel}>
+          <Button
+            variant="outline"
+            onClick={onCancel}
+            className="bg-zinc-800 border-zinc-700 text-white hover:bg-zinc-700"
+          >
             Cancel
           </Button>
           <Button onClick={handleConfirm} disabled={!selectedDate || !!error}>
-            Schedule
+            Schedule Trigger
           </Button>
         </div>
       </div>

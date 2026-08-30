@@ -10,7 +10,7 @@ import {
 import { useCalls, useCallStats } from "@/hooks/useCalls";
 import { useCampaign } from "@/hooks/useCampaigns";
 import { useDebounce } from "@/hooks/useDebounce";
-import { CallsTable } from "@/components/calls/CallsTable";
+import { CallsTable } from "@/components/call-history/CallsTable";
 import { FilterBar, FilterSelect, SortSelect } from "@/components/ui/FilterBar";
 import { Input } from "@/components/ui/Input";
 import { Card } from "@/components/ui/Card";
@@ -309,7 +309,7 @@ export default function CampaignCallsPage() {
 
       {/* ─── Active Filter Badges ─── */}
       {hasActiveFilters && (
-        <div className="flex flex-wrap items-center gap-2 text-sm">
+        <div className="flex flex-wrap items-center gap-2 text-base">
           {status === "NO_ANSWER,BUSY" && (
             <FilterBadge
               icon={<PhoneMissed size={12} />}

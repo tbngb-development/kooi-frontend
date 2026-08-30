@@ -38,9 +38,9 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
           )}
           {...props}
         />
-        {error && <p className="text-sm text-error-500">{error}</p>}
+        {error && <p className="text-base text-error-500">{error}</p>}
         {hint && !error && (
-          <p className="text-sm text-text-muted">{hint}</p>
+          <p className="text-base text-text-muted">{hint}</p>
         )}
       </div>
     );

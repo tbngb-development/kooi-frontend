@@ -1,10 +1,9 @@
-// src/hooks/useCampaigns.ts
-
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { campaignsApi } from "@/lib/api/campaigns";
+import { getAxiosErrorMessage } from "@/lib/axios-error-message";
 import type {
   CampaignPerformance,
   CreateCampaignInput,
@@ -21,7 +20,6 @@ export function useCampaigns() {
   });
 }
 
-// ── UPDATED: Poll while status is RUNNING or SCHEDULED ──
 export function useCampaign(id: string, pollWhileRunning = false) {
   return useQuery({
     queryKey: [...CAMPAIGNS_KEY, id],
@@ -61,8 +59,8 @@ export function useCreateCampaign() {
       qc.invalidateQueries({ queryKey: CAMPAIGNS_KEY });
       toast.success("Campaign created successfully!");
     },
-    onError: (error: Error) => {
-      toast.error(error.message);
+    onError: (error: unknown) => {
+      toast.error(getAxiosErrorMessage(error));
     },
   });
 }
@@ -74,10 +72,11 @@ export function useUpdateCampaign(id: string) {
     mutationFn: (data: UpdateCampaignInput) => campaignsApi.update(id, data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: CAMPAIGNS_KEY });
+      qc.invalidateQueries({ queryKey: [...CAMPAIGNS_KEY, id] });
       toast.success("Campaign updated successfully!");
     },
-    onError: (error: Error) => {
-      toast.error(error.message);
+    onError: (error: unknown) => {
+      toast.error(getAxiosErrorMessage(error));
     },
   });
 }
@@ -86,126 +85,54 @@ export function useParseCSV(campaignId: string) {
   return useMutation({
     mutationFn: (file: File): Promise<ParseLeadsResult> =>
       campaignsApi.parseCSV(campaignId, file),
-    onError: (error: Error) => {
-      toast.error("Parse failed", { description: error.message });
+    onError: (error: unknown) => {
+      toast.error("Parse failed", { description: getAxiosErrorMessage(error) });
     },
   });
 }
 
-export function useUploadCSV(campaignId: string) {
-  const qc = useQueryClient();
+/*
+ * ── V1 DEPRECATED HOOK STUBS ──────────────────────────────────────────────────
+ * These stubs catch any remaining legacy components that haven't transitioned
+ * to Batch hooks yet, safely guiding development toward BatchActions instead.
+ */
 
-  return useMutation({
-    // 👈 mutationFn now accepts { file, allowDuplicates }
-    mutationFn: ({
-      file,
-      allowDuplicates = false,
-    }: {
-      file: File;
-      allowDuplicates?: boolean;
-    }) => campaignsApi.uploadCSV(campaignId, file, allowDuplicates),
-
-    onSuccess: (result) => {
-      qc.invalidateQueries({ queryKey: [...CAMPAIGNS_KEY, campaignId] });
-
-      if (result.imported > 0) {
-        toast.success(
-          `${result.imported} lead${result.imported !== 1 ? "s" : ""} imported successfully`,
-          {
-            description:
-              result.invalid > 0
-                ? `${result.invalid} row${result.invalid !== 1 ? "s" : ""} skipped — missing phone number`
-                : undefined,
-          },
-        );
-      } else if (result.imported === 0 && result.duplicates === 0) {
-        toast.warning(
-          "No leads imported — all rows are missing a phone number",
-        );
-      }
-
-      if (result.duplicates > 0) {
-        const phoneList = result.duplicateNumbers.slice(0, 5).join(", ");
-        const overflow = result.duplicates - 5;
-        toast.warning(
-          `${result.duplicates} duplicate${result.duplicates !== 1 ? "s" : ""} skipped`,
-          {
-            description:
-              overflow > 0
-                ? `${phoneList} and ${overflow} more already exist in this campaign`
-                : `${phoneList} already exist${result.duplicates === 1 ? "s" : ""} in this campaign`,
-            duration: 6000,
-          },
-        );
-      }
+/** @deprecated Use useCreateBatch from useBatches instead */
+export function useUploadCSV() {
+  return {
+    mutate: () => {
+      toast.error("Deprecated in V1. Use Batch Upload components instead.");
     },
-
-    onError: (error: Error) => {
-      toast.error("Upload failed", { description: error.message });
-    },
-  });
+    isPending: false,
+  };
 }
 
-// ── UPDATED: Accept optional scheduledAt string ──
-export function useStartCampaign(campaignId: string) {
-  const qc = useQueryClient();
-
-  return useMutation({
-    mutationFn: (scheduledAt?: string) =>
-      campaignsApi.start(campaignId, scheduledAt),
-    onSuccess: (data) => {
-      qc.invalidateQueries({ queryKey: CAMPAIGNS_KEY });
-      qc.invalidateQueries({ queryKey: [...CAMPAIGNS_KEY, campaignId] });
-
-      if (data.scheduledAt) {
-        toast.success("Campaign Scheduled", {
-          description: `Campaign scheduled successfully to start.`,
-        });
-      } else {
-        toast.success("Campaign Started", {
-          description: `${data.totalLeads} lead${data.totalLeads !== 1 ? "s" : ""} queued for calling`,
-        });
-      }
+/** @deprecated Use useRunBatch from useBatches instead */
+export function useStartCampaign() {
+  return {
+    mutate: () => {
+      toast.error("Deprecated in V1. Use useRunBatch instead.");
     },
-    onError: (error: Error) => {
-      toast.error("Failed to update campaign start status", {
-        description: error.message,
-      });
-    },
-  });
+    isPending: false,
+  };
 }
 
-export function usePauseCampaign(campaignId: string) {
-  const qc = useQueryClient();
-
-  return useMutation({
-    mutationFn: () => campaignsApi.pause(campaignId),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: CAMPAIGNS_KEY });
-      qc.invalidateQueries({ queryKey: [...CAMPAIGNS_KEY, campaignId] });
-      toast.success("Campaign paused");
+/** @deprecated Use useStopBatch from useBatches instead */
+export function usePauseCampaign() {
+  return {
+    mutate: () => {
+      toast.error("Deprecated in V1. Use useStopBatch instead.");
     },
-    onError: (error: Error) => {
-      toast.error("Failed to pause campaign", { description: error.message });
-    },
-  });
+    isPending: false,
+  };
 }
 
-// ── NEW: Cancel Scheduled Campaign Hook ──
-export function useCancelScheduleCampaign(campaignId: string) {
-  const qc = useQueryClient();
-
-  return useMutation({
-    mutationFn: () => campaignsApi.cancelSchedule(campaignId),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: CAMPAIGNS_KEY });
-      qc.invalidateQueries({ queryKey: [...CAMPAIGNS_KEY, campaignId] });
-      toast.success("Campaign schedule cancelled", {
-        description: "Leads have been reset to pending state.",
-      });
+/** @deprecated Use useStopBatch from useBatches instead */
+export function useCancelScheduleCampaign() {
+  return {
+    mutate: () => {
+      toast.error("Deprecated in V1. Use useStopBatch instead.");
     },
-    onError: (error: Error) => {
-      toast.error("Failed to cancel schedule", { description: error.message });
-    },
-  });
+    isPending: false,
+  };
 }

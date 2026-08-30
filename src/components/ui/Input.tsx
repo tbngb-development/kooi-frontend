@@ -58,10 +58,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           )}
         </div>
         {error && (
-          <p className="text-sm text-error-500">{error}</p>
+          <p className="text-base text-error-500">{error}</p>
         )}
         {hint && !error && (
-          <p className="text-sm text-text-muted">{hint}</p>
+          <p className="text-base text-text-muted">{hint}</p>
         )}
       </div>
     );

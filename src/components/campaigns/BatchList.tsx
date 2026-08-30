@@ -29,7 +29,7 @@ export function BatchList({ campaignId }: BatchListProps) {
 
   if (error) {
     return (
-      <div className="rounded-lg border border-error-200 bg-error-50 p-4 text-sm text-error-700">
+      <div className="rounded-lg border border-error-200 bg-error-50 p-4 text-base text-error-700">
         Failed to load batches
       </div>
     );
@@ -51,31 +51,31 @@ export function BatchList({ campaignId }: BatchListProps) {
         <table className="w-full min-w-[960px] text-base">
           <thead className="bg-surface-subtle border-b border-surface-border">
             <tr>
-              <th className="px-4 py-3 text-left text-sm font-medium text-text-muted whitespace-nowrap">
+              <th className="px-4 py-3 text-left text-base font-medium text-text-muted whitespace-nowrap">
                 File
               </th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-text-muted whitespace-nowrap">
+              <th className="px-4 py-3 text-left text-base font-medium text-text-muted whitespace-nowrap">
                 Status
               </th>
-              <th className="px-4 py-3 text-center text-sm font-medium text-text-muted whitespace-nowrap">
+              <th className="px-4 py-3 text-center text-base font-medium text-text-muted whitespace-nowrap">
                 Leads
               </th>
-              <th className="px-4 py-3 text-center text-sm font-medium text-text-muted whitespace-nowrap">
+              <th className="px-4 py-3 text-center text-base font-medium text-text-muted whitespace-nowrap">
                 Called
               </th>
-              <th className="px-4 py-3 text-center text-sm font-medium text-text-muted whitespace-nowrap">
+              <th className="px-4 py-3 text-center text-base font-medium text-text-muted whitespace-nowrap">
                 Completed
               </th>
-              <th className="px-4 py-3 text-center text-sm font-medium text-text-muted whitespace-nowrap">
+              <th className="px-4 py-3 text-center text-base font-medium text-text-muted whitespace-nowrap">
                 Failed
               </th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-text-muted whitespace-nowrap">
+              <th className="px-4 py-3 text-left text-base font-medium text-text-muted whitespace-nowrap">
                 Created
               </th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-text-muted whitespace-nowrap">
+              <th className="px-4 py-3 text-left text-base font-medium text-text-muted whitespace-nowrap">
                 Scheduled
               </th>
-              <th className="px-4 py-3 text-center text-sm font-medium text-text-muted whitespace-nowrap">
+              <th className="px-4 py-3 text-center text-base font-medium text-text-muted whitespace-nowrap">
                 Actions
               </th>
             </tr>
@@ -124,22 +124,22 @@ export function BatchList({ campaignId }: BatchListProps) {
                     {batch.failedLeads}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-sm text-text-muted whitespace-nowrap">
+                <td className="px-4 py-3 text-base text-text-muted whitespace-nowrap">
                   <div className="flex flex-col gap-0.5">
                     <span className="text-base font-medium text-text-primary leading-none">
                       {formatTimeOnly(batch.createdAt)}
                     </span>
-                    <span className="text-sm text-text-muted leading-none">
+                    <span className="text-base text-text-muted leading-none">
                       {formatDateOnly(batch.createdAt)}
                     </span>
                   </div>
                 </td>
-                <td className="px-4 py-3 text-sm text-text-muted whitespace-nowrap">
+                <td className="px-4 py-3 text-base text-text-muted whitespace-nowrap">
                   <div className="flex flex-col gap-0.5">
                     <span className="text-base font-medium text-text-primary leading-none">
                       {formatTimeOnly(batch.scheduledAt)}
                     </span>
-                    <span className="text-sm text-text-muted leading-none">
+                    <span className="text-base text-text-muted leading-none">
                       {formatDateOnly(batch.scheduledAt)}
                     </span>
                   </div>

@@ -1,12 +1,10 @@
-// src/components/campaigns/CampaignVariablesStep.tsx
-
 "use client";
 
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
-import { FloatingInput } from "@/components/ui/FloatingInput";
+import { Input } from "@/components/ui/Input";
 import {
   ChevronLeft,
   Upload,
@@ -17,7 +15,7 @@ import {
   FileText,
 } from "lucide-react";
 import { useExtractBrochure } from "@/hooks/useBrochure";
-import type { PromptInputField, FlattenedBrochure } from "@/types";
+import type { FlattenedBrochure } from "@/types";
 
 // ── Fields auto-injected from lead data — shown as read-only in the grid ────
 const LEAD_AUTO_FIELDS = new Set([
@@ -40,7 +38,7 @@ const BROCHURE_TO_VARIABLE_MAP: Record<string, keyof FlattenedBrochure> = {
 };
 
 interface CampaignVariablesStepProps {
-  variables: PromptInputField[];
+  variables: string[]; // V1: returns dynamic array of strings
   isLoadingVariables: boolean;
   variablesError: boolean;
   isCreating: boolean;
@@ -66,14 +64,13 @@ export function CampaignVariablesStep({
   const { mutate: extractBrochure, isPending: extracting } =
     useExtractBrochure();
 
-  // ── Initialize empty values when variables arrive ──────────────────────────
+  // ── Sync local values state when V1 variable strings array updates ────────
   useEffect(() => {
-    if (variables.length > 0 && Object.keys(values).length === 0) {
+    if (variables && variables.length > 0) {
       const initial: Record<string, string> = {};
       variables.forEach((v) => {
-        initial[v.key] = "";
+        initial[v] = values[v] ?? ""; // Keep existing values if any
       });
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setValues(initial);
     }
   }, [variables]);
@@ -88,7 +85,15 @@ export function CampaignVariablesStep({
     });
   };
 
-  // ── Brochure upload → auto-fill matching fields ────────────────────────────
+  // ── Convert snake_case prompt keys to user-friendly titles ─────────────────
+  const formatVariableLabel = (key: string): string => {
+    return key
+      .replace(/_/g, " ")
+      .replace(/([a-z])([A-Z])/g, "$1 $2")
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+  };
+
+  // ── Brochure upload → AI auto-fill matching prompt variables ───────────────
   const handleBrochureUpload = (file: File) => {
     extractBrochure(
       { file, onProgress: () => {} },
@@ -104,7 +109,7 @@ export function CampaignVariablesStep({
               BROCHURE_TO_VARIABLE_MAP,
             )) {
               if (!(varKey in updated)) continue;
-              if (updated[varKey]) continue; // don't overwrite manual entries
+              if (updated[varKey]) continue; // Avoid overwriting manual overrides
 
               const rawValue = brochure[brochureField];
               let stringValue = "";
@@ -163,11 +168,11 @@ export function CampaignVariablesStep({
   // ── Loading state ───────────────────────────────────────────────────────────
   if (isLoadingVariables) {
     return (
-      <Card>
-        <div className="flex items-center justify-center gap-3 py-12">
+      <Card className="border-surface-border bg-surface p-12">
+        <div className="flex flex-col items-center justify-center gap-3">
           <Spinner size="sm" />
-          <p className="text-base text-text-muted">
-            Loading agent configuration...
+          <p className="text-basebese text-text-muted">
+            Resolving dynamic agent configurations...
           </p>
         </div>
       </Card>
@@ -177,13 +182,16 @@ export function CampaignVariablesStep({
   // ── Error state ─────────────────────────────────────────────────────────────
   if (variablesError) {
     return (
-      <Card>
-        <div className="flex flex-col items-center gap-3 py-12">
-          <AlertCircle size={24} className="text-error" />
-          <p className="text-base text-error">
-            Failed to load agent variables. Please go back and try again.
+      <Card className="border-surface-border bg-surface p-12">
+        <div className="flex flex-col items-center gap-3 text-center">
+          <AlertCircle size={24} className="text-error-500" />
+          <p className="text-basebese font-semibold text-text-primary">
+            Failed to parse assistant variables
           </p>
-          <Button variant="outline" onClick={onBack}>
+          <p className="text-xs text-text-muted">
+            Please back out and verify the voice agent connection.
+          </p>
+          <Button variant="outline" size="sm" onClick={onBack} className="mt-2">
             Go Back
           </Button>
         </div>
@@ -195,14 +203,15 @@ export function CampaignVariablesStep({
   if (variables.length === 0) {
     return (
       <div className="flex flex-col gap-5">
-        <Card>
-          <div className="flex flex-col items-center gap-3 py-8">
-            <CheckCircle2 size={24} className="text-success" />
-            <p className="text-base font-medium text-text-primary">
-              No configuration needed
+        <Card className="border-surface-border bg-surface p-8">
+          <div className="flex flex-col items-center gap-2.5 text-center">
+            <CheckCircle2 size={24} className="text-success-600" />
+            <p className="text-base font-bold text-text-primary">
+              Configuration Completed
             </p>
-            <p className="text-sm text-text-muted">
-              This agent does not require any campaign variables.
+            <p className="text-xs text-text-muted max-w-sm">
+              This voice assistant does not hold any custom variable parameters.
+              You are ready to launch!
             </p>
           </div>
         </Card>
@@ -224,50 +233,47 @@ export function CampaignVariablesStep({
   }
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-6">
       {/* ── Header ────────────────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-base font-semibold text-text-primary">
-            Fill in your prompt variables
-          </p>
-          <p className="text-sm text-text-muted mt-0.5">
-            Configuring{" "}
-            <span className="font-medium text-text-primary">
-              {assistantName}
-            </span>
-            {" — "}
-            {filledCount}/{totalCount} filled
-          </p>
-        </div>
+      <div>
+        <h3 className="text-base font-bold text-text-primary">
+          Configure Prompt Variables
+        </h3>
+        <p className="text-xs text-text-muted mt-1 leading-normal">
+          Provide contextual details for{" "}
+          <span className="font-semibold text-brand-600">{assistantName}</span>{" "}
+          · {filledCount} of {totalCount} defined
+        </p>
       </div>
 
-      {/* ── Brochure Upload ───────────────────────────────────────────────── */}
+      {/* ── Brochure Upload Area ──────────────────────────────────────────── */}
       {brochureLinked ? (
-        <div className="flex items-center gap-3 rounded-lg bg-green-50 border border-green-100 p-3">
-          <CheckCircle2 size={16} className="text-green-500 shrink-0" />
+        <div className="flex items-center gap-3 rounded-lg bg-success-50 border border-success-100 p-3.5">
+          <CheckCircle2 size={16} className="text-success-600 shrink-0" />
           <div className="flex-1 min-w-0">
-            <p className="text-base font-medium text-green-800 truncate">
+            <p className="text-sm font-semibold text-success-800 truncate">
               {brochureName}
             </p>
-            <p className="text-sm text-green-600">
-              {autoFilledKeys.size} field
+            <p className="text-xs text-success-600 mt-0.5">
+              {autoFilledKeys.size} variable
               {autoFilledKeys.size !== 1 ? "s" : ""} auto-filled from brochure
+              properties
             </p>
           </div>
           <button
             type="button"
             onClick={handleRemoveBrochure}
-            className="text-green-400 hover:text-error transition-colors"
+            className="text-success-400 hover:text-error-600 transition-colors p-1 hover:bg-success-100 rounded-md"
+            aria-label="Remove linked brochure"
           >
-            <X size={16} />
+            <X size={15} />
           </button>
         </div>
       ) : extracting ? (
-        <div className="flex items-center gap-3 rounded-lg border border-border p-3">
+        <div className="flex items-center gap-3 rounded-lg border border-surface-border bg-surface-subtle p-3.5">
           <Spinner size="sm" />
-          <p className="text-base text-text-primary">
-            Extracting property data...
+          <p className="text-xs text-text-muted">
+            AI extracting architectural metadata configurations...
           </p>
         </div>
       ) : (
@@ -276,10 +282,19 @@ export function CampaignVariablesStep({
           onClick={() =>
             document.getElementById("brochure-upload-input")?.click()
           }
-          className="flex items-center justify-center gap-2 py-2.5 rounded-lg border border-dashed border-border hover:border-primary/50 hover:bg-surface-secondary/30 text-base text-text-muted hover:text-text-primary transition-colors"
+          className="flex flex-col items-center justify-center gap-2 p-5 rounded-lg border-2 border-dashed border-surface-border hover:border-brand-400 hover:bg-brand-50/10 text-xs text-text-muted hover:text-brand-600 transition-all cursor-pointer group"
         >
-          <Upload size={14} />
-          Upload brochure PDF to auto-fill matching fields
+          <Upload
+            size={20}
+            className="text-text-placeholder group-hover:text-brand-500 transition-colors"
+          />
+          <span className="font-medium text-text-secondary group-hover:text-brand-700">
+            Upload PDF Brochure to auto-fill variables
+          </span>
+          <span className="text-[10px] text-text-placeholder">
+            Kooi AI will read details and fill matching pricing, configurations
+            and builders.
+          </span>
           <input
             id="brochure-upload-input"
             type="file"
@@ -294,36 +309,39 @@ export function CampaignVariablesStep({
         </button>
       )}
 
-      {/* ── Variable Grid ─────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+      {/* ── Variable Inputs Grid (Typography & spacing aligned to theme) ──── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {variables.map((variable) => {
-          const isLeadField = LEAD_AUTO_FIELDS.has(variable.key);
-          const isAutoFilled = autoFilledKeys.has(variable.key);
-          const value = values[variable.key] ?? "";
+          const isLeadField = LEAD_AUTO_FIELDS.has(variable);
+          const isAutoFilled = autoFilledKeys.has(variable);
+          const value = values[variable] ?? "";
 
-          // ── Lead-injected fields — read-only, greyed out ───────────────────
+          // ── Lead-injected variables — read-only, grayed out helper tags ─────
           if (isLeadField) {
             return (
-              <div key={variable.key} className="relative">
-                <div className="relative h-14 rounded-lg border border-dashed border-border bg-surface-secondary/40 flex items-center px-3.5">
-                  <span className="text-base text-text-muted">
-                    {variable.key}
+              <div key={variable} className="relative group">
+                <div className="h-[52px] rounded-lg border border-dashed border-surface-border bg-surface-subtle/50 flex items-center px-3.5">
+                  <span className="text-basebese font-mono text-text-muted">
+                    {variable}
                   </span>
-                  <span className="absolute -top-2 left-3 px-1 bg-surface text-[10px] font-medium text-text-muted uppercase tracking-wide">
-                    From lead data
+                  <span className="absolute -top-2 left-3 px-1.5 bg-surface text-[10px] font-bold text-text-placeholder uppercase tracking-wider">
+                    Auto injected on call
                   </span>
                 </div>
               </div>
             );
           }
 
-          // ── Standard input ────────────────────────────────────────────────
+          // ── Standard Input Field ──
           return (
-            <div key={variable.key} className="relative">
-              <FloatingInput
-                label={variable.key}
+            <div key={variable} className="relative">
+              <Input
+                label={formatVariableLabel(variable)}
+                placeholder={`Value for ${formatVariableLabel(variable).toLowerCase()}...`}
                 value={value}
-                onChange={(e) => updateValue(variable.key, e.target.value)}
+                onChange={(e) => updateValue(variable, e.target.value)}
+                hint={`Prompt key: ${variable}`}
+                className="bg-surface border-surface-border"
               />
               {isAutoFilled && <AutoFilledDot />}
             </div>
@@ -331,27 +349,26 @@ export function CampaignVariablesStep({
         })}
       </div>
 
-      {/* ── Info footer ───────────────────────────────────────────────────── */}
-      <div className="flex items-start gap-2 text-sm text-text-muted">
-        <FileText size={12} className="mt-0.5 shrink-0" />
-        <p>
-          Empty fields will be handled gracefully by the agent using its
-          fallback responses.
+      {/* ── Footer Info helper ── */}
+      <div className="flex items-start gap-2 text-xs text-text-muted bg-surface-subtle border border-surface-border p-3.5 rounded-lg">
+        <FileText size={14} className="mt-0.5 shrink-0 text-text-placeholder" />
+        <p className="leading-relaxed">
+          <strong>Pro-tip:</strong> Empty fields will be handled gracefully by
+          your agent using smart context-appropriate fallback vocabulary.
         </p>
       </div>
 
-      {/* ── Actions ───────────────────────────────────────────────────────── */}
-      <div className="flex items-center gap-3 pt-2">
-        <Button onClick={handleSubmit} loading={isCreating}>
-          Create Campaign
+      {/* ── Action buttons ── */}
+      <div className="flex items-center justify-between pt-4 border-t border-surface-border">
+        <Button variant="outline" onClick={onBack} disabled={isCreating}>
+          Back
         </Button>
         <Button
-          variant="outline"
-          leftIcon={<ChevronLeft size={14} />}
-          onClick={onBack}
-          disabled={isCreating}
+          onClick={handleSubmit}
+          loading={isCreating}
+          className="shadow-sm font-semibold"
         >
-          Back
+          Create Campaign
         </Button>
       </div>
     </div>
@@ -365,7 +382,7 @@ function AutoFilledDot() {
       className="absolute top-2 right-2 flex items-center gap-1 pointer-events-none"
       title="Auto-filled from brochure"
     >
-      <Sparkles size={10} className="text-primary" />
+      <Sparkles size={12} className="text-brand-500 fill-brand-100" />
     </div>
   );
 }

@@ -55,7 +55,7 @@ export default function CampaignLeadDetailPage() {
           </h2>
           <LeadStatusBadge status={lead.status} />
           {lead.doNotCall && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-error-100 px-2.5 py-1 text-sm font-medium text-error-700 border border-error-200">
+            <span className="inline-flex items-center gap-1 rounded-full bg-error-100 px-2.5 py-1 text-base font-medium text-error-700 border border-error-200">
               <AlertCircle size={10} />
               Do Not Call
             </span>
@@ -95,7 +95,7 @@ export default function CampaignLeadDetailPage() {
             Import Metadata
           </h3>
           {lead.metadata && Object.keys(lead.metadata).length > 0 ? (
-            <div className="bg-surface-subtle p-3 rounded-md text-sm font-mono text-text-secondary overflow-x-auto">
+            <div className="bg-surface-subtle p-3 rounded-md text-base font-mono text-text-secondary overflow-x-auto">
               <pre>{JSON.stringify(lead.metadata, null, 2)}</pre>
             </div>
           ) : (
@@ -122,7 +122,7 @@ export default function CampaignLeadDetailPage() {
                   <p className="text-base font-medium">
                     {formatDate(call.startedAt)}
                   </p>
-                  <p className="text-sm text-text-muted uppercase mt-0.5">
+                  <p className="text-base text-text-muted uppercase mt-0.5">
                     {call.status}
                   </p>
                 </div>

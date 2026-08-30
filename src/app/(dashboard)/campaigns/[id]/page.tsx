@@ -83,7 +83,7 @@ export default function CampaignDetailPage() {
               </p>
             )}
             <div className="flex flex-col gap-1.5 mt-2.5">
-              <div className="flex items-center gap-4 text-sm text-text-muted">
+              <div className="flex items-center gap-4 text-base text-text-muted">
                 <span className="flex items-center gap-1">
                   <Bot size={12} />
                   {campaign.assistant?.name ?? "Unknown"}
@@ -143,7 +143,7 @@ export default function CampaignDetailPage() {
             {uploaderHint && (
               <div className="flex items-start gap-2 mt-2">
                 <Info size={13} className="text-text-muted shrink-0 mt-0.5" />
-                <p className="text-sm text-text-muted">{uploaderHint}</p>
+                <p className="text-base text-text-muted">{uploaderHint}</p>
               </div>
             )}
           </div>
@@ -200,7 +200,7 @@ function QuickActionCard({
           </div>
           <div className="min-w-0">
             <p className="text-base font-semibold text-text-primary">{title}</p>
-            <p className="text-sm text-text-muted truncate">{subtitle}</p>
+            <p className="text-base text-text-muted truncate">{subtitle}</p>
           </div>
         </div>
       </Card>

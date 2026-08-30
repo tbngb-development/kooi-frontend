@@ -1,77 +1,122 @@
-// src/middleware.ts
-
 import { NextRequest, NextResponse } from "next/server";
 
-const PUBLIC_PATHS = ["/", "/login", "/register", "/admin/login"];
+const AUTH_PAGES = ["/login", "/register", "/admin/login"];
 
-function getTokenFromRequest(req: NextRequest): {
-  token: string | null;
-  role: string | null;
-} {
-  // Zustand persist stores in localStorage — not accessible in middleware.
-  // We use a separate cookie set on login for middleware auth checks.
-  const token = req.cookies.get("auth-token")?.value ?? null;
-  const role = req.cookies.get("auth-role")?.value ?? null;
-  return { token, role };
+function getSessionInfo(req: NextRequest) {
+  // Reads HttpOnly cookie (access_token) or client session indicator cookies
+  const hasAccessToken = req.cookies.has("access_token");
+  const hasSessionCookie = req.cookies.get("has-session")?.value === "true";
+  const hasLegacyToken = req.cookies.has("auth-token");
+
+  const isAuthenticated = hasAccessToken || hasSessionCookie || hasLegacyToken;
+
+  const isPlatformAdmin =
+    req.cookies.get("is-platform-admin")?.value === "true" ||
+    req.cookies.get("user-role")?.value === "SUPER_ADMIN" ||
+    req.cookies.get("auth-role")?.value === "SUPER_ADMIN";
+
+  const userRole =
+    req.cookies.get("user-role")?.value ??
+    req.cookies.get("auth-role")?.value ??
+    null;
+
+  return { isAuthenticated, isPlatformAdmin, userRole };
 }
 
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  const { token, role } = getTokenFromRequest(req);
+  const { isAuthenticated, isPlatformAdmin } = getSessionInfo(req);
 
-  // ── Already authenticated → redirect away from auth pages ─────────────────
-  if (PUBLIC_PATHS.includes(pathname)) {
-    if (token && role) {
-      if (pathname === "/admin/login" && role === "SUPER_ADMIN") {
-        return NextResponse.redirect(new URL("/admin/dashboard", req.url));
+  // ── 1. Bypass static assets, resources, and public API calls ──────────────
+  if (
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/api") ||
+    pathname.startsWith("/static") ||
+    pathname.includes(".")
+  ) {
+    return NextResponse.next();
+  }
+
+  // Helper to construct response with strict Cache-Control headers
+  const preventCache = (res: NextResponse) => {
+    res.headers.set(
+      "Cache-Control",
+      "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0",
+    );
+    res.headers.set("Pragma", "no-cache");
+    res.headers.set("Expires", "0");
+    return res;
+  };
+
+  // ── 2. Root Route ("/") ───────────────────────────────────────────────────
+  if (pathname === "/") {
+    if (!isAuthenticated) {
+      return preventCache(NextResponse.redirect(new URL("/login", req.url)));
+    }
+    return preventCache(
+      NextResponse.redirect(
+        new URL(isPlatformAdmin ? "/admin/dashboard" : "/dashboard", req.url),
+      ),
+    );
+  }
+
+  // ── 3. Auth Pages (/login, /register, /admin/login) ───────────────────────
+  if (AUTH_PAGES.includes(pathname)) {
+    if (isAuthenticated) {
+      if (isPlatformAdmin) {
+        return preventCache(
+          NextResponse.redirect(new URL("/admin/dashboard", req.url)),
+        );
       }
-      if (
-        (pathname === "/login" || pathname === "/register") &&
-        role !== "SUPER_ADMIN"
-      ) {
-        return NextResponse.redirect(new URL("/dashboard", req.url));
+      if (pathname === "/login" || pathname === "/register") {
+        return preventCache(
+          NextResponse.redirect(new URL("/dashboard", req.url)),
+        );
       }
     }
     return NextResponse.next();
   }
 
-  // ── Admin routes — require SUPER_ADMIN ────────────────────────────────────
+  // ── 4. Platform Admin Routes (/admin/*) ───────────────────────────────────
   if (pathname.startsWith("/admin")) {
-    if (!token) {
-      return NextResponse.redirect(new URL("/admin/login", req.url));
+    if (!isAuthenticated) {
+      return preventCache(
+        NextResponse.redirect(new URL("/admin/login", req.url)),
+      );
     }
-    if (role !== "SUPER_ADMIN") {
-      return NextResponse.redirect(new URL("/admin/login", req.url));
+    if (!isPlatformAdmin) {
+      // Non-platform admin trying to enter admin panel -> bounce back to tenant workspace
+      return preventCache(
+        NextResponse.redirect(new URL("/dashboard", req.url)),
+      );
     }
-    return NextResponse.next();
+    return preventCache(NextResponse.next());
   }
 
-  // ── Dashboard routes — require any authenticated user ─────────────────────
-  if (pathname.startsWith("/dashboard") || pathname === "/") {
-    if (!token) {
-      return NextResponse.redirect(new URL("/login", req.url));
-    }
-    if (role === "SUPER_ADMIN") {
-      return NextResponse.redirect(new URL("/admin/dashboard", req.url));
-    }
-    return NextResponse.next();
+  // ── 5. Protected Tenant Workspace Routes ──────────────────────────────────
+  if (!isAuthenticated) {
+    const loginUrl = new URL("/login", req.url);
+    loginUrl.searchParams.set("callbackUrl", pathname);
+    return preventCache(NextResponse.redirect(loginUrl));
   }
 
-  return NextResponse.next();
+  // Apply cache-prevention headers to authenticated page renders
+  return preventCache(NextResponse.next());
 }
 
 export const config = {
   matcher: [
-    "/dashboard/:path*",
-    "/admin/:path*",
+    "/",
     "/login",
     "/register",
-    "/",
-    "/assistants/:path*",
+    "/admin/:path*",
+    "/dashboard/:path*",
     "/campaigns/:path*",
+    "/assistants/:path*",
     "/leads/:path*",
     "/calls/:path*",
     "/users/:path*",
     "/settings/:path*",
+    "/brochures/:path*",
   ],
 };

@@ -8,7 +8,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { brochureApi } from '@/lib/api/brochure';
+import { brochureApi } from '@/lib/api/brochures';
 import type { FlattenedBrochure } from '@/types';
 
 export const BROCHURES_KEY = ['brochures'] as const;

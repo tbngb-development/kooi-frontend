@@ -2,7 +2,7 @@
 
 'use client';
 
-import { CallsTable } from '@/components/calls/CallsTable';
+import { CallsTable } from '@/components/call-history/CallsTable';
 import { Select } from '@/components/ui/Select';
 import { PageSpinner } from '@/components/ui/Spinner';
 import { useCalls } from '@/hooks/useCalls';
