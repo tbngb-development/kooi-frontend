@@ -37,7 +37,13 @@ export function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // Helper to construct response with strict Cache-Control headers
+  // ── 2. Public Landing Page ("/") ──────────────────────────────────────────
+  // Allow all visitors (authenticated or not) to view the landing page
+  if (pathname === "/") {
+    return NextResponse.next();
+  }
+
+  // Helper to construct response with strict Cache-Control headers for protected views
   const preventCache = (res: NextResponse) => {
     res.headers.set(
       "Cache-Control",
@@ -47,18 +53,6 @@ export function proxy(req: NextRequest) {
     res.headers.set("Expires", "0");
     return res;
   };
-
-  // ── 2. Root Route ("/") ───────────────────────────────────────────────────
-  if (pathname === "/") {
-    if (!isAuthenticated) {
-      return preventCache(NextResponse.redirect(new URL("/login", req.url)));
-    }
-    return preventCache(
-      NextResponse.redirect(
-        new URL(isPlatformAdmin ? "/admin/dashboard" : "/dashboard", req.url),
-      ),
-    );
-  }
 
   // ── 3. Auth Pages (/login, /register, /admin/login) ───────────────────────
   if (AUTH_PAGES.includes(pathname)) {
