@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 const AUTH_PAGES = ["/login", "/register", "/admin/login"];
 
 function getSessionInfo(req: NextRequest) {
-  // Reads HttpOnly cookie (access_token) or client session indicator cookies
   const hasAccessToken = req.cookies.has("access_token");
   const hasSessionCookie = req.cookies.get("has-session")?.value === "true";
   const hasLegacyToken = req.cookies.has("auth-token");
