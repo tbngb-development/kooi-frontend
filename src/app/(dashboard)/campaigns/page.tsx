@@ -14,8 +14,17 @@ import Link from "next/link";
 
 export default function CampaignsPage() {
   const { data: campaigns, isLoading } = useCampaigns();
-  const { user } = useAuthStore();
-  const canCreate = user?.role !== "USER";
+
+  // ─── Get active role from auth store ──────────────────────────────────
+  const { user, memberships, activeTenantId } = useAuthStore();
+  const activeRole = memberships.find(
+    (m) => m.tenantId === activeTenantId,
+  )?.role;
+
+  // Platform admins, Owners, and Admins can edit (anyone who is not a basic USER)
+  const canCreate =
+    user?.isPlatformAdmin ||
+    (activeRole !== undefined && activeRole !== "USER");
 
   if (isLoading) return <PageSpinner />;
 

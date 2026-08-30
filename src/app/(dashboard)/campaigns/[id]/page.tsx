@@ -39,8 +39,17 @@ const UPLOAD_HINT: Partial<Record<CampaignStatus, string>> = {
 export default function CampaignDetailPage() {
   const params = useParams();
   const id = String(params.id);
-  const { user } = useAuthStore();
-  const canEdit = user?.role !== "USER";
+
+  // ─── Get active role from auth store ──────────────────────────────────
+  const { user, memberships, activeTenantId } = useAuthStore();
+  const activeRole = memberships.find(
+    (m) => m.tenantId === activeTenantId,
+  )?.role;
+
+  // Platform admins, Owners, and Admins can edit (anyone who is not a basic USER)
+  const canEdit =
+    user?.isPlatformAdmin ||
+    (activeRole !== undefined && activeRole !== "USER");
 
   const [uploadOpen, setUploadOpen] = useState(false);
 
@@ -89,9 +98,6 @@ export default function CampaignDetailPage() {
                   {campaign.assistant?.name ?? "Unknown"}
                 </span>
                 <span>Created {formatDate(campaign.createdAt)}</span>
-                {campaign.startedAt && (
-                  <span>Started {formatDate(campaign.startedAt)}</span>
-                )}
               </div>
             </div>
           </div>
