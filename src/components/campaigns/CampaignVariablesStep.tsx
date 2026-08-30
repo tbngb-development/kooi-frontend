@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
@@ -37,8 +37,31 @@ const BROCHURE_TO_VARIABLE_MAP: Record<string, keyof FlattenedBrochure> = {
   verified_project_highlights: "usps",
 };
 
+// ── Helper to extract string key from string or object ──────────────────────
+function extractVariableKey(item: unknown): string {
+  if (typeof item === "string") return item;
+  if (item && typeof item === "object") {
+    const obj = item as Record<string, unknown>;
+    const candidate =
+      obj.key ?? obj.name ?? obj.label ?? obj.variable ?? obj.id;
+    if (typeof candidate === "string") return candidate;
+  }
+  return String(item ?? "");
+}
+
+// ── Convert snake_case / camelCase prompt keys to user-friendly titles ───────
+function formatVariableLabel(key: unknown): string {
+  const str = extractVariableKey(key);
+  if (!str) return "";
+  return str
+    .replace(/_/g, " ")
+    .replace(/([a-z])([A-Z])/g, "$1 $2")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
 interface CampaignVariablesStepProps {
-  variables: string[]; // V1: dynamic array of strings
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  variables: any[]; 
   isLoadingVariables: boolean;
   variablesError: boolean;
   isCreating: boolean;
@@ -48,7 +71,7 @@ interface CampaignVariablesStepProps {
 }
 
 export function CampaignVariablesStep({
-  variables,
+  variables = [],
   isLoadingVariables,
   variablesError,
   isCreating,
@@ -56,6 +79,12 @@ export function CampaignVariablesStep({
   onSubmit,
   onBack,
 }: CampaignVariablesStepProps) {
+  // Normalize variables into a clean string array
+  const normalizedVariables = useMemo(() => {
+    if (!Array.isArray(variables)) return [];
+    return variables.map(extractVariableKey).filter(Boolean);
+  }, [variables]);
+
   const [values, setValues] = useState<Record<string, string>>({});
   const [brochureLinked, setBrochureLinked] = useState(false);
   const [brochureName, setBrochureName] = useState<string | null>(null);
@@ -74,14 +103,6 @@ export function CampaignVariablesStep({
     });
   };
 
-  // ── Convert snake_case prompt keys to user-friendly titles ─────────────────
-  const formatVariableLabel = (key: string): string => {
-    return key
-      .replace(/_/g, " ")
-      .replace(/([a-z])([A-Z])/g, "$1 $2")
-      .replace(/\b\w/g, (char) => char.toUpperCase());
-  };
-
   // ── Brochure upload → AI auto-fill matching prompt variables ───────────────
   const handleBrochureUpload = (file: File) => {
     extractBrochure(
@@ -97,7 +118,7 @@ export function CampaignVariablesStep({
             for (const [varKey, brochureField] of Object.entries(
               BROCHURE_TO_VARIABLE_MAP,
             )) {
-              if (!variables.includes(varKey)) continue;
+              if (!normalizedVariables.includes(varKey)) continue;
               if (updated[varKey]?.trim()) continue; // Don't overwrite existing manual entries
 
               const rawValue = brochure[brochureField];
@@ -141,7 +162,7 @@ export function CampaignVariablesStep({
 
   const handleSubmit = () => {
     const filled: Record<string, string> = {};
-    variables.forEach((key) => {
+    normalizedVariables.forEach((key) => {
       const val = values[key]?.trim();
       if (val) {
         filled[key] = val;
@@ -150,10 +171,10 @@ export function CampaignVariablesStep({
     onSubmit(filled);
   };
 
-  const filledCount = variables.filter(
+  const filledCount = normalizedVariables.filter(
     (v) => (values[v] ?? "").trim() !== "",
   ).length;
-  const totalCount = variables.length;
+  const totalCount = normalizedVariables.length;
 
   // ── Loading state ───────────────────────────────────────────────────────────
   if (isLoadingVariables) {
@@ -161,7 +182,7 @@ export function CampaignVariablesStep({
       <Card className="border-surface-border bg-surface p-12">
         <div className="flex flex-col items-center justify-center gap-3">
           <Spinner size="sm" />
-          <p className="text-basebese text-text-muted">
+          <p className="text-base text-text-muted">
             Resolving dynamic agent configurations...
           </p>
         </div>
@@ -175,7 +196,7 @@ export function CampaignVariablesStep({
       <Card className="border-surface-border bg-surface p-12">
         <div className="flex flex-col items-center gap-3 text-center">
           <AlertCircle size={24} className="text-error-500" />
-          <p className="text-basebese font-semibold text-text-primary">
+          <p className="text-base font-semibold text-text-primary">
             Failed to parse assistant variables
           </p>
           <p className="text-xs text-text-muted">
@@ -190,7 +211,7 @@ export function CampaignVariablesStep({
   }
 
   // ── No variables state ──────────────────────────────────────────────────────
-  if (variables.length === 0) {
+  if (normalizedVariables.length === 0) {
     return (
       <div className="flex flex-col gap-5">
         <Card className="border-surface-border bg-surface p-8">
@@ -301,7 +322,7 @@ export function CampaignVariablesStep({
 
       {/* ── Variable Inputs Grid ──────────────────────────────────────────── */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {variables.map((variable) => {
+        {normalizedVariables.map((variable) => {
           const isLeadField = LEAD_AUTO_FIELDS.has(variable);
           const isAutoFilled = autoFilledKeys.has(variable);
           const value = values[variable] ?? "";
@@ -311,7 +332,7 @@ export function CampaignVariablesStep({
             return (
               <div key={variable} className="relative group">
                 <div className="h-[52px] rounded-lg border border-dashed border-surface-border bg-surface-subtle/50 flex items-center px-3.5">
-                  <span className="text-basebese font-mono text-text-muted">
+                  <span className="text-base font-mono text-text-muted">
                     {variable}
                   </span>
                   <span className="absolute -top-2 left-3 px-1.5 bg-surface text-[10px] font-bold text-text-placeholder uppercase tracking-wider">
