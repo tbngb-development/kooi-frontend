@@ -1,8 +1,8 @@
 // src/components/ui/Input.tsx
 
-import { cn } from '@/lib/utils/cn';
-import type { InputHTMLAttributes, ReactNode } from 'react';
-import { forwardRef } from 'react';
+import { cn } from "@/lib/utils/cn";
+import type { InputHTMLAttributes, ReactNode } from "react";
+import { forwardRef } from "react";
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -15,9 +15,13 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 export const Input = forwardRef<HTMLInputElement, InputProps>(
   (
     { label, error, hint, leftIcon, rightIcon, className, id, ...props },
-    ref
+    ref,
   ) => {
-    const inputId = id ?? label?.toLowerCase().replace(/\s+/g, '-');
+    const inputId =
+      id ??
+      (typeof label === "string"
+        ? label.toLowerCase().replace(/\s+/g, "-")
+        : undefined);
 
     return (
       <div className="flex flex-col gap-1.5">
@@ -39,15 +43,15 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             id={inputId}
             className={cn(
-              'w-full h-9 rounded-md border bg-surface px-3 text-base text-text-primary placeholder:text-text-placeholder',
-              'transition-colors duration-150',
-              'focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500',
+              "w-full h-9 rounded-md border bg-surface px-3 text-base text-text-primary placeholder:text-text-placeholder",
+              "transition-colors duration-150",
+              "focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500",
               error
-                ? 'border-error-500 focus:ring-error-500 focus:border-error-500'
-                : 'border-surface-border hover:border-text-placeholder',
-              leftIcon && 'pl-9',
-              rightIcon && 'pr-9',
-              className
+                ? "border-error-500 focus:ring-error-500 focus:border-error-500"
+                : "border-surface-border hover:border-text-placeholder",
+              leftIcon && "pl-9",
+              rightIcon && "pr-9",
+              className,
             )}
             {...props}
           />
@@ -57,15 +61,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             </div>
           )}
         </div>
-        {error && (
-          <p className="text-base text-error-500">{error}</p>
-        )}
-        {hint && !error && (
-          <p className="text-base text-text-muted">{hint}</p>
-        )}
+        {error && <p className="text-base text-error-500">{error}</p>}
+        {hint && !error && <p className="text-base text-text-muted">{hint}</p>}
       </div>
     );
-  }
+  },
 );
 
-Input.displayName = 'Input';
+Input.displayName = "Input";
