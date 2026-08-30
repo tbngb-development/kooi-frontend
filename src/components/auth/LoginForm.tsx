@@ -75,30 +75,33 @@ export function LoginForm() {
   // ─── Tenant Selection Step ─────────────────────────────────────────────
   if (step === "tenant-select" && tempUser) {
     return (
-      <div className="bg-surface border border-surface-border rounded-xl shadow-sm p-7">
+      <div className="bg-surface border border-surface-border rounded-xl shadow-md p-6 sm:p-8 transition-all">
         <button
           onClick={() => setStep("credentials")}
           disabled={isSelectPending}
-          className="flex items-center gap-1.5 text-base text-text-muted hover:text-text-primary transition-colors mb-5 disabled:opacity-50"
+          className="group flex items-center gap-2 text-base font-medium text-text-muted hover:text-text-primary transition-colors mb-6 disabled:opacity-50 cursor-pointer"
         >
-          <ArrowLeft size={13} />
+          <ArrowLeft
+            size={16}
+            className="group-hover:-translate-x-0.5 transition-transform"
+          />
           <span>Back to sign in</span>
         </button>
 
         <div className="mb-6">
-          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 border border-brand-100 text-brand-600 mb-4 shadow-sm">
-            <Building size={20} />
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-50 border border-brand-100 text-brand-600 mb-4 shadow-xs">
+            <Building size={22} />
           </div>
-          <h2 className="text-xl font-bold text-text-primary tracking-tight">
+          <h2 className="text-2xl font-bold text-text-primary tracking-tight">
             Select your workspace
           </h2>
           <p className="text-base text-text-muted mt-1.5">
-            Hi {tempUser.name}, choose which workspace to enter.
+            Hi {tempUser.name}, choose which workspace you want to access.
           </p>
         </div>
 
         <div
-          className="flex flex-col gap-2 max-h-72 overflow-y-auto thin-scrollbar pr-1 -mr-1"
+          className="flex flex-col gap-2.5 max-h-72 overflow-y-auto thin-scrollbar pr-1"
           role="listbox"
           aria-label="Available workspaces"
         >
@@ -107,24 +110,24 @@ export function LoginForm() {
               key={membership.tenantId}
               onClick={() => handleSelectTenant(membership.tenantId)}
               disabled={isSelectPending}
-              className="w-full flex items-center justify-between p-3.5 rounded-lg border border-surface-border hover:border-brand-500 hover:bg-brand-50/40 text-left transition-all group disabled:opacity-60 disabled:pointer-events-none focus-ring"
+              className="w-full flex items-center justify-between p-4 rounded-lg border border-surface-border hover:border-brand-500 hover:bg-brand-50/50 text-left transition-all group disabled:opacity-60 disabled:pointer-events-none focus-ring cursor-pointer"
               role="option"
               aria-selected="false"
             >
-              <div className="min-w-0 flex-1">
-                <p className="text-base font-semibold text-text-primary group-hover:text-brand-700 truncate">
+              <div className="min-w-0 flex-1 pr-2">
+                <p className="text-base font-semibold text-text-primary group-hover:text-brand-600 transition-colors truncate">
                   {membership.tenantName}
                 </p>
-                <div className="flex items-center gap-1.5 mt-0.5">
-                  <ShieldCheck size={11} className="text-text-muted" />
-                  <span className="text-base text-text-muted capitalize">
+                <div className="flex items-center gap-1.5 mt-1">
+                  <ShieldCheck size={14} className="text-text-muted shrink-0" />
+                  <span className="text-sm text-text-muted font-medium capitalize">
                     {membership.role.toLowerCase()}
                   </span>
                 </div>
               </div>
               <ChevronRight
-                size={16}
-                className="text-text-muted group-hover:text-brand-600 group-hover:translate-x-0.5 transition-all shrink-0"
+                size={18}
+                className="text-text-placeholder group-hover:text-brand-600 group-hover:translate-x-0.5 transition-all shrink-0"
               />
             </button>
           ))}
@@ -135,7 +138,7 @@ export function LoginForm() {
 
   // ─── Credentials Step ──────────────────────────────────────────────────
   return (
-    <div className="bg-surface border border-surface-border rounded-xl shadow-sm p-7">
+    <div className="bg-surface border border-surface-border rounded-xl shadow-md p-6 sm:p-8 transition-all">
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-text-primary tracking-tight">
           Sign in
@@ -150,7 +153,7 @@ export function LoginForm() {
           label="Email address"
           type="email"
           placeholder="you@company.com"
-          leftIcon={<Mail size={14} className="text-text-muted" />}
+          leftIcon={<Mail size={16} className="text-text-muted" />}
           error={errors.email?.message}
           disabled={isLoginPending}
           autoComplete="email"
@@ -159,7 +162,7 @@ export function LoginForm() {
 
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <label className="text-base font-semibold text-text-secondary">
+            <label className="text-base font-medium text-text-secondary">
               Password
             </label>
             <Link
@@ -173,7 +176,7 @@ export function LoginForm() {
           <Input
             type={showPassword ? "text" : "password"}
             placeholder="••••••••"
-            leftIcon={<Lock size={14} className="text-text-muted" />}
+            leftIcon={<Lock size={16} className="text-text-muted" />}
             disabled={isLoginPending}
             autoComplete="current-password"
             rightIcon={
@@ -181,9 +184,9 @@ export function LoginForm() {
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
                 aria-label={showPassword ? "Hide password" : "Show password"}
-                className="focus-ring rounded p-0.5 text-text-muted hover:text-text-secondary transition-colors"
+                className="focus-ring rounded p-1 text-text-muted hover:text-text-secondary transition-colors cursor-pointer"
               >
-                {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             }
             error={errors.password?.message}
@@ -194,7 +197,7 @@ export function LoginForm() {
         <Button
           type="submit"
           loading={isLoginPending}
-          className="w-full mt-2 h-11 font-semibold"
+          className="w-full mt-2 h-11 font-semibold text-base transition-all shadow-sm active:scale-[0.98]"
         >
           Sign in
         </Button>
