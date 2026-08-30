@@ -91,9 +91,13 @@ export default function CampaignCallsPage() {
   const disposition = searchParams.get("disposition") ?? "";
   const leadTemperature = searchParams.get("leadTemperature") ?? "";
   const locationMatch = searchParams.get("locationMatch") ?? "";
-  const sortBy = searchParams.get("sortBy") ?? "startedAt";
+  const sortBy =
+    (searchParams.get("sortBy") as
+      | "startedAt"
+      | "duration"
+      | "cost"
+      | "createdAt") ?? "startedAt";
   const sortOrder = (searchParams.get("sortOrder") as "asc" | "desc") ?? "desc";
-
   // ─── Local input state for smooth typing ───
   const [searchInput, setSearchInput] = useState(urlSearch);
   const debouncedSearch = useDebounce(searchInput, 400);

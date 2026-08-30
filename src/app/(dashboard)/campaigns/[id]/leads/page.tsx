@@ -41,7 +41,9 @@ export default function CampaignLeadsPage() {
   const page = Number(searchParams.get("page") ?? "1");
   const urlSearch = searchParams.get("search") ?? "";
   const status = searchParams.get("status") ?? "";
-  const sortBy = searchParams.get("sortBy") ?? "createdAt";
+  const sortBy =
+    (searchParams.get("sortBy") as "name" | "createdAt" | "updatedAt") ??
+    "createdAt";
   const sortOrder = (searchParams.get("sortOrder") as "asc" | "desc") ?? "desc";
 
   // ─── Local input state ───
