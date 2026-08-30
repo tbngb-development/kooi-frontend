@@ -147,8 +147,8 @@ export default function TenantDetailPage({
   const stats = statsData?.stats;
 
   // Render email and apiKey safely with strict fallbacks
-  const tenantEmail = tenant.email ?? "No contact email configured";
-  const rawApiKey = tenant.apiKey ?? "";
+  const tenantEmail = "No contact email configured";
+  const rawApiKey =  "Api key un-available";
   const maskedApiKey = rawApiKey
     ? `${rawApiKey.slice(0, 8)}${"•".repeat(24)}${rawApiKey.slice(-4)}`
     : "Configuration missing";
