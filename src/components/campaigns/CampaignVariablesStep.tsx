@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
@@ -38,7 +38,7 @@ const BROCHURE_TO_VARIABLE_MAP: Record<string, keyof FlattenedBrochure> = {
 };
 
 interface CampaignVariablesStepProps {
-  variables: string[]; // V1: returns dynamic array of strings
+  variables: string[]; // V1: dynamic array of strings
   isLoadingVariables: boolean;
   variablesError: boolean;
   isCreating: boolean;
@@ -63,17 +63,6 @@ export function CampaignVariablesStep({
 
   const { mutate: extractBrochure, isPending: extracting } =
     useExtractBrochure();
-
-  // ── Sync local values state when V1 variable strings array updates ────────
-  useEffect(() => {
-    if (variables && variables.length > 0) {
-      const initial: Record<string, string> = {};
-      variables.forEach((v) => {
-        initial[v] = values[v] ?? ""; // Keep existing values if any
-      });
-      setValues(initial);
-    }
-  }, [variables]);
 
   const updateValue = (key: string, value: string) => {
     setValues((prev) => ({ ...prev, [key]: value }));
@@ -108,8 +97,8 @@ export function CampaignVariablesStep({
             for (const [varKey, brochureField] of Object.entries(
               BROCHURE_TO_VARIABLE_MAP,
             )) {
-              if (!(varKey in updated)) continue;
-              if (updated[varKey]) continue; // Avoid overwriting manual overrides
+              if (!variables.includes(varKey)) continue;
+              if (updated[varKey]?.trim()) continue; // Don't overwrite existing manual entries
 
               const rawValue = brochure[brochureField];
               let stringValue = "";
@@ -141,7 +130,7 @@ export function CampaignVariablesStep({
     setValues((prev) => {
       const updated = { ...prev };
       autoFilledKeys.forEach((key) => {
-        updated[key] = "";
+        delete updated[key];
       });
       return updated;
     });
@@ -152,16 +141,17 @@ export function CampaignVariablesStep({
 
   const handleSubmit = () => {
     const filled: Record<string, string> = {};
-    for (const [key, value] of Object.entries(values)) {
-      if (value.trim() !== "") {
-        filled[key] = value.trim();
+    variables.forEach((key) => {
+      const val = values[key]?.trim();
+      if (val) {
+        filled[key] = val;
       }
-    }
+    });
     onSubmit(filled);
   };
 
-  const filledCount = Object.values(values).filter(
-    (v) => v.trim() !== "",
+  const filledCount = variables.filter(
+    (v) => (values[v] ?? "").trim() !== "",
   ).length;
   const totalCount = variables.length;
 
@@ -309,14 +299,14 @@ export function CampaignVariablesStep({
         </button>
       )}
 
-      {/* ── Variable Inputs Grid (Typography & spacing aligned to theme) ──── */}
+      {/* ── Variable Inputs Grid ──────────────────────────────────────────── */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {variables.map((variable) => {
           const isLeadField = LEAD_AUTO_FIELDS.has(variable);
           const isAutoFilled = autoFilledKeys.has(variable);
           const value = values[variable] ?? "";
 
-          // ── Lead-injected variables — read-only, grayed out helper tags ─────
+          // ── Lead-injected variables — read-only tags ───────────────────────
           if (isLeadField) {
             return (
               <div key={variable} className="relative group">
@@ -332,7 +322,7 @@ export function CampaignVariablesStep({
             );
           }
 
-          // ── Standard Input Field ──
+          // ── Standard Input Field ──────────────────────────────────────────
           return (
             <div key={variable} className="relative">
               <Input
@@ -349,7 +339,7 @@ export function CampaignVariablesStep({
         })}
       </div>
 
-      {/* ── Footer Info helper ── */}
+      {/* ── Footer Info Helper ────────────────────────────────────────────── */}
       <div className="flex items-start gap-2 text-xs text-text-muted bg-surface-subtle border border-surface-border p-3.5 rounded-lg">
         <FileText size={14} className="mt-0.5 shrink-0 text-text-placeholder" />
         <p className="leading-relaxed">
@@ -358,7 +348,7 @@ export function CampaignVariablesStep({
         </p>
       </div>
 
-      {/* ── Action buttons ── */}
+      {/* ── Action buttons ────────────────────────────────────────────────── */}
       <div className="flex items-center justify-between pt-4 border-t border-surface-border">
         <Button variant="outline" onClick={onBack} disabled={isCreating}>
           Back
