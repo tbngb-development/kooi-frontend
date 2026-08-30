@@ -1,19 +1,7 @@
-// src/app/(admin)/admin/tenants/[id]/page.tsx
-
 "use client";
 
-import { Badge } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
-import GoBackButton from "@/components/ui/GoBackButton";
-import { PageSpinner } from "@/components/ui/Spinner";
-import { AdminAssistantSection } from "@/components/assistants/AdminAssistantSection";
-import {
-  useTenant,
-  useTenantStats,
-  useToggleTenantStatus,
-} from "@/hooks/useTenants";
-import { formatDate } from "@/lib/utils/formatDate";
+import { use, useState } from "react";
+import { toast } from "sonner";
 import {
   Building2,
   Calendar,
@@ -26,8 +14,18 @@ import {
   TrendingUp,
   Users,
 } from "lucide-react";
-import { use, useState } from "react";
-import { toast } from "sonner";
+import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import GoBackButton from "@/components/ui/GoBackButton";
+import { PageSpinner } from "@/components/ui/Spinner";
+import { AdminAssistantSection } from "@/components/assistants/AdminAssistantSection";
+import {
+  useTenant,
+  useTenantStats,
+  useToggleTenantStatus,
+} from "@/hooks/useTenants";
+import { formatDate } from "@/lib/utils/formatDate";
 
 // ── Stat Card ─────────────────────────────────────────────────────────────────
 
@@ -41,19 +39,19 @@ interface StatCardProps {
 
 const accentClasses = {
   green: {
-    icon: "bg-success-50 text-success-600",
+    icon: "bg-success-50 text-success-600 border border-success-100",
     value: "text-success-600",
   },
   blue: {
-    icon: "bg-info-50 text-info-600",
+    icon: "bg-info-50 text-info-600 border border-info-100",
     value: "text-info-600",
   },
   purple: {
-    icon: "bg-purple-50 text-purple-600",
+    icon: "bg-purple-50 text-purple-600 border border-purple-100",
     value: "text-purple-600",
   },
   orange: {
-    icon: "bg-warning-50 text-warning-600",
+    icon: "bg-warning-50 text-warning-600 border border-warning-100",
     value: "text-warning-600",
   },
 };
@@ -67,15 +65,17 @@ function StatCard({
 }: StatCardProps) {
   const classes = accentClasses[accent];
   return (
-    <Card padding="md">
+    <Card padding="md" className="border-surface-border bg-surface">
       <div className="flex items-start justify-between gap-3">
         <div className="flex flex-col gap-1 min-w-0">
-          <p className="text-sm font-medium text-text-muted uppercase tracking-wide">
+          <p className="text-base font-bold text-text-muted uppercase tracking-wider">
             {label}
           </p>
-          <p className={`text-2xl font-bold ${classes.value}`}>{value}</p>
+          <p className={`text-2xl font-bold tracking-tight ${classes.value}`}>
+            {value}
+          </p>
           {description && (
-            <p className="text-sm text-text-muted">{description}</p>
+            <p className="text-base text-text-muted mt-0.5">{description}</p>
           )}
         </div>
         <div
@@ -101,12 +101,14 @@ function CountBadgeCard({
 }) {
   return (
     <div className="flex items-center gap-3 px-4 py-3 rounded-lg border border-surface-border bg-surface-subtle">
-      <div className="flex h-8 w-8 items-center justify-center rounded-md bg-surface text-text-muted border border-surface-border shrink-0">
+      <div className="flex h-8 w-8 items-center justify-center rounded-md bg-surface text-text-muted border border-surface-border shrink-0 shadow-sm">
         {icon}
       </div>
       <div className="min-w-0">
-        <p className="text-base font-semibold text-text-primary">{count}</p>
-        <p className="text-sm text-text-muted">{label}</p>
+        <p className="text-lg font-bold text-text-primary leading-tight">
+          {count}
+        </p>
+        <p className="text-base text-text-muted">{label}</p>
       </div>
     </div>
   );
@@ -133,9 +135,9 @@ export default function TenantDetailPage({
   if (!tenant) {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] gap-3">
-        <Building2 size={36} className="text-text-muted" />
+        <Building2 size={36} className="text-text-placeholder" />
         <p className="text-base font-semibold text-text-primary">
-          Tenant not found
+          Tenant Workspace environment not found
         </p>
         <GoBackButton />
       </div>
@@ -144,45 +146,49 @@ export default function TenantDetailPage({
 
   const stats = statsData?.stats;
 
-  const maskedApiKey = tenant.apiKey
-    ? `${tenant.apiKey.slice(0, 8)}${"•".repeat(24)}${tenant.apiKey.slice(-4)}`
-    : "—";
+  // Render email and apiKey safely with strict fallbacks
+  const tenantEmail = tenant.email ?? "No contact email configured";
+  const rawApiKey = tenant.apiKey ?? "";
+  const maskedApiKey = rawApiKey
+    ? `${rawApiKey.slice(0, 8)}${"•".repeat(24)}${rawApiKey.slice(-4)}`
+    : "Configuration missing";
 
   function handleCopyApiKey() {
-    if (!tenant?.apiKey) return;
-    navigator.clipboard.writeText(tenant.apiKey);
-    toast.success("API key copied to clipboard");
+    if (!rawApiKey) return;
+    navigator.clipboard.writeText(rawApiKey);
+    toast.success("Platform secret API key copied to clipboard");
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Back */}
-      <GoBackButton />
+    <div className="flex flex-col gap-6 max-w-7xl mx-auto px-4 py-6">
+      <div>
+        <GoBackButton />
+      </div>
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+      {/* Workspace Environment Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-surface border border-surface-border p-6 rounded-xl shadow-sm">
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-100 text-brand-600 shrink-0">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-50 border border-brand-100 text-brand-600 shrink-0 shadow-sm">
             <Building2 size={22} />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2.5 flex-wrap">
-              <h2 className="text-xl font-bold text-text-primary">
+              <h2 className="text-xl font-bold text-text-primary tracking-tight">
                 {tenant.name}
               </h2>
               {tenant.isActive ? (
                 <Badge variant="success" dot animate>
-                  Active
+                  Active System
                 </Badge>
               ) : (
                 <Badge variant="gray" dot>
-                  Inactive
+                  Deactivated
                 </Badge>
               )}
             </div>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <Mail size={12} className="text-text-muted" />
-              <p className="text-base text-text-muted">{tenant.email}</p>
+            <div className="flex items-center gap-1.5 mt-1.5">
+              <Mail size={13} className="text-text-muted" />
+              <p className="text-base text-text-muted">{tenantEmail}</p>
             </div>
           </div>
         </div>
@@ -191,27 +197,26 @@ export default function TenantDetailPage({
           variant={tenant.isActive ? "danger" : "primary"}
           size="sm"
           loading={toggling}
-          onClick={() =>
-            toggle({ id: tenant.id, isActive: !tenant.isActive })
-          }
+          onClick={() => toggle({ id: tenant.id, isActive: !tenant.isActive })}
+          className="shadow-sm font-semibold"
         >
-          {tenant.isActive ? "Deactivate Tenant" : "Activate Tenant"}
+          {tenant.isActive ? "Deactivate Workspace" : "Provision Workspace"}
         </Button>
       </div>
 
-      {/* Info Row */}
-      <div className="flex flex-wrap gap-4">
+      {/* Info Meta Column */}
+      <div className="flex flex-wrap gap-4 pl-1">
         <div className="flex items-center gap-1.5 text-base text-text-muted">
-          <Calendar size={13} />
-          <span>Registered {formatDate(tenant.createdAt)}</span>
+          <Calendar size={13} className="text-text-muted" />
+          <span>Provisioned {formatDate(tenant.createdAt)}</span>
         </div>
       </div>
 
-      {/* Counts */}
+      {/* Core V1 Database Workspace Resource Counts */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <CountBadgeCard
-          label="Users"
-          count={tenant._count.users}
+          label="Memberships"
+          count={tenant._count.memberships}
           icon={<Users size={15} />}
         />
         <CountBadgeCard
@@ -220,114 +225,124 @@ export default function TenantDetailPage({
           icon={<Target size={15} />}
         />
         <CountBadgeCard
-          label="Leads"
+          label="Leads Loaded"
           count={tenant._count.leads}
           icon={<Users size={15} />}
         />
         <CountBadgeCard
-          label="Calls"
+          label="Voice Calls Run"
           count={tenant._count.calls}
           icon={<Phone size={15} />}
         />
       </div>
 
-      {/* Performance Stats */}
+      {/* Global Campaign Performance Metrics */}
       {stats ? (
-        <div>
-          <h3 className="text-base font-semibold text-text-primary mb-3">
-            Performance Stats
+        <div className="space-y-3">
+          <h3 className="text-sm font-bold text-text-primary uppercase tracking-wider pl-1">
+            Performance & Resource Metrics
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <StatCard
-              label="Total Leads"
+              label="Leads Dispatched"
               value={stats.totalLeads}
               icon={<Users size={18} />}
-              description={`${stats.qualifiedLeads} qualified`}
+              description={`${stats.qualifiedLeads} qualified successfully`}
               accent="green"
             />
             <StatCard
-              label="Total Calls"
+              label="Connected Interactions"
               value={stats.totalCalls}
               icon={<Phone size={18} />}
-              description={`${stats.completedCalls} completed`}
+              description={`${stats.completedCalls} completed analysis profiles`}
               accent="blue"
             />
             <StatCard
-              label="Active Campaigns"
+              label="Active Pipeline Campaigns"
               value={stats.activeCampaigns}
               icon={<Target size={18} />}
               accent="purple"
             />
             <StatCard
-              label="Qualified Leads"
+              label="Identified Qualified Leads"
               value={stats.qualifiedLeads}
               icon={<Users size={18} />}
               accent="green"
             />
             <StatCard
-              label="Completed Calls"
+              label="Full Audio Conversions"
               value={stats.completedCalls}
               icon={<Phone size={18} />}
               accent="blue"
             />
             <StatCard
-              label="Qualification Rate"
+              label="Qualification Ratio"
               value={`${stats.qualificationRate.toFixed(1)}%`}
               icon={<TrendingUp size={18} />}
-              description="Leads qualified / total leads"
+              description="Confirmed qualified leads / processed base"
               accent="orange"
             />
           </div>
         </div>
       ) : (
-        <Card padding="md">
+        <Card padding="md" className="border-surface-border">
           <p className="text-base text-text-muted text-center py-4">
-            No performance stats available yet.
+            Workspace telemetry performance profile unavailable.
           </p>
         </Card>
       )}
 
-      {/* ── Assistant Management Section ─────────────────────────────────── */}
-      <div className="flex flex-col gap-4 rounded-lg border border-surface-border bg-surface p-5">
+      {/* Platform Level Voice Assistant Allocation Manager */}
+      <div className="flex flex-col gap-4 rounded-xl border border-surface-border bg-surface p-6 shadow-sm">
+        <h3 className="text-base font-bold text-text-primary uppercase tracking-wider">
+          Workspace Virtual Assistants
+        </h3>
         <AdminAssistantSection tenantId={tenant.id} />
       </div>
 
-      {/* API Key */}
-      <Card padding="md">
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center justify-between">
-            <h3 className="text-base font-semibold text-text-primary">
-              API Key
-            </h3>
-            <p className="text-sm text-text-muted">
-              Keep this secret — do not share publicly
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="flex-1 flex items-center gap-2 px-3 py-2 rounded-md border border-surface-border bg-surface-subtle font-mono text-sm text-text-secondary overflow-hidden">
-              <span className="truncate">
-                {showApiKey ? tenant.apiKey : maskedApiKey}
-              </span>
+      {/* Secret Tenant Credentials */}
+      {rawApiKey && (
+        <Card padding="md" className="border-surface-border bg-surface">
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-semibold text-text-primary">
+                  System API Key
+                </h3>
+                <p className="text-base text-text-muted mt-0.5">
+                  Restricted platform secret. Ensure environment security
+                  standards.
+                </p>
+              </div>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowApiKey((v) => !v)}
-              leftIcon={showApiKey ? <EyeOff size={13} /> : <Eye size={13} />}
-            >
-              {showApiKey ? "Hide" : "Show"}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleCopyApiKey}
-              leftIcon={<Copy size={13} />}
-            >
-              Copy
-            </Button>
+            <div className="flex items-center gap-2">
+              <div className="flex-1 flex items-center gap-2 px-3 py-2 rounded-md border border-surface-border bg-surface-subtle font-mono text-base text-text-secondary overflow-hidden">
+                <span className="truncate">
+                  {showApiKey ? rawApiKey : maskedApiKey}
+                </span>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowApiKey((v) => !v)}
+                leftIcon={showApiKey ? <EyeOff size={13} /> : <Eye size={13} />}
+                className="text-base font-semibold text-text-muted hover:text-text-primary"
+              >
+                {showApiKey ? "Hide Key" : "Reveal"}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCopyApiKey}
+                leftIcon={<Copy size={13} />}
+                className="text-base font-semibold border-surface-border"
+              >
+                Copy Key
+              </Button>
+            </div>
           </div>
-        </div>
-      </Card>
+        </Card>
+      )}
     </div>
   );
 }

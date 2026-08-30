@@ -1,7 +1,7 @@
 "use client";
 
-import { CallStatusBadge } from "@/components/calls/CallStatusBadge";
-import { TranscriptViewer } from "@/components/calls/TranscriptViewer";
+import { CallStatusBadge } from "@/components/call-history/CallStatusBadge";
+import { TranscriptViewer } from "@/components/call-history/TranscriptViewer";
 import { Card } from "@/components/ui/Card";
 import { PageSpinner } from "@/components/ui/Spinner";
 import { useCall } from "@/hooks/useCalls";
@@ -61,8 +61,8 @@ function AnalysisRow({
 }) {
   return (
     <div className="flex items-start justify-between gap-4 py-2 border-b border-surface-border last:border-0">
-      <span className="text-sm text-text-muted shrink-0 w-40">{label}</span>
-      <span className="text-sm text-text-primary text-right">
+      <span className="text-base text-text-muted shrink-0 w-40">{label}</span>
+      <span className="text-base text-text-primary text-right">
         {value &&
         value !== "NOT_SHARED" &&
         value !== "NOT_ASKED" &&
@@ -87,20 +87,20 @@ function CallAnalysisSection({ analysis }: { analysis: CallAnalysis }) {
       {/* Outcome row */}
       <div className="flex items-center gap-3 mb-4 flex-wrap">
         {analysis.disposition && (
-          <span className="inline-flex items-center rounded-md bg-brand-50 px-2.5 py-1 text-sm font-medium text-brand-700 border border-brand-100">
+          <span className="inline-flex items-center rounded-md bg-brand-50 px-2.5 py-1 text-base font-medium text-brand-700 border border-brand-100">
             {dispositionLabel[analysis.disposition]}
           </span>
         )}
         {analysis.leadTemperature && (
           <span
-            className={`inline-flex items-center rounded-full px-2.5 py-1 text-sm font-medium ${temperatureStyle[analysis.leadTemperature]}`}
+            className={`inline-flex items-center rounded-full px-2.5 py-1 text-base font-medium ${temperatureStyle[analysis.leadTemperature]}`}
           >
             <Thermometer size={10} className="mr-1" />
             {analysis.leadTemperature}
           </span>
         )}
         {analysis.doNotCall === "YES" && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-error-100 px-2.5 py-1 text-sm font-medium text-error-700">
+          <span className="inline-flex items-center gap-1 rounded-full bg-error-100 px-2.5 py-1 text-base font-medium text-error-700">
             <AlertCircle size={10} />
             Do Not Call
           </span>
@@ -109,7 +109,7 @@ function CallAnalysisSection({ analysis }: { analysis: CallAnalysis }) {
 
       {/* Qualification details */}
       <div className="mb-4">
-        <p className="text-sm font-medium text-text-muted uppercase tracking-wide mb-2">
+        <p className="text-base font-medium text-text-muted uppercase tracking-wide mb-2">
           Lead Qualification
         </p>
         <AnalysisRow
@@ -136,7 +136,7 @@ function CallAnalysisSection({ analysis }: { analysis: CallAnalysis }) {
 
       {/* Next action */}
       <div className="mb-4">
-        <p className="text-sm font-medium text-text-muted uppercase tracking-wide mb-2">
+        <p className="text-base font-medium text-text-muted uppercase tracking-wide mb-2">
           Next Action
         </p>
         <AnalysisRow label="Next Action" value={analysis.preferredNextAction} />
@@ -152,7 +152,7 @@ function CallAnalysisSection({ analysis }: { analysis: CallAnalysis }) {
 
       {/* Compliance */}
       <div>
-        <p className="text-sm font-medium text-text-muted uppercase tracking-wide mb-2">
+        <p className="text-base font-medium text-text-muted uppercase tracking-wide mb-2">
           Compliance
         </p>
         <AnalysisRow
@@ -224,7 +224,7 @@ export default function CampaignCallDetailPage() {
         <Card padding="sm" className="flex items-center gap-2.5">
           <User size={15} className="text-text-muted shrink-0" />
           <div>
-            <p className="text-sm text-text-muted">Lead</p>
+            <p className="text-base text-text-muted">Lead</p>
             <p className="text-base font-medium text-text-primary">
               {call.lead?.phone ?? "—"}
             </p>
@@ -233,7 +233,7 @@ export default function CampaignCallDetailPage() {
         <Card padding="sm" className="flex items-center gap-2.5">
           <Phone size={15} className="text-text-muted shrink-0" />
           <div>
-            <p className="text-sm text-text-muted">Phone</p>
+            <p className="text-base text-text-muted">Phone</p>
             <p className="text-base font-medium text-text-primary font-mono">
               {call.lead?.phone ?? "—"}
             </p>
@@ -242,7 +242,7 @@ export default function CampaignCallDetailPage() {
         <Card padding="sm" className="flex items-center gap-2.5">
           <Clock size={15} className="text-text-muted shrink-0" />
           <div>
-            <p className="text-sm text-text-muted">Duration</p>
+            <p className="text-base text-text-muted">Duration</p>
             <p className="text-base font-medium text-text-primary">
               {formatDuration(call.duration)}
             </p>
@@ -251,7 +251,7 @@ export default function CampaignCallDetailPage() {
         <Card padding="sm" className="flex items-center gap-2.5">
           <Thermometer size={15} className="text-text-muted shrink-0" />
           <div>
-            <p className="text-sm text-text-muted">Temperature</p>
+            <p className="text-base text-text-muted">Temperature</p>
             <p className="text-base font-medium text-text-primary">
               {analysis?.leadTemperature ?? "—"}
             </p>
@@ -261,7 +261,7 @@ export default function CampaignCallDetailPage() {
 
       {/* Timestamps */}
       <Card padding="sm">
-        <div className="flex items-center gap-6 text-sm text-text-muted">
+        <div className="flex items-center gap-6 text-base text-text-muted">
           {call.startedAt && (
             <span>Started: {formatDateTime(call.startedAt)}</span>
           )}

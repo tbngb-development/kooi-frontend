@@ -60,7 +60,7 @@ export const FloatingInput = forwardRef<HTMLInputElement, FloatingInputProps>(
               "bg-surface px-1",
               isFloating
                 ? // Floating position — top of border
-                  "top-0 -translate-y-1/2 text-sm"
+                  "top-0 -translate-y-1/2 text-base"
                 : // Resting position — center
                   "top-1/2 -translate-y-1/2 text-base",
               error
@@ -74,7 +74,7 @@ export const FloatingInput = forwardRef<HTMLInputElement, FloatingInputProps>(
           </label>
         </div>
 
-        {error && <p className="mt-1 text-sm text-error px-1">{error}</p>}
+        {error && <p className="mt-1 text-base text-error px-1">{error}</p>}
       </div>
     );
   },

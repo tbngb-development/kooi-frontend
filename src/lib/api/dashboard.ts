@@ -1,5 +1,3 @@
-// src/lib/api/dashboard.ts
-
 import apiClient from "@/lib/axios";
 import type {
   ApiResponse,
@@ -8,10 +6,11 @@ import type {
   DashboardOverview,
 } from "@/types";
 
+// V1: Realtime metric aggregation queries mapped to /api/v1/dashboard/*
 export const dashboardApi = {
   getOverview: async (): Promise<DashboardOverview> => {
     const res = await apiClient.get<ApiResponse<DashboardOverview>>(
-      "/api/dashboard/overview",
+      "/api/v1/dashboard/overview",
     );
     if (!res.data.success || !res.data.data) {
       throw new Error(res.data.error ?? "Failed to fetch overview");
@@ -21,7 +20,7 @@ export const dashboardApi = {
 
   getActivity: async (): Promise<DashboardActivity> => {
     const res = await apiClient.get<ApiResponse<DashboardActivity>>(
-      "/api/dashboard/activity",
+      "/api/v1/dashboard/activity",
     );
     if (!res.data.success || !res.data.data) {
       throw new Error(res.data.error ?? "Failed to fetch activity");
@@ -31,7 +30,7 @@ export const dashboardApi = {
 
   getCampaigns: async (): Promise<DashboardCampaign[]> => {
     const res = await apiClient.get<ApiResponse<DashboardCampaign[]>>(
-      "/api/dashboard/campaigns",
+      "/api/v1/dashboard/campaigns",
     );
     if (!res.data.success || !res.data.data) {
       throw new Error(res.data.error ?? "Failed to fetch dashboard campaigns");

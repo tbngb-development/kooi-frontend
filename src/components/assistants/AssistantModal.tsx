@@ -1,27 +1,32 @@
-// src/components/assistants/AssistantModal.tsx
+"use client";
 
-'use client';
+import { Bot, Pencil } from "lucide-react";
+import { Modal } from "@/components/ui/Modal";
+import { AssistantForm } from "@/components/assistants/AssistantForm";
+import type {
+  Assistant,
+  RegisterAssistantInput,
+  UpdateAssistantInput,
+} from "@/types";
 
-import { Modal } from '@/components/ui/Modal';
-import { AssistantForm } from '@/components/assistants/AssistantForm';
-import type { Assistant, RegisterAssistantInput, UpdateAssistantInput } from '@/types';
-import { Bot, Pencil } from 'lucide-react';
-
-// ── Modal state type (shared with AdminAssistantSection) ──────────────────────
 export type AssistantModalState =
-  | { mode: 'closed' }
-  | { mode: 'create' }
-  | { mode: 'edit'; assistant: Assistant };
+  | { mode: "closed" }
+  | { mode: "create" }
+  | { mode: "edit"; assistant: Assistant };
 
 interface AssistantModalProps {
+  tenantId?: string;
   state: AssistantModalState;
   onClose: () => void;
-  // Create
+  // Create hooks
   onRegister: (data: RegisterAssistantInput) => void;
   registering?: boolean;
-  // Edit
+  // Edit hooks
   onUpdate: (data: UpdateAssistantInput) => void;
   updating?: boolean;
+  // Sync handlers (Admin CRUD mode)
+  onSync?: (id: string) => void;
+  syncing?: boolean;
 }
 
 export function AssistantModal({
@@ -31,56 +36,69 @@ export function AssistantModal({
   registering,
   onUpdate,
   updating,
+  onSync,
+  syncing = false,
 }: AssistantModalProps) {
-  const isOpen = state.mode !== 'closed';
-  const isEdit = state.mode === 'edit';
+  const isOpen = state.mode !== "closed";
+  const isEdit = state.mode === "edit";
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="xl">
-      {/* ── Header ────────────────────────────────────────────────────── */}
-      <div className="flex items-center gap-3 mb-5 pb-4 border-b border-surface-border">
-        <div
-          className={`flex h-10 w-10 items-center justify-center rounded-lg shrink-0 ${
-            isEdit
-              ? 'bg-amber-50 text-amber-600'
-              : 'bg-brand-100 text-brand-600'
-          }`}
-        >
-          {isEdit ? <Pencil size={18} /> : <Bot size={18} />}
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      size="lg"
+      className="p-0 overflow-hidden"
+    >
+      <div className="p-6">
+        {/* Header Section */}
+        <div className="flex items-center gap-3 mb-5 pb-4 border-b border-surface-border">
+          <div
+            className={`flex h-10 w-10 items-center justify-center rounded-lg shrink-0 ${
+              isEdit
+                ? "bg-warning-50 text-warning-600 border border-warning-100"
+                : "bg-brand-50 text-brand-600 border border-brand-100"
+            }`}
+          >
+            {isEdit ? <Pencil size={18} /> : <Bot size={18} />}
+          </div>
+          <div className="min-w-0">
+            <h2 className="text-base font-bold text-text-primary leading-tight">
+              {isEdit
+                ? "Configure Assistant"
+                : "Assign Assistant Configuration"}
+            </h2>
+            <p className="text-base text-text-muted mt-1 leading-normal">
+              {isEdit
+                ? "Modify workspace display configurations"
+                : "Register and assign a custom Bolna voice agent model to this workspace."}
+            </p>
+          </div>
         </div>
-        <div className="min-w-0">
-          <h2 className="text-base font-semibold text-text-primary">
-            {isEdit ? 'Edit Assistant' : 'Add Assistant'}
-          </h2>
-          <p className="text-base text-text-muted mt-0.5">
-            {isEdit
-              ? 'Update the assistant display name'
-              : 'Register a Bolna agent for this tenant'}
-          </p>
-        </div>
+
+        {/* Dynamic Forms Mount Point */}
+        {state.mode === "create" && (
+          <AssistantForm
+            onSubmit={onRegister}
+            isLoading={registering}
+            submitLabel="Assign Assistant"
+            onCancel={onClose}
+          />
+        )}
+
+        {state.mode === "edit" && (
+          <AssistantForm
+            key={state.assistant.id}
+            editMode
+            defaultValues={state.assistant}
+            onSubmit={onUpdate}
+            isLoading={updating}
+            submitLabel="Save Changes"
+            onCancel={onClose}
+            onSync={onSync ? () => onSync(state.assistant.id) : undefined}
+            syncing={syncing}
+          />
+        )}
       </div>
-
-      {/* ── Form ──────────────────────────────────────────────────────── */}
-      {state.mode === 'create' && (
-        <AssistantForm
-          onSubmit={onRegister}
-          isLoading={registering}
-          submitLabel="Register Assistant"
-          onCancel={onClose}
-        />
-      )}
-
-      {state.mode === 'edit' && (
-        <AssistantForm
-          key={state.assistant.id}
-          editMode
-          defaultValues={state.assistant}
-          onSubmit={onUpdate}
-          isLoading={updating}
-          submitLabel="Save Changes"
-          onCancel={onClose}
-        />
-      )}
     </Modal>
   );
 }

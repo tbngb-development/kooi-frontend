@@ -31,7 +31,7 @@ export function FilterBar({
         <button
           type="button"
           onClick={onReset}
-          className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-text-muted hover:bg-surface-subtle hover:text-text-primary transition-colors"
+          className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-base font-medium text-text-muted hover:bg-surface-subtle hover:text-text-primary transition-colors"
         >
           <RotateCcw size={13} />
           Reset
@@ -77,7 +77,7 @@ export function FilterSelect({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className={cn(
-          "appearance-none rounded-lg border bg-surface pl-3 pr-8 py-1.5 text-sm font-medium transition-colors cursor-pointer",
+          "appearance-none rounded-lg border bg-surface pl-3 pr-8 py-1.5 text-base font-medium transition-colors cursor-pointer",
           "focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400",
           hasValue
             ? "border-brand-300 text-brand-700 bg-brand-50"
@@ -150,7 +150,7 @@ export function SortSelect({
           onChange={(e) => onSortByChange(e.target.value)}
           className={cn(
             "appearance-none rounded-lg border border-surface-border bg-surface",
-            "pl-3 pr-8 py-1.5 text-sm font-medium text-text-secondary",
+            "pl-3 pr-8 py-1.5 text-base font-medium text-text-secondary",
             "hover:border-surface-border/80 cursor-pointer",
             "focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-400",
           )}

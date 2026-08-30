@@ -66,9 +66,9 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             className="absolute right-3 top-1/2 -translate-y-1/2 text-text-placeholder pointer-events-none"
           />
         </div>
-        {error && <p className="text-sm text-error-500">{error}</p>}
+        {error && <p className="text-base text-error-500">{error}</p>}
         {hint && !error && (
-          <p className="text-sm text-text-muted">{hint}</p>
+          <p className="text-base text-text-muted">{hint}</p>
         )}
       </div>
     );

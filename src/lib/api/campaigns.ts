@@ -1,5 +1,3 @@
-// src/lib/api/campaigns.ts
-
 import apiClient from "@/lib/axios";
 import type {
   ApiResponse,
@@ -7,23 +5,15 @@ import type {
   CampaignStats,
   CreateCampaignInput,
   UpdateCampaignInput,
-  UploadResult,
   ParseLeadsResult,
   CampaignPerformance,
 } from "@/types";
 
-interface StartCampaignResult {
-  message: string;
-  totalLeads: number;
-  variableKeys: string[];
-  scheduledAt: string | null; // ← NEW
-}
-
+// V1: Campaigns architecture mapped to /api/v1/campaigns
 export const campaignsApi = {
-  // ... Keep getAll, getById, create, update, uploadCSV exactly identical ...
-
   getAll: async (): Promise<Campaign[]> => {
-    const res = await apiClient.get<ApiResponse<Campaign[]>>("/api/campaigns");
+    const res =
+      await apiClient.get<ApiResponse<Campaign[]>>("/api/v1/campaigns");
     if (!res.data.success || !res.data.data) {
       throw new Error(res.data.error ?? "Failed to fetch campaigns");
     }
@@ -32,7 +22,7 @@ export const campaignsApi = {
 
   getById: async (id: string): Promise<Campaign> => {
     const res = await apiClient.get<ApiResponse<Campaign>>(
-      `/api/campaigns/${id}`,
+      `/api/v1/campaigns/${id}`,
     );
     if (!res.data.success || !res.data.data) {
       throw new Error(res.data.error ?? "Failed to fetch campaign");
@@ -42,7 +32,7 @@ export const campaignsApi = {
 
   create: async (data: CreateCampaignInput): Promise<Campaign> => {
     const res = await apiClient.post<ApiResponse<Campaign>>(
-      "/api/campaigns",
+      "/api/v1/campaigns",
       data,
     );
     if (!res.data.success || !res.data.data) {
@@ -53,7 +43,7 @@ export const campaignsApi = {
 
   update: async (id: string, data: UpdateCampaignInput): Promise<Campaign> => {
     const res = await apiClient.patch<ApiResponse<Campaign>>(
-      `/api/campaigns/${id}`,
+      `/api/v1/campaigns/${id}`,
       data,
     );
     if (!res.data.success || !res.data.data) {
@@ -67,7 +57,7 @@ export const campaignsApi = {
     formData.append("file", file);
 
     const res = await apiClient.post<ApiResponse<ParseLeadsResult>>(
-      `/api/campaigns/${id}/parse-leads`,
+      `/api/v1/campaigns/${id}/parse-leads`,
       formData,
       { headers: { "Content-Type": "multipart/form-data" } },
     );
@@ -77,66 +67,9 @@ export const campaignsApi = {
     return res.data.data;
   },
 
-  uploadCSV: async (
-    id: string,
-    file: File,
-    allowDuplicates = false,
-  ): Promise<UploadResult> => {
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const url = allowDuplicates
-      ? `/api/campaigns/${id}/upload?allowDuplicates=true`
-      : `/api/campaigns/${id}/upload`;
-
-    const res = await apiClient.post<ApiResponse<UploadResult>>(url, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-    if (!res.data.success || !res.data.data) {
-      throw new Error(res.data.error ?? "Failed to upload file");
-    }
-    return res.data.data;
-  },
-
-  // ── UPDATED: Accepts optional scheduledAt in request body ──
-  start: async (
-    id: string,
-    scheduledAt?: string,
-  ): Promise<StartCampaignResult> => {
-    const res = await apiClient.post<ApiResponse<StartCampaignResult>>(
-      `/api/campaigns/${id}/start`,
-      { scheduledAt },
-    );
-    if (!res.data.success || !res.data.data) {
-      throw new Error(res.data.error ?? "Failed to start campaign");
-    }
-    return res.data.data;
-  },
-
-  pause: async (id: string): Promise<Campaign> => {
-    const res = await apiClient.post<ApiResponse<Campaign>>(
-      `/api/campaigns/${id}/pause`,
-    );
-    if (!res.data.success || !res.data.data) {
-      throw new Error(res.data.error ?? "Failed to pause campaign");
-    }
-    return res.data.data;
-  },
-
-  // ── NEW: Cancel scheduled campaign ──
-  cancelSchedule: async (id: string): Promise<Campaign> => {
-    const res = await apiClient.post<ApiResponse<Campaign>>(
-      `/api/campaigns/${id}/cancel-schedule`,
-    );
-    if (!res.data.success || !res.data.data) {
-      throw new Error(res.data.error ?? "Failed to cancel scheduled campaign");
-    }
-    return res.data.data;
-  },
-
   getStats: async (id: string): Promise<CampaignStats> => {
     const res = await apiClient.get<ApiResponse<CampaignStats>>(
-      `/api/campaigns/${id}/stats`,
+      `/api/v1/campaigns/${id}/stats`,
     );
     if (!res.data.success || !res.data.data) {
       throw new Error(res.data.error ?? "Failed to fetch campaign stats");
@@ -146,13 +79,40 @@ export const campaignsApi = {
 
   getCampaignPerformance: async (id: string): Promise<CampaignPerformance> => {
     const res = await apiClient.get<ApiResponse<CampaignPerformance>>(
-      `/api/campaigns/${id}/performance`,
+      `/api/v1/campaigns/${id}/performance`,
     );
     if (!res.data.success || !res.data.data) {
-      throw new Error(res.data.error ?? "Failed to fetch campaign stats");
+      throw new Error(res.data.error ?? "Failed to fetch campaign performance");
     }
-
-    console.log("campaign performance response data: ", res.data);
     return res.data.data;
+  },
+
+  /*
+   * ── DEPRECATED IN V1 ──────────────────────────────────────────────────────────
+   * The following actions are removed on the v1 Campaign Controller.
+   * Uploading, running, scheduling, and stopping calls is now delegated directly
+   * to Batches API: `/api/v1/campaigns/:campaignId/batches/:batchId/[run|schedule|stop]`.
+   */
+  /** @deprecated Use batchesApi.create */
+  uploadCSV: () => {
+    throw new Error(
+      "Deprecated in V1. Please configure your batch sequence via Batches API instead.",
+    );
+  },
+  /** @deprecated Use batchesApi.run */
+  start: () => {
+    throw new Error(
+      "Deprecated in V1. Please fire a batch run via batchesApi.run instead.",
+    );
+  },
+  /** @deprecated Use batchesApi.stop */
+  pause: () => {
+    throw new Error(
+      "Deprecated in V1. Please halt batches via batchesApi.stop instead.",
+    );
+  },
+  /** @deprecated Use batchesApi.stop */
+  cancelSchedule: () => {
+    throw new Error("Deprecated in V1. Use batchesApi.stop instead.");
   },
 };

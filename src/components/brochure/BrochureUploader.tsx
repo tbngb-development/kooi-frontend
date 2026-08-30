@@ -97,7 +97,7 @@ export function BrochureUploader({
             <p className="text-base font-semibold text-text-primary">
               {currentStage}
             </p>
-            <p className="text-sm text-text-muted mt-1">{selectedFile.name}</p>
+            <p className="text-base text-text-muted mt-1">{selectedFile.name}</p>
           </div>
 
           {/* Progress bar */}
@@ -108,7 +108,7 @@ export function BrochureUploader({
                 style={{ width: `${Math.max(uploadProgress, 5)}%` }}
               />
             </div>
-            <p className="text-sm text-text-muted text-center mt-1.5">
+            <p className="text-base text-text-muted text-center mt-1.5">
               This may take up to 30 seconds
             </p>
           </div>
@@ -129,7 +129,7 @@ export function BrochureUploader({
                   )}
                   <span
                     className={[
-                      "text-sm",
+                      "text-base",
                       active
                         ? "text-text-primary font-medium"
                         : "text-text-muted",
@@ -154,7 +154,7 @@ export function BrochureUploader({
           <h3 className="text-base font-semibold text-text-primary">
             Upload Property Brochure
           </h3>
-          <p className="text-sm text-text-muted">
+          <p className="text-base text-text-muted">
             {`Upload a PDF brochure and we'll automatically extract property
             details, pricing, and generate qualification questions for your
             AI agent. `}
@@ -200,7 +200,7 @@ export function BrochureUploader({
                   ? "Drop your PDF here"
                   : "Drag & drop or click to upload"}
               </p>
-              <p className="text-sm text-text-muted mt-0.5">
+              <p className="text-base text-text-muted mt-0.5">
                 PDF files only, up to 100MB
               </p>
             </div>
@@ -219,7 +219,7 @@ export function BrochureUploader({
       {/* Skip option */}
       <div className="flex items-center gap-3">
         <div className="h-px flex-1 bg-border" />
-        <span className="text-sm text-text-muted">or</span>
+        <span className="text-base text-text-muted">or</span>
         <div className="h-px flex-1 bg-border" />
       </div>
 

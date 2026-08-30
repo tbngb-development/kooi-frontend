@@ -38,23 +38,23 @@ export function LeadsTable({
           <table className="w-full text-base">
             <thead>
               <tr className="border-b border-surface-border bg-surface-subtle">
-                <th className="text-left px-5 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
+                <th className="text-left px-5 py-3 text-base font-medium text-text-muted uppercase tracking-wide">
                   Name
                 </th>
 
-                <th className="text-left px-4 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
+                <th className="text-left px-4 py-3 text-base font-medium text-text-muted uppercase tracking-wide">
                   Company
                 </th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
+                <th className="text-left px-4 py-3 text-base font-medium text-text-muted uppercase tracking-wide">
                   Status
                 </th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
+                <th className="text-left px-4 py-3 text-base font-medium text-text-muted uppercase tracking-wide">
                   Campaign
                 </th>
-                <th className="text-left px-4 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
+                <th className="text-left px-4 py-3 text-base font-medium text-text-muted uppercase tracking-wide">
                   DND
                 </th>
-                <th className="text-left px-5 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
+                <th className="text-left px-5 py-3 text-base font-medium text-text-muted uppercase tracking-wide">
                   Date & Time
                 </th>
               </tr>
@@ -73,12 +73,12 @@ export function LeadsTable({
                       {lead?.name ?? "Unknown"}
                     </Link>
                     {lead.email && (
-                      <p className="text-sm text-text-muted mt-0.5">
+                      <p className="text-base text-text-muted mt-0.5">
                         {lead.email}
                       </p>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-text-secondary font-mono text-sm">
+                  <td className="px-4 py-3 text-text-secondary font-mono text-base">
                     {lead.phone}
                   </td>
 
@@ -88,12 +88,12 @@ export function LeadsTable({
                   <td className="px-4 py-3">
                     <Link
                       href={`/campaigns/${lead.campaignId}`}
-                      className="text-text-muted hover:text-brand-600 text-sm transition-colors"
+                      className="text-text-muted hover:text-brand-600 text-base transition-colors"
                     >
                       {lead.campaign?.name ?? "Unknown"}
                     </Link>
                   </td>
-                  <td className="px-5 py-3 text-text-muted text-sm">
+                  <td className="px-5 py-3 text-text-muted text-base">
                     {lead.doNotCall ? "Yes" : "No"}
                   </td>
 
@@ -103,12 +103,12 @@ export function LeadsTable({
                         <span className="text-base font-medium text-text-primary leading-none">
                           {formatTimeOnly(lead.createdAt)}
                         </span>
-                        <span className="text-sm text-text-muted leading-none">
+                        <span className="text-base text-text-muted leading-none">
                           {formatDateOnly(lead.createdAt)}
                         </span>
                       </div>
                     ) : (
-                      <span className="text-sm text-text-muted">—</span>
+                      <span className="text-base text-text-muted">—</span>
                     )}
                   </td>
                 </tr>
@@ -120,7 +120,7 @@ export function LeadsTable({
 
       {pagination && onPageChange && (
         <div className="flex items-center justify-between">
-          <p className="text-sm text-text-muted">
+          <p className="text-base text-text-muted">
             Showing {leads.length} of {pagination.total} leads
           </p>
           <Pagination

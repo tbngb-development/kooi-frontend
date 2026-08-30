@@ -1,25 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { isAxiosError } from "axios";
 import { toast } from "sonner";
 import { batchesApi } from "@/lib/api/batches";
+import { getAxiosErrorMessage } from "@/lib/axios-error-message";
 import type { RetryConfig } from "@/types/batch";
 
 const BATCHES_KEY = ["batches"] as const;
-
-interface ApiErrorResponse {
-  error?: string;
-  message?: string;
-}
-
-function getErrorMessage(err: unknown, fallback: string): string {
-  if (isAxiosError<ApiErrorResponse>(err)) {
-    return err.response?.data?.error ?? err.response?.data?.message ?? fallback;
-  }
-  if (err instanceof Error) {
-    return err.message;
-  }
-  return fallback;
-}
 
 // ─── Queries ─────────────────────────────────────────────────────────────────
 
@@ -66,7 +51,7 @@ export function useCreateBatch(campaignId: string) {
       toast.success(`Batch created — ${data.stats.imported} leads imported`);
     },
     onError: (err: unknown) => {
-      toast.error(getErrorMessage(err, "Failed to create batch"));
+      toast.error(getAxiosErrorMessage(err));
     },
   });
 }
@@ -82,7 +67,7 @@ export function useRunBatch(campaignId: string) {
       toast.success(data.message);
     },
     onError: (err: unknown) => {
-      toast.error(getErrorMessage(err, "Failed to run batch"));
+      toast.error(getAxiosErrorMessage(err));
     },
   });
 }
@@ -104,7 +89,7 @@ export function useScheduleBatch(campaignId: string) {
       toast.success(data.message);
     },
     onError: (err: unknown) => {
-      toast.error(getErrorMessage(err, "Failed to schedule batch"));
+      toast.error(getAxiosErrorMessage(err));
     },
   });
 }
@@ -120,7 +105,7 @@ export function useStopBatch(campaignId: string) {
       toast.success("Batch stopped", { description: data.warning });
     },
     onError: (err: unknown) => {
-      toast.error(getErrorMessage(err, "Failed to stop batch"));
+      toast.error(getAxiosErrorMessage(err));
     },
   });
 }
@@ -138,7 +123,7 @@ export function useResumeBatch(campaignId: string) {
       );
     },
     onError: (err: unknown) => {
-      toast.error(getErrorMessage(err, "Failed to resume batch"));
+      toast.error(getAxiosErrorMessage(err));
     },
   });
 }
@@ -154,7 +139,7 @@ export function useDeleteBatch(campaignId: string) {
       toast.success("Batch deleted");
     },
     onError: (err: unknown) => {
-      toast.error(getErrorMessage(err, "Failed to delete batch"));
+      toast.error(getAxiosErrorMessage(err));
     },
   });
 }

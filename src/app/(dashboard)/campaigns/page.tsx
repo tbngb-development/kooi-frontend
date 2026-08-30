@@ -41,25 +41,25 @@ export default function CampaignsPage() {
             <table className="w-full text-base">
               <thead>
                 <tr className="border-b border-surface-border bg-surface-subtle">
-                  <th className="text-left px-5 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
+                  <th className="text-left px-5 py-3 text-base font-medium text-text-muted uppercase tracking-wide">
                     Campaign
                   </th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
+                  <th className="text-left px-4 py-3 text-base font-medium text-text-muted uppercase tracking-wide">
                     Status
                   </th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
+                  <th className="text-left px-4 py-3 text-base font-medium text-text-muted uppercase tracking-wide">
                     Assistant
                   </th>
-                  <th className="text-right px-4 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
+                  <th className="text-right px-4 py-3 text-base font-medium text-text-muted uppercase tracking-wide">
                     Leads
                   </th>
-                  <th className="text-right px-4 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
+                  <th className="text-right px-4 py-3 text-base font-medium text-text-muted uppercase tracking-wide">
                     Called
                   </th>
-                  <th className="text-right px-4 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
+                  <th className="text-right px-4 py-3 text-base font-medium text-text-muted uppercase tracking-wide">
                     Qualified
                   </th>
-                  <th className="text-left px-5 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
+                  <th className="text-left px-5 py-3 text-base font-medium text-text-muted uppercase tracking-wide">
                     Created
                   </th>
                 </tr>
@@ -76,7 +76,7 @@ export default function CampaignsPage() {
                           {c.name}
                         </p>
                         {c.description && (
-                          <p className="text-sm text-text-muted mt-0.5 truncate max-w-xs">
+                          <p className="text-base text-text-muted mt-0.5 truncate max-w-xs">
                             {c.description}
                           </p>
                         )}

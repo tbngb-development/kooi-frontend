@@ -80,7 +80,7 @@ export function BrochureReviewForm({
             {edited.extractionWarnings.length > 0 && (
               <ul className="mt-1.5 space-y-0.5">
                 {edited.extractionWarnings.map((w, i) => (
-                  <li key={i} className="text-sm text-text-muted">
+                  <li key={i} className="text-base text-text-muted">
                     • {w}
                   </li>
                 ))}
@@ -94,7 +94,7 @@ export function BrochureReviewForm({
       {missingCritical.length > 0 && (
         <div className="rounded-lg bg-blue-50 border border-blue-100 p-3 flex items-start gap-2">
           <Info size={14} className="text-blue-500 mt-0.5 shrink-0" />
-          <p className="text-sm text-blue-700">
+          <p className="text-base text-blue-700">
             Some important fields are missing:{' '}
             <span className="font-medium">
               {missingCritical.join(', ')}
@@ -181,7 +181,7 @@ export function BrochureReviewForm({
               {edited.configurations.map((c, i) => (
                 <span
                   key={i}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-base font-medium"
                 >
                   {c}
                   <button
@@ -199,7 +199,7 @@ export function BrochureReviewForm({
                 </span>
               ))}
             </div>
-            <p className="text-sm text-text-muted mt-1">
+            <p className="text-base text-text-muted mt-1">
               {edited.configurations.length === 0 &&
                 'No configurations extracted — add manually if needed'}
             </p>
@@ -254,7 +254,7 @@ export function BrochureReviewForm({
               placeholder="14400000"
             />
             {edited.startingPrice && (
-              <p className="text-sm text-text-muted mt-1">
+              <p className="text-base text-text-muted mt-1">
                 = {formatPrice(edited.startingPrice)}
               </p>
             )}
@@ -270,7 +270,7 @@ export function BrochureReviewForm({
               placeholder="32400000"
             />
             {edited.maxPrice && (
-              <p className="text-sm text-text-muted mt-1">
+              <p className="text-base text-text-muted mt-1">
                 = {formatPrice(edited.maxPrice)}
               </p>
             )}
@@ -329,13 +329,13 @@ export function BrochureReviewForm({
         <h3 className="text-base font-semibold text-text-primary mb-1">
           AI Qualifying Questions
         </h3>
-        <p className="text-sm text-text-muted mb-4">
+        <p className="text-base text-text-muted mb-4">
           These are asked by your AI agent during calls
         </p>
         <div className="flex flex-col gap-2">
           {edited.keyQualifyingQuestions.map((q, i) => (
             <div key={i} className="flex items-start gap-2">
-              <span className="text-sm text-text-muted font-medium w-5 pt-2.5 shrink-0">
+              <span className="text-base text-text-muted font-medium w-5 pt-2.5 shrink-0">
                 {i + 1}.
               </span>
               <input
@@ -369,7 +369,7 @@ export function BrochureReviewForm({
                 '',
               ])
             }
-            className="text-sm text-primary hover:underline text-left mt-1"
+            className="text-base text-primary hover:underline text-left mt-1"
           >
             + Add question
           </button>

@@ -57,7 +57,7 @@ export default function LeadDetailPage() {
           <div className="flex items-center gap-2.5">
             <User size={15} className="text-text-muted shrink-0" />
             <div>
-              <p className="text-sm text-text-muted">Full Name</p>
+              <p className="text-base text-text-muted">Full Name</p>
               <p className="text-base font-medium text-text-primary">
                 {lead.name}
               </p>
@@ -66,7 +66,7 @@ export default function LeadDetailPage() {
           <div className="flex items-center gap-2.5">
             <Phone size={15} className="text-text-muted shrink-0" />
             <div>
-              <p className="text-sm text-text-muted">Phone</p>
+              <p className="text-base text-text-muted">Phone</p>
               <p className="text-base font-medium text-text-primary font-mono">
                 {lead.phone}
               </p>
@@ -76,7 +76,7 @@ export default function LeadDetailPage() {
             <div className="flex items-center gap-2.5">
               <Mail size={15} className="text-text-muted shrink-0" />
               <div>
-                <p className="text-sm text-text-muted">Email</p>
+                <p className="text-base text-text-muted">Email</p>
                 <p className="text-base font-medium text-text-primary">
                   {lead.email}
                 </p>
@@ -87,7 +87,7 @@ export default function LeadDetailPage() {
             <div className="flex items-center gap-2.5">
               <Building2 size={15} className="text-text-muted shrink-0" />
               <div>
-                <p className="text-sm text-text-muted">Company</p>
+                <p className="text-base text-text-muted">Company</p>
                 <p className="text-base font-medium text-text-primary">
                   {lead.company}
                 </p>
@@ -96,7 +96,7 @@ export default function LeadDetailPage() {
           )}
         </div>
         <div className="mt-4 pt-4 border-t border-surface-border">
-          <p className="text-sm text-text-muted">
+          <p className="text-base text-text-muted">
             Added {formatDate(lead.createdAt)}
           </p>
         </div>
@@ -118,11 +118,11 @@ export default function LeadDetailPage() {
                   >
                     View Call Details
                   </Link>
-                  <span className="text-sm text-text-muted">
+                  <span className="text-base text-text-muted">
                     {formatDateTime(call.startedAt)}
                   </span>
                 </div>
-                <div className="flex items-center gap-4 mt-1 text-sm text-text-muted">
+                <div className="flex items-center gap-4 mt-1 text-base text-text-muted">
                   <span>Status: {call.status}</span>
                   {call.duration && (
                     <span>Duration: {formatDuration(call.duration)}</span>

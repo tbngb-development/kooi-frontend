@@ -13,7 +13,7 @@ export default function AdminAuthLayout({ children }: { children: ReactNode }) {
           </div>
           <div>
             <p className="text-lg font-bold text-text-primary">Admin Portal</p>
-            <p className="text-sm text-text-muted leading-tight">
+            <p className="text-base text-text-muted leading-tight">
               Super Admin Access Only
             </p>
           </div>

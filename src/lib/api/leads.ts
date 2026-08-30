@@ -1,4 +1,3 @@
-// src/lib/api/leads.ts
 import apiClient from "@/lib/axios";
 import type {
   ApiResponse,
@@ -6,15 +5,16 @@ import type {
   LeadDetail,
   LeadQueryParams,
   LeadStats,
-  PaginatedData,
-  PaginatedResponse,
+  PaginatedLeadsResponse,
+  Pagination,
 } from "@/types";
 
+// V1: Leads query API mapped to /api/v1/leads
 export const leadsApi = {
   getAll: async (
     params: LeadQueryParams = {},
-  ): Promise<PaginatedData<Lead>> => {
-    const res = await apiClient.get<PaginatedResponse<Lead>>("/api/leads", {
+  ): Promise<{ leads: Lead[]; pagination: Pagination }> => {
+    const res = await apiClient.get<PaginatedLeadsResponse<Lead>>("/api/v1/leads", {
       params,
     });
     if (!res.data.success || !res.data.data) {
@@ -25,7 +25,7 @@ export const leadsApi = {
 
   getById: async (id: string): Promise<LeadDetail> => {
     const res = await apiClient.get<ApiResponse<LeadDetail>>(
-      `/api/leads/${id}`,
+      `/api/v1/leads/${id}`,
     );
     if (!res.data.success || !res.data.data) {
       throw new Error(res.data.error ?? "Failed to fetch lead");
@@ -35,7 +35,7 @@ export const leadsApi = {
 
   getStats: async (params?: { campaignId?: string }): Promise<LeadStats> => {
     const res = await apiClient.get<ApiResponse<LeadStats>>(
-      "/api/leads/stats",
+      "/api/v1/leads/stats",
       {
         params,
       },

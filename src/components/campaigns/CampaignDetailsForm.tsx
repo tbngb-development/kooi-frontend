@@ -66,7 +66,7 @@ export function CampaignDetailsForm({
             <p className="text-base font-medium text-green-800">
               Property brochure linked
             </p>
-            <p className="text-sm text-green-600">
+            <p className="text-base text-green-600">
               {brochureName
                 ? `"${brochureName}" details will be injected into every call`
                 : "Brochure data will be injected into every call"}
@@ -78,7 +78,7 @@ export function CampaignDetailsForm({
       {!hasBrochure && (
         <div className="flex items-center gap-3 rounded-lg bg-surface-secondary border border-border p-3">
           <Building2 size={16} className="text-text-muted shrink-0" />
-          <p className="text-sm text-text-muted">
+          <p className="text-base text-text-muted">
             {` No brochure linked — calls will use your assistant's base prompt only.`}
           </p>
         </div>

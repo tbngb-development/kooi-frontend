@@ -1,22 +1,22 @@
 // src/app/(admin)/admin/dashboard/page.tsx
 
-'use client';
+"use client";
 
-import { StatsCard } from '@/components/dashboard/StatsCard';
-import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { PageSpinner } from '@/components/ui/Spinner';
-import { EmptyState } from '@/components/ui/EmptyState';
-import { useTenants, useToggleTenantStatus } from '@/hooks/useTenants';
-import { formatDate } from '@/lib/utils/formatDate';
-import { Building2, Phone, Users } from 'lucide-react';
-import Link from 'next/link';
+import { StatsCard } from "@/components/dashboard/StatsCard";
+import { Button } from "@/components/ui/Button";
+import { Badge } from "@/components/ui/Badge";
+import { PageSpinner } from "@/components/ui/Spinner";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { useTenants, useToggleTenantStatus } from "@/hooks/useTenants";
+import { formatDate } from "@/lib/utils/formatDate";
+import { Building2, Phone, Users } from "lucide-react";
+import Link from "next/link";
 
 export default function AdminDashboardPage() {
   const { data: tenants, isLoading } = useTenants();
   const { mutate: toggle, isPending: toggling } = useToggleTenantStatus();
 
-  console.log("tenants: ", tenants)
+  console.log("tenants: ", tenants);
 
   if (isLoading) return <PageSpinner />;
 
@@ -69,22 +69,22 @@ export default function AdminDashboardPage() {
             <table className="w-full text-base">
               <thead>
                 <tr className="border-b border-surface-border bg-surface-subtle">
-                  <th className="text-left px-5 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
+                  <th className="text-left px-5 py-3 text-base font-medium text-text-muted uppercase tracking-wide">
                     Tenant
                   </th>
-                  <th className="text-right px-4 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
+                  <th className="text-right px-4 py-3 text-base font-medium text-text-muted uppercase tracking-wide">
                     Users
                   </th>
-                  <th className="text-right px-4 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
+                  <th className="text-right px-4 py-3 text-base font-medium text-text-muted uppercase tracking-wide">
                     Campaigns
                   </th>
-                  <th className="text-right px-4 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
+                  <th className="text-right px-4 py-3 text-base font-medium text-text-muted uppercase tracking-wide">
                     Leads
                   </th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
+                  <th className="text-left px-4 py-3 text-base font-medium text-text-muted uppercase tracking-wide">
                     Status
                   </th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-text-muted uppercase tracking-wide">
+                  <th className="text-left px-4 py-3 text-base font-medium text-text-muted uppercase tracking-wide">
                     Joined
                   </th>
                   <th className="px-5 py-3" />
@@ -103,12 +103,10 @@ export default function AdminDashboardPage() {
                       >
                         {t.name}
                       </Link>
-                      <p className="text-sm text-text-muted mt-0.5">
-                        {t.email}
-                      </p>
+                      <p className="text-base text-text-muted mt-0.5">{t.name}</p>
                     </td>
                     <td className="px-4 py-3 text-right text-text-secondary">
-                      {t._count.users}
+                      {t._count.memberships}
                     </td>
                     <td className="px-4 py-3 text-right text-text-secondary">
                       {t._count.campaigns}
@@ -127,19 +125,19 @@ export default function AdminDashboardPage() {
                         </Badge>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-text-muted text-sm">
+                    <td className="px-4 py-3 text-text-muted text-base">
                       {formatDate(t.createdAt)}
                     </td>
                     <td className="px-5 py-3 text-right">
                       <Button
                         size="sm"
-                        variant={t.isActive ? 'outline' : 'secondary'}
+                        variant={t.isActive ? "outline" : "secondary"}
                         onClick={() =>
                           toggle({ id: t.id, isActive: !t.isActive })
                         }
                         loading={toggling}
                       >
-                        {t.isActive ? 'Deactivate' : 'Activate'}
+                        {t.isActive ? "Deactivate" : "Activate"}
                       </Button>
                     </td>
                   </tr>

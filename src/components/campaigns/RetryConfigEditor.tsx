@@ -84,11 +84,11 @@ export function RetryConfigEditor({ value, onChange }: RetryConfigEditorProps) {
         <div className="pl-6 space-y-4 pt-1">
           {/* Triggers */}
           <div>
-            <label className="text-sm font-medium text-text-muted block mb-2">
+            <label className="text-base font-medium text-text-muted block mb-2">
               Retry on conditions:
             </label>
             <div className="flex items-center gap-2 flex-wrap">
-              <label className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border border-surface-border cursor-pointer hover:bg-surface-hover">
+              <label className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-base font-medium border border-surface-border cursor-pointer hover:bg-surface-hover">
                 <input
                   type="checkbox"
                   checked={retryNoAnswer}
@@ -98,7 +98,7 @@ export function RetryConfigEditor({ value, onChange }: RetryConfigEditorProps) {
                 No Answer
               </label>
 
-              <label className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border border-surface-border cursor-pointer hover:bg-surface-hover">
+              <label className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-base font-medium border border-surface-border cursor-pointer hover:bg-surface-hover">
                 <input
                   type="checkbox"
                   checked={retryFailed}
@@ -108,7 +108,7 @@ export function RetryConfigEditor({ value, onChange }: RetryConfigEditorProps) {
                 Failed
               </label>
 
-              <label className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border border-surface-border cursor-pointer hover:bg-surface-hover">
+              <label className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-base font-medium border border-surface-border cursor-pointer hover:bg-surface-hover">
                 <input
                   type="checkbox"
                   checked={retryBusy}
@@ -122,7 +122,7 @@ export function RetryConfigEditor({ value, onChange }: RetryConfigEditorProps) {
 
           {/* Interval Pills */}
           <div>
-            <label className="text-sm font-medium text-text-muted block mb-2">
+            <label className="text-base font-medium text-text-muted block mb-2">
               When to retry:
             </label>
             <div className="flex items-center gap-2">
@@ -133,7 +133,7 @@ export function RetryConfigEditor({ value, onChange }: RetryConfigEditorProps) {
                     key={opt.minutes}
                     type="button"
                     onClick={() => toggleInterval(opt.minutes)}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
+                    className={`px-3 py-1.5 rounded-lg text-base font-medium border transition-colors ${
                       isSelected
                         ? "bg-brand-600 text-white border-brand-600"
                         : "bg-surface text-text-secondary border-surface-border hover:bg-surface-hover"
@@ -146,7 +146,7 @@ export function RetryConfigEditor({ value, onChange }: RetryConfigEditorProps) {
             </div>
           </div>
 
-          <p className="text-xs text-text-muted">
+          <p className="text-base text-text-muted">
             Will make up to{" "}
             <span className="font-bold text-text-primary">
               {selectedIntervals.length}

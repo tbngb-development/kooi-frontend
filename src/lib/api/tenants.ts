@@ -1,47 +1,81 @@
-// src/lib/api/tenants.ts
+import apiClient from "@/lib/axios";
+import type { ApiResponse, Tenant, TenantStats } from "@/types";
 
-import apiClient from '@/lib/axios';
-import type { ApiResponse, Tenant, TenantStats } from '@/types';
+const TENANT_BASE = "/api/v1/tenants";
+const ADMIN_BASE = "/api/v1/admin/tenants";
 
 export const tenantsApi = {
-  getAll: async (): Promise<Tenant[]> => {
-    const res = await apiClient.get<ApiResponse<Tenant[]>>('/api/tenants');
-    if (!res.data.success || !res.data.data) {
-      throw new Error(res.data.error ?? 'Failed to fetch tenants');
-    }
-    return res.data.data;
-  },
+  // ─── Tenant Workspace (Active JWT Scoped) ─────────────────────────────────
 
-  getById: async (id: string): Promise<Tenant> => {
+  getCurrent: async (): Promise<Tenant> => {
     const res = await apiClient.get<ApiResponse<Tenant>>(
-      `/api/tenants/${id}`
+      `${TENANT_BASE}/current`,
     );
     if (!res.data.success || !res.data.data) {
-      throw new Error(res.data.error ?? 'Failed to fetch tenant');
+      throw new Error(res.data.error ?? "Failed to fetch workspace details");
     }
     return res.data.data;
   },
 
-  update: async (
+  updateCurrent: async (data: { name: string }): Promise<Tenant> => {
+    const res = await apiClient.patch<ApiResponse<Tenant>>(
+      `${TENANT_BASE}/current`,
+      data,
+    );
+    if (!res.data.success || !res.data.data) {
+      throw new Error(res.data.error ?? "Failed to update workspace name");
+    }
+    return res.data.data;
+  },
+
+  getCurrentStats: async (): Promise<TenantStats> => {
+    const res = await apiClient.get<ApiResponse<TenantStats>>(
+      `${TENANT_BASE}/current/stats`,
+    );
+    if (!res.data.success || !res.data.data) {
+      throw new Error(res.data.error ?? "Failed to fetch workspace stats");
+    }
+    return res.data.data;
+  },
+
+  // ─── Platform Admin (Targeted by ID) ──────────────────────────────────────
+
+  adminGetAll: async (): Promise<Tenant[]> => {
+    const res = await apiClient.get<ApiResponse<Tenant[]>>(ADMIN_BASE);
+    if (!res.data.success || !res.data.data) {
+      throw new Error(res.data.error ?? "Failed to fetch tenants");
+    }
+    return res.data.data;
+  },
+
+  adminGetById: async (id: string): Promise<Tenant> => {
+    const res = await apiClient.get<ApiResponse<Tenant>>(`${ADMIN_BASE}/${id}`);
+    if (!res.data.success || !res.data.data) {
+      throw new Error(res.data.error ?? "Failed to fetch tenant");
+    }
+    return res.data.data;
+  },
+
+  adminUpdate: async (
     id: string,
-    data: Partial<Pick<Tenant, 'isActive' | 'name'>>
+    data: Partial<Pick<Tenant, "isActive" | "name">>,
   ): Promise<Tenant> => {
     const res = await apiClient.patch<ApiResponse<Tenant>>(
-      `/api/tenants/${id}`,
-      data
+      `${ADMIN_BASE}/${id}`,
+      data,
     );
     if (!res.data.success || !res.data.data) {
-      throw new Error(res.data.error ?? 'Failed to update tenant');
+      throw new Error(res.data.error ?? "Failed to update tenant");
     }
     return res.data.data;
   },
 
-  getStats: async (id: string): Promise<TenantStats> => {
+  adminGetStats: async (id: string): Promise<TenantStats> => {
     const res = await apiClient.get<ApiResponse<TenantStats>>(
-      `/api/tenants/${id}/stats`
+      `${ADMIN_BASE}/${id}/stats`,
     );
     if (!res.data.success || !res.data.data) {
-      throw new Error(res.data.error ?? 'Failed to fetch tenant stats');
+      throw new Error(res.data.error ?? "Failed to fetch tenant stats");
     }
     return res.data.data;
   },

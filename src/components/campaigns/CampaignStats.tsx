@@ -117,7 +117,7 @@ export function CampaignStats({
 
       {/* ─── AI Call Insights & Preferences ─── */}
       {/* <div className="mb-6 border-t border-slate-300 pt-5">
-        <h4 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-3">
+        <h4 className="text-base font-semibold text-text-muted uppercase tracking-wider mb-3">
           Insights & Lead Demand
         </h4>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -163,7 +163,7 @@ export function CampaignStats({
       {/* ─── Progress Bars ─── */}
       <div className="flex flex-col gap-3 pt-2">
         <div>
-          <div className="flex items-center justify-between text-sm text-text-muted mb-1.5">
+          <div className="flex items-center justify-between text-base text-text-muted mb-1.5">
             <span className="font-medium">Campaign Progress</span>
             <span>{completionPct}% complete</span>
           </div>
@@ -176,7 +176,7 @@ export function CampaignStats({
         </div>
 
         <div>
-          <div className="flex items-center justify-between text-sm text-text-muted mb-1.5">
+          <div className="flex items-center justify-between text-base text-text-muted mb-1.5">
             <span className="font-medium">
               Success Rate (HOT/WARM of called leads)
             </span>
@@ -219,7 +219,7 @@ function StatCard({
         >
           {icon}
         </div>
-        <p className="text-sm font-medium text-text-muted line-clamp-1">
+        <p className="text-base font-medium text-text-muted line-clamp-1">
           {label}
         </p>
       </div>

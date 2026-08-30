@@ -1,4 +1,33 @@
-// src/types/index.ts
+// ─── Re-exports from new modular type files ───────────────────────────────────
+export type {
+  ApiResponse,
+  ApiError,
+  ApiValidationError,
+  Pagination,
+  PaginatedLeadsResponse,
+  PaginatedCallsResponse,
+  ApiMeta,
+} from "./api";
+
+export type {
+  User,
+  LoginInput,
+  RegisterInput,
+  TokenPayload,
+  LoginResponse,
+  RegisterResponse,
+  SelectTenantResponse,
+  ProfileResponse,
+  InviteInput,
+  InviteResponse,
+  AcceptInviteInput,
+  TeamMember,
+  CreateUserInput,
+  UpdateUserInput,
+  UserRole,
+} from "./user";
+
+export type { TenantRole, Membership, V1User } from "@/store/authStore";
 
 export type {
   LeadBatch,
@@ -10,7 +39,7 @@ export type {
 } from "./batch";
 import type { LeadBatch, RetryConfig } from "./batch";
 
-export type UserRole = "SUPER_ADMIN" | "ADMIN" | "USER";
+// ─── Enums ────────────────────────────────────────────────────────────────────
 
 export type CampaignStatus = "DRAFT" | "RUNNING" | "COMPLETED" | "FAILED";
 
@@ -84,51 +113,10 @@ export type LocationMatch =
 
 export type ExtractionFlag = "YES" | "NO";
 
-// ─── API Wrapper ──────────────────────────────────────────────────────────────
-
-export interface ApiResponse<T> {
-  success: boolean;
-  data: T | null;
-  message: string;
-  error?: string;
-}
-
-export interface PaginationMeta {
-  total: number;
-  page: number;
-  limit: number;
-  pages: number;
-}
-
-export interface PaginatedData<T> {
-  items: T[];
-  pagination: PaginationMeta;
-  // Temp fix for paginated Get calls api
-  calls?: Call[];
-  leads?: Lead[];
-}
-
-export interface PaginatedResponse<T> {
-  success: boolean;
-  data: PaginatedData<T>;
-  message: string;
-}
-
-// ─── User ─────────────────────────────────────────────────────────────────────
-
-export interface User {
-  id: string;
-  email: string;
-  name: string;
-  role: UserRole;
-  tenantId: string;
-  createdAt: string;
-}
-
 // ─── Tenant ───────────────────────────────────────────────────────────────────
 
 export interface TenantCount {
-  users: number;
+  memberships: number;
   campaigns: number;
   leads: number;
   calls: number;
@@ -137,8 +125,6 @@ export interface TenantCount {
 export interface Tenant {
   id: string;
   name: string;
-  email: string;
-  apiKey: string;
   isActive: boolean;
   createdAt: string;
   _count: TenantCount;
@@ -147,12 +133,13 @@ export interface Tenant {
 export interface TenantStats {
   tenant: Tenant;
   stats: {
+    totalUsers: number;
     totalLeads: number;
     qualifiedLeads: number;
     totalCalls: number;
     completedCalls: number;
     activeCampaigns: number;
-    qualificationRate: number;
+    qualificationRate: number; // numeric in admin API
   };
 }
 
@@ -177,9 +164,10 @@ export interface Assistant {
 
 export interface AssistantDetail {
   assistant: Assistant;
-  variables: PromptInputField[];
+  variables: string[]; // V1: returns string[] not PromptInputField[]
 }
 
+/** @deprecated V1 returns string[] for variables */
 export interface PromptInputField {
   key: string;
   label: string;
@@ -210,22 +198,29 @@ export interface Campaign {
   name: string;
   description: string | null;
   status: CampaignStatus;
-  tenantId: string;
-  assistantId: string;
-  brochureId: string | null;
-  variables: Record<string, string> | null;
-  defaultRetryConfig: RetryConfig | null;
   totalLeads: number;
   calledLeads: number;
   completedLeads: number;
   failedLeads: number;
   createdAt: string;
   updatedAt: string;
-  startedAt: string | null;
-  completedAt: string | null;
-  assistant?: Assistant;
-  brochure?: Brochure | null;
-  batches?: LeadBatch[];
+  assistant: {
+    id: string;
+    name: string;
+    bolnaId: string;
+  } | null;
+  brochure: {
+    id: string;
+    projectName: string | null;
+    city: string | null;
+    configurations: string[];
+  } | null;
+  batches: Array<{
+    id: string;
+    status: string;
+    totalLeads: number;
+    completedLeads: number;
+  }>;
 }
 
 export interface CreateCampaignInput {
@@ -234,16 +229,19 @@ export interface CreateCampaignInput {
   assistantId: string;
   brochureId?: string;
   variables?: Record<string, string>;
+  defaultRetryConfig?: {
+    enabled: boolean;
+    max_retries?: number;
+    retry_on_statuses?: Array<"no-answer" | "busy" | "failed">;
+    retry_on_voicemail?: boolean;
+    retry_intervals_minutes?: number[];
+  };
 }
 
 export interface CampaignStats {
-  totalLeads: number;
-  calledLeads: number;
-  completedLeads: number;
-  failedLeads: number;
-  pendingLeads: number;
-  qualificationRate: number;
-  completionRate: number;
+  campaign: Campaign;
+  leads: Array<{ status: string; _count: number }>;
+  calls: Array<{ status: string; _count: number }>;
 }
 
 export interface CampaignPerformance {
@@ -253,7 +251,7 @@ export interface CampaignPerformance {
   dnc: number;
   totalCost: number;
   costPerLead: number;
-  qualificationRate: number;
+  qualificationRate: string; // V1: string e.g. "45.2" (was number)
   bestPickupTime: string;
   bestConversionTime: string;
   topBudget: string;
@@ -262,13 +260,28 @@ export interface CampaignPerformance {
 
 export type UpdateCampaignInput = Partial<CreateCampaignInput>;
 
+/** V1 parse-leads response */
+export interface ParseLeadsResult {
+  total: number;
+  valid: number;
+  invalid: number;
+  nonIndian: number;
+  nonIndianNumbers: string[];
+  inFileDuplicates: number;
+  inFileDuplicateNumbers: string[];
+  dbDuplicates: number;
+  dbDuplicateNumbers: string[];
+  readyToImport: number;
+}
+
+/** @deprecated Use ParseLeadsResult */
 export interface UploadResult {
-  total: number; // all rows in the file
-  valid: number; // rows that had a phone number
-  imported: number; // net-new leads actually inserted
-  duplicates: number; // rows skipped — phone already exists in campaign
-  invalid: number; // rows skipped — missing phone number
-  duplicateNumbers: string[]; // the actual phone numbers that were duplicates
+  total: number;
+  valid: number;
+  imported: number;
+  duplicates: number;
+  invalid: number;
+  duplicateNumbers: string[];
 }
 
 // ─── Brochure ─────────────────────────────────────────────────────────────────
@@ -365,8 +378,8 @@ export interface BrochureExtractionResult {
   };
   textQuality: {
     hasUsableText: boolean;
-    avgCharsPerPage: number;
-    warning: string | null;
+    avgCharsPerPage?: number;
+    warning?: string | null;
   };
 }
 
@@ -491,7 +504,7 @@ export interface Lead {
   tenantId: string;
   batchId: string | null;
   campaignId: string;
-  campaign?: Pick<Campaign, "id" | "name">;
+  campaign?: Pick<Campaign, "id" | "name"> | null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   metadata: Record<string, any> | null;
   createdAt: string;
@@ -506,8 +519,8 @@ export interface LeadDetail extends Lead {
 
 export interface CallAnalysis {
   id: string;
-  callId: string;
-  tenantId: string;
+  callId?: string;
+  tenantId?: string;
   disposition: Disposition | null;
   leadTemperature: LeadTemperature | null;
   preferredConfiguration: string | null;
@@ -521,8 +534,8 @@ export interface CallAnalysis {
   followupSchedule: string | null;
   doNotCall: ExtractionFlag | null;
   languageSupportRequired: ExtractionFlag | null;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 // ─── Call ─────────────────────────────────────────────────────────────────────
@@ -552,19 +565,19 @@ export interface Call {
   transcriptMessages: TranscriptMessage[] | null;
   summary: string | null;
   callHistory: CallHistoryItem[] | null;
-  campaign?: Pick<Campaign, "id" | "name">;
+  campaign?: { id: string; name: string } | null;
   startedAt: string | null;
   endedAt: string | null;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
   callAnalysis?: CallAnalysis | null;
-  lead?: Lead;
+  lead?: { id: string; name: string | null; phone: string } | null;
 }
 
 export interface TranscriptMessage {
   role: "assistant" | "user";
   message: string;
-  time?: number;
+  time?: string | number | null;
   endTime?: number;
   duration?: number;
   secondsFromStart?: number;
@@ -572,11 +585,19 @@ export interface TranscriptMessage {
 
 export interface CallTranscriptResponse {
   transcript: string | null;
-  transcriptMessages: TranscriptMessage[];
+  transcriptMessages: Array<{
+    role: "assistant" | "user";
+    message: string;
+    time: string | null;
+  }> | null;
   summary: string | null;
   duration: number | null;
   recording: string | null;
-  callAnalysis: CallAnalysis | null;
+  callAnalysis: {
+    id: string;
+    disposition: Disposition | null;
+    leadTemperature: LeadTemperature | null;
+  } | null;
 }
 
 // ─── Dashboard ────────────────────────────────────────────────────────────────
@@ -590,123 +611,82 @@ export interface DashboardOverview {
     total: number;
     qualified: number;
     notQualified: number;
-    qualificationRate: string;
+    qualificationRate: string; // V1: string with "%" suffix
   };
   calls: {
     total: number;
     completed: number;
     failed: number;
-    successRate: string;
+    successRate: string; // V1: string with "%" suffix
   };
 }
 
-// ─── Dashboard Activity ───────────────────────────────────────────────────────
-
 export interface DashboardQualifiedLead {
   leadId: string;
-  name: string;
+  name: string | null;
   phone: string;
   campaign: string;
-  disposition: Disposition;
-  leadTemperature: LeadTemperature | null;
+  disposition: string | null;
+  leadTemperature: string | null;
   qualifiedAt: string;
 }
 
 export interface DashboardRecentCall {
   id: string;
-  status: CallStatus;
-  duration?: number;
-  startedAt?: string;
-  lead: { name: string; phone: string };
-  campaign: { name: string };
-  callAnalysis?: {
-    disposition: Disposition | null;
-    leadTemperature: LeadTemperature | null;
+  bolnaCallId: string | null;
+  status: string;
+  duration: number | null;
+  cost: number | null;
+  recording: string | null;
+  startedAt: string | null;
+  createdAt: string;
+  lead: { name: string | null; phone: string } | null;
+  campaign: { name: string } | null;
+  callAnalysis: {
+    disposition: string | null;
+    leadTemperature: string | null;
   } | null;
 }
 
 export interface DashboardActivity {
   recentCalls: DashboardRecentCall[];
   qualifiedLeads: DashboardQualifiedLead[];
-  recentCampaigns: Campaign[];
+  recentCampaigns: Array<{
+    id: string;
+    name: string;
+    status: string;
+    totalLeads: number;
+    calledLeads: number;
+    completedLeads: number;
+    failedLeads: number;
+    createdAt: string;
+  }>;
 }
 
 export interface DashboardCampaign {
   id: string;
   name: string;
-  status: CampaignStatus;
+  status: string;
   assistant: string;
   totalLeads: number;
   calledLeads: number;
   completedLeads: number;
   failedLeads: number;
-  successRate: string;
+  completedRate: string; // V1: renamed from successRate
   progress: string;
   startedAt: string | null;
   completedAt: string | null;
   createdAt: string;
 }
 
-// ─── Auth ─────────────────────────────────────────────────────────────────────
-
-export interface LoginInput {
-  email: string;
-  password: string;
-}
-
-export interface RegisterInput {
-  tenantName: string;
-  name: string;
-  email: string;
-  password: string;
-}
-
-export interface AuthResponse {
-  token: string;
-  user: User;
-  tenant: {
-    id: string;
-    name: string;
-    apiKey: string;
-  };
-}
-
-// ─── Users (Team) ─────────────────────────────────────────────────────────────
-
-export interface CreateUserInput {
-  name: string;
-  email: string;
-  password: string;
-  role: "ADMIN" | "USER";
-}
-
-export interface UpdateUserInput {
-  name?: string;
-  email?: string;
-  role?: "ADMIN" | "USER";
-}
-
 // ─── Query Params ─────────────────────────────────────────────────────────────
-
-export interface ParseLeadsResult {
-  total: number;
-  valid: number;
-  invalid: number;
-  nonIndian: number;
-  nonIndianNumbers: string[];
-  inFileDuplicates: number;
-  inFileDuplicateNumbers: string[];
-  dbDuplicates: number;
-  dbDuplicateNumbers: string[];
-  readyToImport: number;
-}
 
 export interface LeadQueryParams {
   campaignId?: string;
   status?: string;
   dateFrom?: string;
   dateTo?: string;
-  sortBy?: string;
+  sortBy?: "createdAt" | "name" | "updatedAt";
   sortOrder?: "asc" | "desc";
   page?: number;
   limit?: number;
@@ -722,7 +702,7 @@ export interface LeadStats {
   noAnswer: number;
   doNotCall: number;
   qualified: number;
-  qualificationRate: string; // e.g. "42.9%"
+  qualificationRate: string;
 }
 
 export interface CallQueryParams {
@@ -731,30 +711,55 @@ export interface CallQueryParams {
   status?: string;
   disposition?: string;
   leadTemperature?: string;
-   locationMatch?: string;
+  locationMatch?: string;
   dateFrom?: string;
   dateTo?: string;
-  sortBy?: string;
+  sortBy?: "startedAt" | "duration" | "cost" | "createdAt";
   sortOrder?: "asc" | "desc";
   page?: number;
   limit?: number;
-  search?: string; // <─── ADD THIS
+  search?: string;
 }
 
-export interface ApiMeta {
+export interface CallStats {
+  total: number;
+  completed: number;
+  failed: number;
+  noAnswer: number;
+  busy: number;
+  avgDuration: number;
+  qualifiedCount: number;
+  qualificationRate: string;
+  dispositionBreakdown: Record<string, number>;
+  temperatureBreakdown: Record<string, number>;
+}
+
+// ─── Legacy compat (remove after full migration) ─────────────────────────────
+
+/** @deprecated Use Pagination from ./api */
+export interface PaginationMeta {
   total: number;
   page: number;
   limit: number;
-  totalPages: number;
-  hasNextPage: boolean;
-  hasPreviousPage: boolean;
+  pages: number;
 }
 
-export interface ApiValidationError {
-  field: string;
+/** @deprecated Use domain-specific paginated responses */
+export interface PaginatedData<T> {
+  items: T[];
+  pagination: PaginationMeta;
+  calls?: Call[];
+  leads?: Lead[];
+}
+
+/** @deprecated */
+export interface PaginatedResponse<T> {
+  success: boolean;
+  data: PaginatedData<T>;
   message: string;
 }
 
+/** @deprecated */
 export interface IBaseQueryOptions {
   page: number;
   limit: number;
@@ -762,4 +767,20 @@ export interface IBaseQueryOptions {
   orderBy?: string;
   orderDir?: "asc" | "desc";
   includeDeleted?: boolean;
+}
+
+/** @deprecated */
+export interface IUser {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  createdAt: Date;
+}
+
+/** @deprecated */
+export interface ILoginResponse {
+  data: IUser;
+  token?: string;
+  message?: string;
 }
