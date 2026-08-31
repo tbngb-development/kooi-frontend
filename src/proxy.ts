@@ -5,9 +5,8 @@ const AUTH_PAGES = ["/login", "/register", "/admin/login"];
 function getSessionInfo(req: NextRequest) {
   const hasAccessToken = req.cookies.has("access_token");
   const hasSessionCookie = req.cookies.get("has-session")?.value === "true";
-  const hasLegacyToken = req.cookies.has("auth-token");
 
-  const isAuthenticated = hasAccessToken || hasSessionCookie || hasLegacyToken;
+  const isAuthenticated = hasAccessToken || hasSessionCookie;
 
   const isPlatformAdmin =
     req.cookies.get("is-platform-admin")?.value === "true" ||
