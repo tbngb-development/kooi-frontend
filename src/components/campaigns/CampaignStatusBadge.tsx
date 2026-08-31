@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/Badge";
-import type { CampaignStatus } from "@/types";
+import type { CampaignStatus } from "@/types/campaign";
 
 const STATUS_CONFIG: Record<
   CampaignStatus,

@@ -1,5 +1,6 @@
 import apiClient from "@/lib/axios";
-import type { ApiResponse, Tenant, TenantStats } from "@/types";
+import { ApiResponse } from "@/types/api";
+import { Tenant, TenantStats } from "@/types/tenant";
 
 const TENANT_BASE = "/api/v1/tenants";
 const ADMIN_BASE = "/api/v1/admin/tenants";

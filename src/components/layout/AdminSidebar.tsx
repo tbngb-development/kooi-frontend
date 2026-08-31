@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { useAuthStore } from "@/store/authStore";
-import { useAdminLogout } from "@/hooks/useAuth";
+import { useAdminLogout } from "@/hooks/admin/useAdminAuth";
 
 interface NavItem {
   label: string;

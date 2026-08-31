@@ -15,7 +15,7 @@ import {
   FileText,
 } from "lucide-react";
 import { useExtractBrochure } from "@/hooks/useBrochure";
-import type { FlattenedBrochure } from "@/types";
+import type { FlattenedBrochure } from "@/types/brochure";
 
 // ── Fields auto-injected from lead data — shown as read-only in the grid ────
 const LEAD_AUTO_FIELDS = new Set([

@@ -22,7 +22,7 @@ import {
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
-import type { CampaignStatus } from "@/types";
+import type { CampaignStatus } from "@/types/campaign";
 
 const UPLOAD_ALLOWED_STATUSES: CampaignStatus[] = [
   "DRAFT",

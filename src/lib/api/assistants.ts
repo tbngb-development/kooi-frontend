@@ -1,12 +1,12 @@
 import apiClient from "@/lib/axios";
-import type {
-  ApiResponse,
+import { ApiResponse } from "@/types/api";
+import {
   Assistant,
   AssistantDetail,
   BolnaAgent,
   RegisterAssistantInput,
   UpdateAssistantInput,
-} from "@/types";
+} from "@/types/assistant";
 
 const TENANT_BASE = "/api/v1/assistants";
 const ADMIN_BASE = "/api/v1/admin/assistants";
@@ -110,7 +110,7 @@ export const assistantsApi = {
     return res.data.data;
   },
 
-  adminDelete: async (tenantId: string, id: string): Promise<void> => { 
+  adminDelete: async (tenantId: string, id: string): Promise<void> => {
     const res = await apiClient.delete<ApiResponse<null>>(
       `${ADMIN_BASE}/${id}`,
       { params: { tenantId } },

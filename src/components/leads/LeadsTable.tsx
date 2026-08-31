@@ -6,9 +6,10 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Pagination } from "@/components/ui/Pagination";
 import { LeadStatusBadge } from "./LeadStatusBadge";
 import { formatDateOnly, formatTimeOnly } from "@/lib/utils/formatDate";
-import type { Lead, PaginationMeta } from "@/types";
+import type { Pagination as PaginationMeta } from "@/types/api";
 import { Users } from "lucide-react";
 import Link from "next/link";
+import { Lead } from "@/types/lead";
 
 interface LeadsTableProps {
   leads: Lead[];

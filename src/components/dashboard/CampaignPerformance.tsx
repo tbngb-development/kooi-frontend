@@ -4,7 +4,7 @@
 
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import type { DashboardCampaign } from "@/types";
+import type { DashboardCampaign } from "@/types/dashboard";
 
 const statusVariant: Record<
   string,

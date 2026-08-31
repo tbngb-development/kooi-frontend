@@ -21,7 +21,7 @@ import type {
   Assistant,
   RegisterAssistantInput,
   UpdateAssistantInput,
-} from "@/types";
+} from "@/types/assistant";
 
 interface AdminAssistantSectionProps {
   tenantId: string;

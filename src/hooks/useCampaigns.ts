@@ -9,7 +9,7 @@ import type {
   CreateCampaignInput,
   ParseLeadsResult,
   UpdateCampaignInput,
-} from "@/types";
+} from "@/types/campaign";
 
 export const CAMPAIGNS_KEY = ["campaigns"] as const;
 

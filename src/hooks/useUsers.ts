@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { usersApi } from "@/lib/api/users";
 import { getAxiosErrorMessage } from "@/lib/axios-error-message";
-import type { CreateUserInput, UpdateUserInput } from "@/types";
+import type { CreateUserInput, UpdateUserInput } from "@/types/user";
 
 export const USERS_KEY = ["users"] as const;
 

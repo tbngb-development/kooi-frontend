@@ -3,7 +3,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { leadsApi } from "@/lib/api/leads";
-import type { LeadQueryParams, LeadStats } from "@/types";
+import type { LeadQueryParams, LeadStats } from "@/types/lead";
 
 export const LEADS_KEY = ["leads"] as const;
 

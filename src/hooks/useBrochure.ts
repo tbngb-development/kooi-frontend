@@ -9,7 +9,7 @@ import {
 } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { brochureApi } from '@/lib/api/brochures';
-import type { FlattenedBrochure } from '@/types';
+import type { FlattenedBrochure } from '@/types/brochure';
 
 export const BROCHURES_KEY = ['brochures'] as const;
 

@@ -1,13 +1,13 @@
 import apiClient from "@/lib/axios";
+import type { ApiResponse } from "@/types/api";
 import type {
-  ApiResponse,
   Campaign,
   CampaignStats,
   CreateCampaignInput,
-  UpdateCampaignInput,
   ParseLeadsResult,
   CampaignPerformance,
-} from "@/types";
+  UpdateCampaignInput,
+} from "@/types/campaign";
 
 // V1: Campaigns architecture mapped to /api/v1/campaigns
 export const campaignsApi = {

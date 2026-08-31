@@ -1,22 +1,18 @@
 import apiClient from "@/lib/axios";
-import type {
-  ApiResponse,
-  Lead,
-  LeadDetail,
-  LeadQueryParams,
-  LeadStats,
-  PaginatedLeadsResponse,
-  Pagination,
-} from "@/types";
+import { ApiResponse, PaginatedLeadsResponse, Pagination } from "@/types/api";
+import { Lead, LeadDetail, LeadQueryParams, LeadStats } from "@/types/lead";
 
 // V1: Leads query API mapped to /api/v1/leads
 export const leadsApi = {
   getAll: async (
     params: LeadQueryParams = {},
   ): Promise<{ leads: Lead[]; pagination: Pagination }> => {
-    const res = await apiClient.get<PaginatedLeadsResponse<Lead>>("/api/v1/leads", {
-      params,
-    });
+    const res = await apiClient.get<PaginatedLeadsResponse<Lead>>(
+      "/api/v1/leads",
+      {
+        params,
+      },
+    );
     if (!res.data.success || !res.data.data) {
       throw new Error("Failed to fetch leads");
     }

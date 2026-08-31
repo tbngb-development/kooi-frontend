@@ -1,10 +1,10 @@
 import apiClient from "@/lib/axios";
-import type {
-  ApiResponse,
+import { ApiResponse } from "@/types/api";
+import {
   DashboardActivity,
   DashboardCampaign,
   DashboardOverview,
-} from "@/types";
+} from "@/types/dashboard";
 
 // V1: Realtime metric aggregation queries mapped to /api/v1/dashboard/*
 export const dashboardApi = {

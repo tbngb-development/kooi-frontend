@@ -1,10 +1,6 @@
 import apiClient from '@/lib/axios';
-import type {
-  ApiResponse,
-  CreateUserInput,
-  UpdateUserInput,
-  TeamMember,
-} from '@/types';
+import { ApiResponse } from '@/types/api';
+import { CreateUserInput, TeamMember, UpdateUserInput } from '@/types/user';
 
 // V1: Workspace users management API mapped to /api/v1/users
 export const usersApi = {

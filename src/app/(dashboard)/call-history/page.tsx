@@ -8,7 +8,7 @@ import { PageSpinner } from '@/components/ui/Spinner';
 import { useCalls } from '@/hooks/useCalls';
 import { useCampaigns } from '@/hooks/useCampaigns';
 import { usePagination } from '@/hooks/usePagination';
-import type { CallStatus } from '@/types';
+import type { CallStatus } from '@/types/call';
 import { useState } from 'react';
 
 const STATUS_OPTIONS = [

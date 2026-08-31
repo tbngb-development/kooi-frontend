@@ -3,7 +3,6 @@
 
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import {
-  Phone,
   Bot,
   BarChart3,
   Zap,
@@ -26,7 +25,6 @@ import {
   Globe,
   Mic,
   Activity,
-  ChevronRight,
   Check,
 } from "lucide-react";
 

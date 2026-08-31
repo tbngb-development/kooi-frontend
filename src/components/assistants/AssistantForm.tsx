@@ -13,7 +13,7 @@ import type {
   Assistant,
   RegisterAssistantInput,
   UpdateAssistantInput,
-} from "@/types";
+} from "@/types/assistant";
 
 // ─── Unified Validation Schema ────────────────────────────────────────────────
 const assistantFormSchema = z.object({

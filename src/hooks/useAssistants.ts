@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { assistantsApi } from "@/lib/api/assistants";
 import { getAxiosErrorMessage } from "@/lib/axios-error-message";
-import type { RegisterAssistantInput, UpdateAssistantInput } from "@/types";
+import type { RegisterAssistantInput, UpdateAssistantInput } from "@/types/assistant";
 
 const ASSISTANTS_KEY = ["assistants"] as const;
 

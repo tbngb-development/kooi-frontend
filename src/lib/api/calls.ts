@@ -1,22 +1,23 @@
 import apiClient from "@/lib/axios";
-import type {
-  ApiResponse,
+import { ApiResponse, PaginatedCallsResponse, Pagination } from "@/types/api";
+import {
   Call,
   CallQueryParams,
-  CallTranscriptResponse,
-  PaginatedCallsResponse,
-  Pagination,
   CallStats,
-} from "@/types";
+  CallTranscriptResponse,
+} from "@/types/call";
 
 // V1: Voice Call queries mapped to /api/v1/calls
 export const callsApi = {
   getAll: async (
     params: CallQueryParams = {},
   ): Promise<{ calls: Call[]; pagination: Pagination }> => {
-    const res = await apiClient.get<PaginatedCallsResponse<Call>>("/api/v1/calls", {
-      params,
-    });
+    const res = await apiClient.get<PaginatedCallsResponse<Call>>(
+      "/api/v1/calls",
+      {
+        params,
+      },
+    );
     if (!res.data.success || !res.data.data) {
       throw new Error("Failed to fetch calls");
     }
@@ -41,8 +42,13 @@ export const callsApi = {
     return res.data.data;
   },
 
-  getCallStats: async (params?: { campaignId?: string }): Promise<CallStats> => {
-    const res = await apiClient.get<ApiResponse<CallStats>>("/api/v1/calls/stats", { params });
+  getCallStats: async (params?: {
+    campaignId?: string;
+  }): Promise<CallStats> => {
+    const res = await apiClient.get<ApiResponse<CallStats>>(
+      "/api/v1/calls/stats",
+      { params },
+    );
     if (!res.data.success || !res.data.data) {
       throw new Error(res.data.error ?? "Failed to fetch call statistics");
     }

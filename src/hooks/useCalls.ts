@@ -4,7 +4,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { callsApi } from "@/lib/api/calls";
-import type { CallQueryParams } from "@/types";
+import type { CallQueryParams } from "@/types/call";
 
 export const CALLS_KEY = ["calls"] as const;
 

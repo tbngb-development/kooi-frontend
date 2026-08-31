@@ -1,4 +1,5 @@
 import apiClient from "@/lib/axios";
+import { AUTH_ENDPOINTS } from "@/constants/api-routes/auth-endpoint";
 import type {
   LoginInput,
   LoginResponse,
@@ -10,17 +11,14 @@ import type {
   InviteResponse,
   AcceptInviteInput,
   TokenPayload,
-} from "@/types/user";
+} from "@/types/auth";
 import type { ApiResponse } from "@/types/api";
-
-const BASE = "/api/v1/auth";
-const ADMIN_BASE = "/api/v1/admin/auth";
 
 // ─── Public ───────────────────────────────────────────────────────────────────
 
 export async function login(input: LoginInput) {
   const { data } = await apiClient.post<ApiResponse<LoginResponse>>(
-    `${BASE}/login`,
+    AUTH_ENDPOINTS.LOGIN,
     input,
   );
   return data.data;
@@ -28,7 +26,7 @@ export async function login(input: LoginInput) {
 
 export async function register(input: RegisterInput) {
   const { data } = await apiClient.post<ApiResponse<RegisterResponse>>(
-    `${BASE}/register`,
+    AUTH_ENDPOINTS.REGISTER,
     input,
   );
   return data.data;
@@ -36,23 +34,15 @@ export async function register(input: RegisterInput) {
 
 export async function refreshTokens() {
   const { data } = await apiClient.post<ApiResponse<{ tokens: TokenPayload }>>(
-    `${BASE}/refresh`,
+    AUTH_ENDPOINTS.REFRESH,
     {},
   );
   return data.data.tokens;
 }
 
-export async function selectTenant(tenantId: string) {
-  const { data } = await apiClient.post<ApiResponse<SelectTenantResponse>>(
-    `${BASE}/select-tenant`,
-    { tenantId },
-  );
-  return data.data;
-}
-
 export async function acceptInvite(input: AcceptInviteInput) {
   const { data } = await apiClient.post<ApiResponse<RegisterResponse>>(
-    `${BASE}/accept-invite`,
+    AUTH_ENDPOINTS.ACCEPT_INVITE,
     input,
   );
   return data.data;
@@ -60,16 +50,24 @@ export async function acceptInvite(input: AcceptInviteInput) {
 
 // ─── Authenticated ────────────────────────────────────────────────────────────
 
+export async function selectTenant(tenantId: string) {
+  const { data } = await apiClient.post<ApiResponse<SelectTenantResponse>>(
+    AUTH_ENDPOINTS.SELECT_TENANT,
+    { tenantId },
+  );
+  return data.data;
+}
+
 export async function getProfile() {
   const { data } = await apiClient.get<ApiResponse<ProfileResponse>>(
-    `${BASE}/profile`,
+    AUTH_ENDPOINTS.PROFILE,
   );
   return data.data;
 }
 
 export async function createInvite(input: InviteInput) {
   const { data } = await apiClient.post<ApiResponse<InviteResponse>>(
-    `${BASE}/invites`,
+    AUTH_ENDPOINTS.INVITES,
     input,
   );
   return data.data;
@@ -77,18 +75,8 @@ export async function createInvite(input: InviteInput) {
 
 export async function logout() {
   const { data } = await apiClient.post<ApiResponse<{ message: string }>>(
-    `${BASE}/logout`,
+    AUTH_ENDPOINTS.LOGOUT,
     {},
-  );
-  return data.data;
-}
-
-// ─── Admin ────────────────────────────────────────────────────────────────────
-
-export async function adminLogin(input: { email: string; password: string }) {
-  const { data } = await apiClient.post<ApiResponse<LoginResponse>>(
-    `${ADMIN_BASE}/login`,
-    input,
   );
   return data.data;
 }

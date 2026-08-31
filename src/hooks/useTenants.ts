@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { tenantsApi } from "@/lib/api/tenants";
 import { getAxiosErrorMessage } from "@/lib/axios-error-message";
-import type { Tenant } from "@/types";
+import type { Tenant } from "@/types/tenant";
 
 const TENANTS_KEY = ["tenants"] as const;
 const WORKSPACE_KEY = ["workspace"] as const;

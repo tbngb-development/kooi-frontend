@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/Card";
-import type { Campaign, CampaignPerformance } from "@/types";
+import type { Campaign, CampaignPerformance } from "@/types/campaign";
 import {
   Flame,
   PhoneCall,

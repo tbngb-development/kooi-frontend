@@ -14,8 +14,8 @@ import { Input } from "@/components/ui/Input";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageSpinner } from "@/components/ui/Spinner";
-import type { TeamMember } from "@/types";
-import type { TenantRole } from "@/store/authStore";
+import { TenantRole } from "@/types/tenant";
+import { TeamMember } from "@/types/user";
 
 // ─── Invite Form Validation Schema ───────────────────────────────────────────
 const inviteSchema = z.object({

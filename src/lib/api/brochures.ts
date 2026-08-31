@@ -1,11 +1,7 @@
 import apiClient from "@/lib/axios";
-import type {
-  ApiResponse,
-  Brochure,
-  BrochureExtractionResult,
-  BrochureSummary,
-  FlattenedBrochure,
-} from "@/types";
+import { ApiResponse } from "@/types/api";
+import { Brochure, BrochureExtractionResult, BrochureSummary, FlattenedBrochure } from "@/types/brochure";
+
 
 // V1: Pluralized routes targeting /api/v1/brochures
 export const brochureApi = {

@@ -10,7 +10,7 @@ import { useLeads } from '@/hooks/useLeads';
 import { useCampaigns } from '@/hooks/useCampaigns';
 import { useDebounce } from '@/hooks/useDebounce';
 import { usePagination } from '@/hooks/usePagination';
-import type { LeadStatus } from '@/types';
+import type { LeadStatus } from '@/types/lead';
 import { Search } from 'lucide-react';
 import { useState } from 'react';
 

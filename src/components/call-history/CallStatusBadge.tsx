@@ -1,7 +1,7 @@
 // src/components/calls/CallStatusBadge.tsx
 
 import { Badge } from '@/components/ui/Badge';
-import type { CallStatus } from '@/types';
+import type { CallStatus } from '@/types/call';
 
 const config: Record<
   CallStatus,

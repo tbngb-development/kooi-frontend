@@ -7,7 +7,7 @@ import { Card }       from '@/components/ui/Card';
 import { Button }     from '@/components/ui/Button';
 import { Input }      from '@/components/ui/Input';
 import { AlertCircle, ChevronLeft, CheckCircle2, Info } from 'lucide-react';
-import type { FlattenedBrochure } from '@/types';
+import type { FlattenedBrochure } from '@/types/brochure';
 
 interface BrochureReviewFormProps {
   data:      FlattenedBrochure;
