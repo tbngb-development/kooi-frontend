@@ -18,10 +18,12 @@ export function useAdminBolnaAgents() {
 }
 
 export function useAdminAssistants(tenantId: string) {
+  const isTenantValid = Boolean(tenantId) && tenantId !== "undefined";
+
   return useQuery({
     queryKey: QUERY_KEYS.ASSISTANTS.adminList(tenantId),
     queryFn: () => adminAssistantsApi.adminGetAll(tenantId),
-    enabled: !!tenantId,
+    enabled: isTenantValid,
   });
 }
 

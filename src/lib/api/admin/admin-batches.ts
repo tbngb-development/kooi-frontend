@@ -8,6 +8,14 @@ export const adminBatchesApi = {
     tenantId: string,
     campaignId: string,
   ): Promise<LeadBatch[]> => {
+    if (
+      !tenantId ||
+      !campaignId ||
+      tenantId === "undefined" ||
+      campaignId === "undefined"
+    ) {
+      return [];
+    }
     const res = await apiClient.get<ApiResponse<LeadBatch[]>>(
       ADMIN_BATCH_ENDPOINTS.BASE,
       { params: { tenantId, campaignId } },
@@ -23,6 +31,16 @@ export const adminBatchesApi = {
     campaignId: string,
     id: string,
   ): Promise<LeadBatch> => {
+    if (
+      !tenantId ||
+      !campaignId ||
+      !id ||
+      tenantId === "undefined" ||
+      campaignId === "undefined" ||
+      id === "undefined"
+    ) {
+      throw new Error("tenantId, campaignId, and batchId are required");
+    }
     const res = await apiClient.get<ApiResponse<LeadBatch>>(
       ADMIN_BATCH_ENDPOINTS.BY_ID(id),
       { params: { tenantId, campaignId } },
@@ -38,6 +56,16 @@ export const adminBatchesApi = {
     campaignId: string,
     id: string,
   ): Promise<BatchStats> => {
+    if (
+      !tenantId ||
+      !campaignId ||
+      !id ||
+      tenantId === "undefined" ||
+      campaignId === "undefined" ||
+      id === "undefined"
+    ) {
+      throw new Error("tenantId, campaignId, and batchId are required");
+    }
     const res = await apiClient.get<ApiResponse<BatchStats>>(
       ADMIN_BATCH_ENDPOINTS.STATS(id),
       { params: { tenantId, campaignId } },
