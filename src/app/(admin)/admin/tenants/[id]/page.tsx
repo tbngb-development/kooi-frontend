@@ -1,348 +1,377 @@
 "use client";
 
 import { use, useState } from "react";
-import { toast } from "sonner";
-import {
-  Building2,
-  Calendar,
-  Copy,
-  Eye,
-  EyeOff,
-  Mail,
-  Phone,
-  Target,
-  TrendingUp,
-  Users,
-} from "lucide-react";
-import { Badge } from "@/components/ui/Badge";
-import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
-import GoBackButton from "@/components/ui/GoBackButton";
-import { PageSpinner } from "@/components/ui/Spinner";
-import { AdminAssistantSection } from "@/components/assistants/AdminAssistantSection";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   useTenant,
   useTenantStats,
   useToggleTenantStatus,
 } from "@/hooks/admin/useAdminTenants";
-import { formatDate } from "@/lib/utils/formatDate";
+import { useAdminCampaigns } from "@/hooks/admin/useAdminCampaigns";
+import { useAdminCalls } from "@/hooks/admin/useAdminCalls";
+import { useAdminAssistants } from "@/hooks/admin/useAdminAssistants";
+import { QUERY_KEYS } from "@/constants/config/query-keys";
+import { RefreshButton } from "@/components/ui/RefreshButton";
+import { Card } from "@/components/ui/Card";
+import { Spinner } from "@/components/ui/Spinner";
+import { Badge } from "@/components/ui/Badge";
+import {
+  Building2,
+  PhoneCall,
+  LayoutDashboard,
+  ToggleLeft,
+  ToggleRight,
+  Star,
+} from "lucide-react";
+import GoBackButton from "@/components/ui/GoBackButton";
 
-// ── Stat Card ─────────────────────────────────────────────────────────────────
-
-interface StatCardProps {
-  label: string;
-  value: string | number;
-  icon: React.ReactNode;
-  description?: string;
-  accent?: "green" | "blue" | "purple" | "orange";
-}
-
-const accentClasses = {
-  green: {
-    icon: "bg-success-50 text-success-600 border border-success-100",
-    value: "text-success-600",
-  },
-  blue: {
-    icon: "bg-info-50 text-info-600 border border-info-100",
-    value: "text-info-600",
-  },
-  purple: {
-    icon: "bg-purple-50 text-purple-600 border border-purple-100",
-    value: "text-purple-600",
-  },
-  orange: {
-    icon: "bg-warning-50 text-warning-600 border border-warning-100",
-    value: "text-warning-600",
-  },
-};
-
-function StatCard({
-  label,
-  value,
-  icon,
-  description,
-  accent = "green",
-}: StatCardProps) {
-  const classes = accentClasses[accent];
-  return (
-    <Card padding="md" className="border-surface-border bg-surface">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex flex-col gap-1 min-w-0">
-          <p className="text-base font-bold text-text-muted uppercase tracking-wider">
-            {label}
-          </p>
-          <p className={`text-2xl font-bold tracking-tight ${classes.value}`}>
-            {value}
-          </p>
-          {description && (
-            <p className="text-base text-text-muted mt-0.5">{description}</p>
-          )}
-        </div>
-        <div
-          className={`flex h-10 w-10 items-center justify-center rounded-lg shrink-0 ${classes.icon}`}
-        >
-          {icon}
-        </div>
-      </div>
-    </Card>
-  );
-}
-
-// ── Count Badge Card ──────────────────────────────────────────────────────────
-
-function CountBadgeCard({
-  label,
-  count,
-  icon,
-}: {
-  label: string;
-  count: number;
-  icon: React.ReactNode;
-}) {
-  return (
-    <div className="flex items-center gap-3 px-4 py-3 rounded-lg border border-surface-border bg-surface-subtle">
-      <div className="flex h-8 w-8 items-center justify-center rounded-md bg-surface text-text-muted border border-surface-border shrink-0 shadow-sm">
-        {icon}
-      </div>
-      <div className="min-w-0">
-        <p className="text-lg font-bold text-text-primary leading-tight">
-          {count}
-        </p>
-        <p className="text-base text-text-muted">{label}</p>
-      </div>
-    </div>
-  );
-}
-
-// ── Page ──────────────────────────────────────────────────────────────────────
-
-export default function TenantDetailPage({
-  params,
-}: {
+interface PageProps {
   params: Promise<{ id: string }>;
-}) {
-  const { id } = use(params);
-  const [showApiKey, setShowApiKey] = useState(false);
+}
 
-  const { data: tenant, isLoading: tenantLoading } = useTenant(id);
-  const { data: statsData, isLoading: statsLoading } = useTenantStats(id);
-  const { mutate: toggle, isPending: toggling } = useToggleTenantStatus();
+export default function AdminTenantDetailPage({ params }: PageProps) {
+  const { id: tenantId } = use(params);
+  const qc = useQueryClient();
+  const [activeTab, setActiveTab] = useState<
+    "campaigns" | "calls" | "assistants"
+  >("campaigns");
 
-  const isLoading = tenantLoading || statsLoading;
+  const {
+    data: tenant,
+    isLoading: isTenantLoading,
+    isFetching: isTenantFetching,
+  } = useTenant(tenantId);
+  const {
+    data: metrics,
+    isLoading: isMetricsLoading,
+    isFetching: isMetricsFetching,
+  } = useTenantStats(tenantId);
+  const { data: campaigns, isLoading: isCampaignsLoading } =
+    useAdminCampaigns(tenantId);
+  const { data: callsData, isLoading: isCallsLoading } = useAdminCalls({
+    tenantId,
+    limit: 10,
+  });
+  const { data: assistants, isLoading: isAssistantsLoading } =
+    useAdminAssistants(tenantId);
+  const { mutate: toggleStatus, isPending: isToggling } =
+    useToggleTenantStatus();
 
-  if (isLoading) return <PageSpinner />;
+  const isRefreshing = isTenantFetching || isMetricsFetching;
 
-  if (!tenant) {
+  const handleRefresh = () => {
+    qc.invalidateQueries({ queryKey: [...QUERY_KEYS.TENANTS.all, tenantId] });
+  };
+
+  const statCards = [
+    {
+      title: "Workspace Users",
+      value: metrics?.stats.totalUsers ?? 0,
+      icon: Building2,
+      color: "text-info-600 bg-info-50 border-info-100",
+    },
+    {
+      title: "Global Calls",
+      value: metrics?.stats.totalCalls ?? 0,
+      icon: PhoneCall,
+      color: "text-brand-600 bg-brand-50 border-brand-100",
+    },
+    {
+      title: "Active Campaigns",
+      value: metrics?.stats.activeCampaigns ?? 0,
+      icon: LayoutDashboard,
+      color: "text-secondary-600 bg-secondary-50 border-secondary-100",
+    },
+    {
+      title: "Qualification Rate",
+      value: metrics ? `${metrics.stats.qualificationRate}%` : "0%",
+      icon: Star,
+      color: "text-warning-600 bg-warning-50 border-warning-100",
+    },
+  ];
+
+  if (isTenantLoading) {
     return (
-      <div className="flex flex-col items-center justify-center h-[60vh] gap-3">
-        <Building2 size={36} className="text-text-placeholder" />
-        <p className="text-base font-semibold text-text-primary">
-          Tenant Workspace environment not found
-        </p>
-        <GoBackButton />
+      <div className="min-h-screen flex items-center justify-center bg-surface-muted">
+        <Spinner className="text-error-600" />
       </div>
     );
   }
 
-  const stats = statsData?.stats;
-
-  // Render email and apiKey safely with strict fallbacks
-  const tenantEmail = "No contact email configured";
-  const rawApiKey = "Api key un-available";
-  const maskedApiKey = rawApiKey
-    ? `${rawApiKey.slice(0, 8)}${"•".repeat(24)}${rawApiKey.slice(-4)}`
-    : "Configuration missing";
-
-  function handleCopyApiKey() {
-    if (!rawApiKey) return;
-    navigator.clipboard.writeText(rawApiKey);
-    toast.success("Platform secret API key copied to clipboard");
+  if (!tenant) {
+    return (
+      <div className="p-8 text-center text-text-muted">
+        Organization instance could not be found.
+      </div>
+    );
   }
 
   return (
-    <div className="flex flex-col gap-6 max-w-7xl mx-auto px-4 py-6">
-      <div>
+    <div className="p-6 max-w-7xl w-full mx-auto space-y-6">
+      {/* Navigation and Actions Row */}
+      <div className="flex items-center justify-between">
         <GoBackButton />
+        <RefreshButton onRefresh={handleRefresh} isRefreshing={isRefreshing} />
       </div>
 
-      {/* Workspace Environment Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-surface border border-surface-border p-6 rounded-xl shadow-sm">
-        <div className="flex items-center gap-4">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-50 border border-brand-100 text-brand-600 shrink-0 shadow-sm">
-            <Building2 size={22} />
+      {/* Tenant Identity Header */}
+      <Card className="p-6 bg-surface border border-surface-border flex flex-col md:flex-row md:items-center justify-between gap-6 rounded-xl">
+        <div>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-text-primary tracking-tight">
+              {tenant.name}
+            </h1>
+            <Badge
+              variant={tenant.isActive ? "success" : "error"}
+              className="capitalize"
+            >
+              {tenant.isActive ? "Active Routing" : "Suspended"}
+            </Badge>
           </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <h2 className="text-xl font-bold text-text-primary tracking-tight">
-                {tenant.name}
-              </h2>
-              {tenant.isActive ? (
-                <Badge variant="success" dot animate>
-                  Active System
-                </Badge>
+          <p className="text-xs text-text-placeholder font-mono mt-1">
+            {tenant.id}
+          </p>
+        </div>
+
+        <button
+          onClick={() =>
+            toggleStatus({ id: tenant.id, isActive: !tenant.isActive })
+          }
+          disabled={isToggling}
+          className={`flex items-center gap-1.5 px-4 h-11 rounded-lg border text-sm font-semibold transition-all focus-ring cursor-pointer hover:shadow-sm disabled:opacity-50 ${
+            tenant.isActive
+              ? "bg-error-50 border-error-100 text-error-700 hover:bg-error-100/70"
+              : "bg-brand-50 border-brand-100 text-brand-700 hover:bg-brand-100/70"
+          }`}
+        >
+          {tenant.isActive ? (
+            <>
+              <ToggleRight size={16} className="stroke-[2.5]" />
+              <span>Suspend Workspace</span>
+            </>
+          ) : (
+            <>
+              <ToggleLeft size={16} className="stroke-[2.5]" />
+              <span>Activate Workspace</span>
+            </>
+          )}
+        </button>
+      </Card>
+
+      {/* Workspace Metric Matrix */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {statCards.map((card, idx) => {
+          const Icon = card.icon;
+          return (
+            <Card key={idx} className="p-4 flex items-start gap-3">
+              <div
+                className={`h-10 w-10 border rounded-lg flex items-center justify-center shrink-0 ${card.color}`}
+              >
+                <Icon size={18} />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-text-placeholder">
+                  {card.title}
+                </p>
+                <h3 className="text-lg font-bold text-text-primary tracking-tight mt-0.5">
+                  {isMetricsLoading ? (
+                    <span className="inline-block w-12 h-5 bg-surface-subtle animate-pulse rounded" />
+                  ) : (
+                    card.value
+                  )}
+                </h3>
+              </div>
+            </Card>
+          );
+        })}
+      </div>
+
+      {/* Tab Filter System */}
+      <div className="space-y-4">
+        <div className="flex border-b border-surface-border">
+          {(
+            [
+              {
+                key: "campaigns",
+                label: `Campaigns (${campaigns?.length ?? 0})`,
+              },
+              {
+                key: "calls",
+                label: `System Calls (${callsData?.calls.length ?? 0})`,
+              },
+              {
+                key: "assistants",
+                label: `Assign Assistants (${assistants?.length ?? 0})`,
+              },
+            ] as const
+          ).map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`px-5 py-3 text-sm font-bold border-b-2 transition-all cursor-pointer ${
+                activeTab === tab.key
+                  ? "border-error-600 text-error-700 font-extrabold"
+                  : "border-transparent text-text-muted hover:text-text-primary"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Tab Content Display */}
+        <Card className="p-5 border border-surface-border bg-surface rounded-xl">
+          {activeTab === "campaigns" && (
+            <div>
+              {isCampaignsLoading ? (
+                <div className="p-8 flex justify-center">
+                  <Spinner className="text-error-600" />
+                </div>
+              ) : !campaigns || campaigns.length === 0 ? (
+                <div className="p-8 text-center text-text-muted">
+                  No campaigns created.
+                </div>
               ) : (
-                <Badge variant="gray" dot>
-                  Deactivated
-                </Badge>
+                <div className="overflow-x-auto thin-scrollbar">
+                  <table className="w-full border-collapse text-left text-sm">
+                    <thead>
+                      <tr className="border-b border-surface-border text-text-secondary font-semibold">
+                        <th className="py-2 pb-3">Campaign</th>
+                        <th className="py-2 pb-3">Routing State</th>
+                        <th className="py-2 pb-3 text-right">Leads</th>
+                        <th className="py-2 pb-3 text-right">Completion</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-surface-subtle font-medium text-text-primary">
+                      {campaigns.map((camp) => (
+                        <tr key={camp.id}>
+                          <td className="py-3.5">
+                            <p className="font-semibold">{camp.name}</p>
+                            <p className="text-xs text-text-placeholder font-mono truncate max-w-sm">
+                              {camp.id}
+                            </p>
+                          </td>
+                          <td className="py-3.5">
+                            <Badge
+                              variant={
+                                camp.status === "RUNNING" ? "info" : "default"
+                              }
+                            >
+                              {camp.status}
+                            </Badge>
+                          </td>
+                          <td className="py-3.5 text-right font-mono">
+                            {camp.totalLeads}
+                          </td>
+                          <td className="py-3.5 text-right font-mono text-text-secondary">
+                            {camp.completedLeads} / {camp.totalLeads}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
             </div>
-            <div className="flex items-center gap-1.5 mt-1.5">
-              <Mail size={13} className="text-text-muted" />
-              <p className="text-base text-text-muted">{tenantEmail}</p>
+          )}
+
+          {activeTab === "calls" && (
+            <div>
+              {isCallsLoading ? (
+                <div className="p-8 flex justify-center">
+                  <Spinner className="text-error-600" />
+                </div>
+              ) : !callsData || callsData.calls.length === 0 ? (
+                <div className="p-8 text-center text-text-muted">
+                  No dialogue logs found.
+                </div>
+              ) : (
+                <div className="overflow-x-auto thin-scrollbar">
+                  <table className="w-full border-collapse text-left text-sm">
+                    <thead>
+                      <tr className="border-b border-surface-border text-text-secondary font-semibold">
+                        <th className="py-2 pb-3">Call ID</th>
+                        <th className="py-2 pb-3">Dialogue Status</th>
+                        <th className="py-2 pb-3 text-right">Duration</th>
+                        <th className="py-2 pb-3 text-right">
+                          Processing Cost
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-surface-subtle font-medium text-text-primary">
+                      {callsData.calls.map((call) => (
+                        <tr key={call.id}>
+                          <td className="py-3.5 font-mono text-xs">
+                            {call.id}
+                          </td>
+                          <td className="py-3.5">
+                            <Badge
+                              variant={
+                                call.status === "COMPLETED"
+                                  ? "success"
+                                  : "error"
+                              }
+                            >
+                              {call.status}
+                            </Badge>
+                          </td>
+                          <td className="py-3.5 text-right font-mono">
+                            {call.duration ? `${call.duration}s` : "--"}
+                          </td>
+                          <td className="py-3.5 text-right font-mono font-semibold text-text-secondary">
+                            {call.cost ? `$${call.cost.toFixed(3)}` : "$0.000"}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
-          </div>
-        </div>
+          )}
 
-        <Button
-          variant={tenant.isActive ? "danger" : "primary"}
-          size="sm"
-          loading={toggling}
-          onClick={() => toggle({ id: tenant.id, isActive: !tenant.isActive })}
-          className="shadow-sm font-semibold"
-        >
-          {tenant.isActive ? "Deactivate Workspace" : "Provision Workspace"}
-        </Button>
-      </div>
-
-      {/* Info Meta Column */}
-      <div className="flex flex-wrap gap-4 pl-1">
-        <div className="flex items-center gap-1.5 text-base text-text-muted">
-          <Calendar size={13} className="text-text-muted" />
-          <span>Provisioned {formatDate(tenant.createdAt)}</span>
-        </div>
-      </div>
-
-      {/* Core V1 Database Workspace Resource Counts */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <CountBadgeCard
-          label="Memberships"
-          count={tenant._count.memberships}
-          icon={<Users size={15} />}
-        />
-        <CountBadgeCard
-          label="Campaigns"
-          count={tenant._count.campaigns}
-          icon={<Target size={15} />}
-        />
-        <CountBadgeCard
-          label="Leads Loaded"
-          count={tenant._count.leads}
-          icon={<Users size={15} />}
-        />
-        <CountBadgeCard
-          label="Voice Calls Run"
-          count={tenant._count.calls}
-          icon={<Phone size={15} />}
-        />
-      </div>
-
-      {/* Global Campaign Performance Metrics */}
-      {stats ? (
-        <div className="space-y-3">
-          <h3 className="text-sm font-bold text-text-primary uppercase tracking-wider pl-1">
-            Performance & Resource Metrics
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <StatCard
-              label="Leads Dispatched"
-              value={stats.totalLeads}
-              icon={<Users size={18} />}
-              description={`${stats.qualifiedLeads} qualified successfully`}
-              accent="green"
-            />
-            <StatCard
-              label="Connected Interactions"
-              value={stats.totalCalls}
-              icon={<Phone size={18} />}
-              description={`${stats.completedCalls} completed analysis profiles`}
-              accent="blue"
-            />
-            <StatCard
-              label="Active Pipeline Campaigns"
-              value={stats.activeCampaigns}
-              icon={<Target size={18} />}
-              accent="purple"
-            />
-            <StatCard
-              label="Identified Qualified Leads"
-              value={stats.qualifiedLeads}
-              icon={<Users size={18} />}
-              accent="green"
-            />
-            <StatCard
-              label="Full Audio Conversions"
-              value={stats.completedCalls}
-              icon={<Phone size={18} />}
-              accent="blue"
-            />
-            <StatCard
-              label="Qualification Ratio"
-              value={`${stats.qualificationRate.toFixed(1)}%`}
-              icon={<TrendingUp size={18} />}
-              description="Confirmed qualified leads / processed base"
-              accent="orange"
-            />
-          </div>
-        </div>
-      ) : (
-        <Card padding="md" className="border-surface-border">
-          <p className="text-base text-text-muted text-center py-4">
-            Workspace telemetry performance profile unavailable.
-          </p>
+          {activeTab === "assistants" && (
+            <div>
+              {isAssistantsLoading ? (
+                <div className="p-8 flex justify-center">
+                  <Spinner className="text-error-600" />
+                </div>
+              ) : !assistants || assistants.length === 0 ? (
+                <div className="p-8 text-center text-text-muted">
+                  No assistants assigned.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {assistants.map((ast) => (
+                    <div
+                      key={ast.id}
+                      className="p-4 border border-surface-border rounded-lg bg-surface-muted flex items-start gap-3"
+                    >
+                      <div className="h-9 w-9 bg-error-50 border border-error-100 flex items-center justify-center rounded-lg text-error-600 shrink-0">
+                        <Star size={16} />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-bold text-text-primary text-sm">
+                          {ast.name}
+                        </p>
+                        <p className="text-[10px] text-text-placeholder font-mono mt-0.5 truncate">
+                          {ast.id}
+                        </p>
+                        <p className="text-xs text-text-secondary mt-1">
+                          Bolna Agent Ref:{" "}
+                          <span className="font-mono text-[10px] bg-surface-subtle border border-surface-border px-1.5 py-0.5 rounded text-text-muted">
+                            {ast.bolnaId}
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </Card>
-      )}
-
-      {/* Platform Level Voice Assistant Allocation Manager */}
-      <div className="flex flex-col gap-4 rounded-xl border border-surface-border bg-surface p-6 shadow-sm">
-        <h3 className="text-base font-bold text-text-primary uppercase tracking-wider">
-          Workspace Virtual Assistants
-        </h3>
-        <AdminAssistantSection tenantId={tenant.id} />
       </div>
-
-      {/* Secret Tenant Credentials */}
-      {rawApiKey && (
-        <Card padding="md" className="border-surface-border bg-surface">
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-base font-semibold text-text-primary">
-                  System API Key
-                </h3>
-                <p className="text-base text-text-muted mt-0.5">
-                  Restricted platform secret. Ensure environment security
-                  standards.
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="flex-1 flex items-center gap-2 px-3 py-2 rounded-md border border-surface-border bg-surface-subtle font-mono text-base text-text-secondary overflow-hidden">
-                <span className="truncate">
-                  {showApiKey ? rawApiKey : maskedApiKey}
-                </span>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowApiKey((v) => !v)}
-                leftIcon={showApiKey ? <EyeOff size={13} /> : <Eye size={13} />}
-                className="text-base font-semibold text-text-muted hover:text-text-primary"
-              >
-                {showApiKey ? "Hide Key" : "Reveal"}
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleCopyApiKey}
-                leftIcon={<Copy size={13} />}
-                className="text-base font-semibold border-surface-border"
-              >
-                Copy Key
-              </Button>
-            </div>
-          </div>
-        </Card>
-      )}
     </div>
   );
 }

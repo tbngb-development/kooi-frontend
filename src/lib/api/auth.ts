@@ -6,11 +6,12 @@ import type {
   RegisterInput,
   RegisterResponse,
   SelectTenantResponse,
+  RefreshResponse,
   ProfileResponse,
   InviteInput,
   InviteResponse,
   AcceptInviteInput,
-  TokenPayload,
+  AcceptInviteResponse,
 } from "@/types/auth";
 import type { ApiResponse } from "@/types/api";
 
@@ -33,15 +34,15 @@ export async function register(input: RegisterInput) {
 }
 
 export async function refreshTokens() {
-  const { data } = await apiClient.post<ApiResponse<{ tokens: TokenPayload }>>(
+  const { data } = await apiClient.post<ApiResponse<RefreshResponse>>(
     AUTH_ENDPOINTS.REFRESH,
     {},
   );
-  return data.data.tokens;
+  return data.data.refreshed;
 }
 
 export async function acceptInvite(input: AcceptInviteInput) {
-  const { data } = await apiClient.post<ApiResponse<RegisterResponse>>(
+  const { data } = await apiClient.post<ApiResponse<AcceptInviteResponse>>(
     AUTH_ENDPOINTS.ACCEPT_INVITE,
     input,
   );

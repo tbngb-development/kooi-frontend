@@ -1,144 +1,193 @@
 "use client";
 
-import Link from "next/link";
-import { Building2, ExternalLink } from "lucide-react";
-import { Button } from "@/components/ui/Button";
-import { Badge } from "@/components/ui/Badge";
-import { PageSpinner } from "@/components/ui/Spinner";
-import { EmptyState } from "@/components/ui/EmptyState";
+import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   useTenants,
   useToggleTenantStatus,
 } from "@/hooks/admin/useAdminTenants";
-import { formatDate } from "@/lib/utils/formatDate";
+import { QUERY_KEYS } from "@/constants/config/query-keys";
+import { Card } from "@/components/ui/Card";
+import { Spinner } from "@/components/ui/Spinner";
+import { Badge } from "@/components/ui/Badge";
+import { RefreshButton } from "@/components/ui/RefreshButton";
+import { Input } from "@/components/ui/Input";
+import { Search, ToggleLeft, ToggleRight, ExternalLink } from "lucide-react";
+import Link from "next/link";
+import { ADMIN_ROUTES } from "@/constants/routes/admin.routes";
 
-export default function TenantsPage() {
-  const { data: tenants, isLoading } = useTenants();
-  const { mutate: toggle, isPending } = useToggleTenantStatus();
+export default function AdminTenantsPage() {
+  const qc = useQueryClient();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | "active" | "suspended"
+  >("all");
 
-  if (isLoading) return <PageSpinner />;
+  const { data: tenants, isLoading, isFetching } = useTenants();
+  const { mutate: toggleStatus, isPending: isToggling } =
+    useToggleTenantStatus();
+
+  const handleRefresh = () => {
+    qc.invalidateQueries({ queryKey: QUERY_KEYS.TENANTS.all });
+  };
+
+  const filteredTenants = tenants?.filter((t) => {
+    const matchesSearch = t.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesStatus =
+      statusFilter === "all" ||
+      (statusFilter === "active" && t.isActive) ||
+      (statusFilter === "suspended" && !t.isActive);
+
+    return matchesSearch && matchesStatus;
+  });
 
   return (
-    <div className="flex flex-col gap-6 max-w-7xl mx-auto px-4 py-6">
-      {/* Page Header */}
-      <div>
-        <h2 className="text-xl font-bold text-text-primary tracking-tight">
-          Tenants
-        </h2>
-        <p className="text-base text-text-muted mt-1">
-          Monitor and manage all registered organization workspaces
-        </p>
+    <div className="p-6 max-w-7xl w-full mx-auto space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-text-primary tracking-tight">
+            Tenant Management
+          </h1>
+          <p className="text-sm text-text-muted mt-1">
+            Configure system access, activate or suspend organizations, and
+            review routing configurations.
+          </p>
+        </div>
+        <div className="shrink-0">
+          <RefreshButton onRefresh={handleRefresh} isRefreshing={isFetching} />
+        </div>
       </div>
 
-      {/* Tenants Table Board */}
-      {tenants && tenants.length > 0 ? (
-        <div className="bg-surface rounded-xl border border-surface-border shadow-sm overflow-hidden">
+      {/* Filters Toolbar */}
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+        <div className="relative flex-1">
+          <Input
+            type="text"
+            placeholder="Search tenant workspaces..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            leftIcon={<Search size={14} className="text-text-muted" />}
+            className="w-full max-w-md bg-surface border-surface-border text-sm"
+          />
+        </div>
+        <div className="flex border border-surface-border rounded-lg bg-surface p-1 self-start sm:self-auto shrink-0">
+          {(["all", "active", "suspended"] as const).map((filter) => (
+            <button
+              key={filter}
+              onClick={() => setStatusFilter(filter)}
+              className={`px-3 py-1 text-xs font-semibold rounded-md capitalize transition-colors cursor-pointer ${
+                statusFilter === filter
+                  ? "bg-error-50 text-error-700 font-bold"
+                  : "text-text-secondary hover:text-text-primary hover:bg-surface-muted"
+              }`}
+            >
+              {filter}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Tenants Table */}
+      <Card className="overflow-hidden border border-surface-border rounded-xl bg-surface shadow-sm">
+        {isLoading ? (
+          <div className="p-16 flex justify-center">
+            <Spinner className="text-error-600" />
+          </div>
+        ) : !filteredTenants || filteredTenants.length === 0 ? (
+          <div className="p-16 text-center text-text-muted">
+            No organizations found.
+          </div>
+        ) : (
           <div className="overflow-x-auto thin-scrollbar">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full border-collapse text-left text-sm">
               <thead>
-                <tr className="border-b border-surface-border bg-surface-subtle">
-                  <th className="px-6 py-4 text-base font-bold text-text-muted uppercase tracking-wider">
-                    Organization
-                  </th>
-                  <th className="px-4 py-4 text-base font-bold text-text-muted uppercase tracking-wider text-right">
-                    Memberships
-                  </th>
-                  <th className="px-4 py-4 text-base font-bold text-text-muted uppercase tracking-wider text-right">
-                    Campaigns
-                  </th>
-                  <th className="px-4 py-4 text-base font-bold text-text-muted uppercase tracking-wider text-right">
-                    Leads
-                  </th>
-                  <th className="px-4 py-4 text-base font-bold text-text-muted uppercase tracking-wider text-right">
-                    Calls
-                  </th>
-                  <th className="px-4 py-4 text-base font-bold text-text-muted uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-4 py-4 text-base font-bold text-text-muted uppercase tracking-wider">
-                    Created At
-                  </th>
-                  <th className="px-6 py-4" />
+                <tr className="border-b border-surface-border bg-surface-muted text-text-secondary font-semibold">
+                  <th className="px-5 py-3.5">Workspace Instance</th>
+                  <th className="px-5 py-3.5">Infrastructure Routing</th>
+                  <th className="px-5 py-3.5 text-right">Members</th>
+                  <th className="px-5 py-3.5 text-right">Campaigns</th>
+                  <th className="px-5 py-3.5 text-right font-mono">Calls</th>
+                  <th className="px-5 py-3.5 text-right">Control Toggle</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-surface-border">
-                {tenants.map((t) => (
+              <tbody className="divide-y divide-surface-subtle font-medium text-text-primary">
+                {filteredTenants.map((tenant) => (
                   <tr
-                    key={t.id}
-                    className="hover:bg-surface-hover/50 transition-colors duration-150"
+                    key={tenant.id}
+                    className="hover:bg-surface-muted/50 transition-colors"
                   >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <p className="text-base font-semibold text-text-primary leading-tight">
-                        {t.name}
-                      </p>
-                      <p className="text-base text-text-placeholder mt-0.5">
-                        ID: {t.id}
-                      </p>
-                    </td>
-                    <td className="px-4 py-4 text-right text-base text-text-secondary font-medium">
-                      {t._count.memberships}
-                    </td>
-                    <td className="px-4 py-4 text-right text-base text-text-secondary font-medium">
-                      {t._count.campaigns}
-                    </td>
-                    <td className="px-4 py-4 text-right text-base text-text-secondary font-medium">
-                      {t._count.leads}
-                    </td>
-                    <td className="px-4 py-4 text-right text-base text-text-secondary font-medium">
-                      {t._count.calls}
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      {t.isActive ? (
-                        <Badge variant="success" dot>
-                          Active
-                        </Badge>
-                      ) : (
-                        <Badge variant="gray" dot>
-                          Inactive
-                        </Badge>
-                      )}
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-base text-text-muted">
-                      {formatDate(t.createdAt)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2 justify-end">
-                        <Link href={`/admin/tenants/${t.id}`}>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            leftIcon={<ExternalLink size={13} />}
-                            className="text-base font-semibold border-surface-border"
-                          >
-                            View
-                          </Button>
-                        </Link>
-                        <Button
-                          size="sm"
-                          variant={t.isActive ? "outline" : "secondary"}
-                          onClick={() =>
-                            toggle({ id: t.id, isActive: !t.isActive })
-                          }
-                          loading={isPending}
-                          className="text-base font-semibold"
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-2">
+                        <Link
+                          href={ADMIN_ROUTES.TENANT_DETAIL(tenant.id)}
+                          className="font-bold text-text-primary hover:text-error-600 transition-colors group inline-flex items-center gap-1.5 focus-ring"
                         >
-                          {t.isActive ? "Deactivate" : "Activate"}
-                        </Button>
+                          <span>{tenant.name}</span>
+                          <ExternalLink
+                            size={12}
+                            className="text-text-placeholder group-hover:text-error-600 transition-colors shrink-0"
+                          />
+                        </Link>
                       </div>
+                      <p className="text-xs text-text-placeholder font-mono truncate mt-0.5 max-w-[200px]">
+                        {tenant.id}
+                      </p>
+                    </td>
+                    <td className="px-5 py-4">
+                      <Badge
+                        variant={tenant.isActive ? "success" : "error"}
+                        className="capitalize"
+                      >
+                        {tenant.isActive ? "Active Routing" : "Suspended"}
+                      </Badge>
+                    </td>
+                    <td className="px-5 py-4 text-right font-mono">
+                      {tenant._count.memberships}
+                    </td>
+                    <td className="px-5 py-4 text-right font-mono">
+                      {tenant._count.campaigns}
+                    </td>
+                    <td className="px-5 py-4 text-right font-mono text-text-secondary font-semibold">
+                      {tenant._count.calls}
+                    </td>
+                    <td className="px-5 py-4 text-right">
+                      <button
+                        onClick={() =>
+                          toggleStatus({
+                            id: tenant.id,
+                            isActive: !tenant.isActive,
+                          })
+                        }
+                        disabled={isToggling}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all focus-ring cursor-pointer hover:shadow-xs disabled:opacity-50 ${
+                          tenant.isActive
+                            ? "bg-error-50 border-error-100 text-error-700 hover:bg-error-100/70"
+                            : "bg-brand-50 border-brand-100 text-brand-700 hover:bg-brand-100/70"
+                        }`}
+                      >
+                        {tenant.isActive ? (
+                          <>
+                            <ToggleRight size={14} className="stroke-[2.5]" />
+                            <span>Suspend Tenant</span>
+                          </>
+                        ) : (
+                          <>
+                            <ToggleLeft size={14} className="stroke-[2.5]" />
+                            <span>Activate Tenant</span>
+                          </>
+                        )}
+                      </button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-        </div>
-      ) : (
-        <EmptyState
-          icon={<Building2 size={24} className="text-text-placeholder" />}
-          title="No tenants registered"
-          description="Organizations will appear here after registering a new tenant workspace environment."
-        />
-      )}
+        )}
+      </Card>
     </div>
   );
 }

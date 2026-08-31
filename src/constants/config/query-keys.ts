@@ -67,4 +67,54 @@ export const QUERY_KEYS = {
     activity: () => [...QUERY_KEYS.DASHBOARD.all, "activity"] as const,
     campaigns: () => [...QUERY_KEYS.DASHBOARD.all, "campaigns"] as const,
   },
+  // ── Admin-specific query keys ──────────────────────────────────────────────
+  ADMIN_DASHBOARD: {
+    all: ["admin", "dashboard"] as const,
+    overview: () => [...QUERY_KEYS.ADMIN_DASHBOARD.all, "overview"] as const,
+    tenantsHealth: () =>
+      [...QUERY_KEYS.ADMIN_DASHBOARD.all, "tenants-health"] as const,
+    activity: () => [...QUERY_KEYS.ADMIN_DASHBOARD.all, "activity"] as const,
+  },
+  ADMIN_CAMPAIGNS: {
+    all: (tenantId: string) => ["admin", "campaigns", tenantId] as const,
+    detail: (tenantId: string, id: string) =>
+      ["admin", "campaigns", tenantId, id] as const,
+    stats: (tenantId: string, id: string) =>
+      ["admin", "campaigns", tenantId, id, "stats"] as const,
+    performance: (tenantId: string, id: string) =>
+      ["admin", "campaigns", tenantId, id, "performance"] as const,
+  },
+  ADMIN_BATCHES: {
+    all: (tenantId: string, campaignId: string) =>
+      ["admin", "batches", tenantId, campaignId] as const,
+    detail: (tenantId: string, campaignId: string, id: string) =>
+      ["admin", "batches", tenantId, campaignId, id] as const,
+    stats: (tenantId: string, campaignId: string, id: string) =>
+      ["admin", "batches", tenantId, campaignId, id, "stats"] as const,
+  },
+  ADMIN_LEADS: {
+    all: (tenantId: string) => ["admin", "leads", tenantId] as const,
+    list: (tenantId: string, params: Record<string, unknown>) =>
+      ["admin", "leads", tenantId, "list", params] as const,
+    detail: (tenantId: string, id: string) =>
+      ["admin", "leads", tenantId, id] as const,
+    stats: (tenantId: string, params: Record<string, unknown>) =>
+      ["admin", "leads", tenantId, "stats", params] as const,
+  },
+  ADMIN_CALLS: {
+    all: (tenantId: string) => ["admin", "calls", tenantId] as const,
+    list: (tenantId: string, params: Record<string, unknown>) =>
+      ["admin", "calls", tenantId, "list", params] as const,
+    detail: (tenantId: string, id: string) =>
+      ["admin", "calls", tenantId, id] as const,
+    transcript: (tenantId: string, id: string) =>
+      ["admin", "calls", tenantId, "transcript", id] as const,
+    stats: (tenantId: string, params: Record<string, unknown>) =>
+      ["admin", "calls", tenantId, "stats", params] as const,
+  },
+  ADMIN_BROCHURES: {
+    all: (tenantId: string) => ["admin", "brochures", tenantId] as const,
+    detail: (tenantId: string, id: string) =>
+      ["admin", "brochures", tenantId, id] as const,
+  },
 } as const;

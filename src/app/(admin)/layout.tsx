@@ -1,22 +1,53 @@
-// src/app/(admin)/layout.tsx
+"use client";
 
-import { AdminSidebar } from '@/components/layout/AdminSidebar';
-import type { ReactNode } from 'react';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { AdminSidebar } from "@/components/layout/AdminSidebar";
+import { useAuthStore } from "@/store/authStore";
+import { Spinner } from "@/components/ui/Spinner";
+import { ADMIN_ROUTES } from "@/constants/routes/admin.routes";
 
-export default function AdminLayout({ children }: { children: ReactNode }) {
-  return (
-    <div className="flex h-screen bg-surface-muted overflow-hidden">
-      <AdminSidebar />
-      <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
-        <header className="h-14 border-b border-surface-border bg-surface flex items-center px-5 shrink-0">
-          <h1 className="text-base font-semibold text-text-primary">
-            Admin Control Panel
-          </h1>
-        </header>
-        <main className="flex-1 overflow-y-auto thin-scrollbar p-5 lg:p-6">
-          {children}
-        </main>
+export default function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const router = useRouter();
+  const { user, isAuthenticated } = useAuthStore();
+  const [isAuthorized, setIsAuthorized] = useState(false);
+
+  useEffect(() => {
+    // Session Verification & Role enforcement
+    if (!isAuthenticated) {
+      router.replace(ADMIN_ROUTES.LOGIN);
+    } else if (!user?.isPlatformAdmin) {
+      // Bounce unauthorized tenant users out of the admin console
+      router.replace("/dashboard");
+    } else {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setIsAuthorized(true);
+    }
+  }, [user, isAuthenticated, router]);
+
+  if (!isAuthorized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-surface-muted">
+        <div className="flex flex-col items-center gap-3">
+          <Spinner className="h-8 w-8 text-error-600" />
+          <p className="text-sm font-medium text-text-muted animate-pulse">
+            Authenticating system privileges...
+          </p>
+        </div>
       </div>
+    );
+  }
+
+  return (
+    <div className="flex bg-surface-muted min-h-screen w-full">
+      <AdminSidebar />
+      <main className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
+        {children}
+      </main>
     </div>
   );
 }

@@ -1,13 +1,20 @@
 export { AUTH_ENDPOINTS } from "./auth-endpoint";
-export { ADMIN_AUTH_ENDPOINTS } from "./admin/auth-endpoint";
 export { TENANT_ENDPOINTS } from "./tenant-endpoint";
-export { ADMIN_TENANT_ENDPOINTS } from "./admin/tenant-endpoint";
 export { USER_ENDPOINTS } from "./user-endpoint";
 export { ASSISTANT_ENDPOINTS } from "./assistant-endpoint";
-export { ADMIN_ASSISTANT_ENDPOINTS } from "./admin/assistant-endpoint";
 export { CAMPAIGN_ENDPOINTS } from "./campaign-endpoint";
 export { BATCH_ENDPOINTS } from "./batch-endpoint";
 export { LEAD_ENDPOINTS } from "./lead-endpoint";
 export { CALL_ENDPOINTS } from "./call-endpoint";
 export { BROCHURE_ENDPOINTS } from "./brochure-endpoint";
 export { DASHBOARD_ENDPOINTS } from "./dashboard-endpoint";
+
+export { ADMIN_AUTH_ENDPOINTS } from "./admin/auth-endpoint";
+export { ADMIN_TENANT_ENDPOINTS } from "./admin/tenant-endpoint";
+export { ADMIN_ASSISTANT_ENDPOINTS } from "./admin/assistant-endpoint";
+export { ADMIN_DASHBOARD_ENDPOINTS } from "./admin/dashboard-endpoint";
+export { ADMIN_CAMPAIGN_ENDPOINTS } from "./admin/campaign-endpoint";
+export { ADMIN_BATCH_ENDPOINTS } from "./admin/batch-endpoint";
+export { ADMIN_LEAD_ENDPOINTS } from "./admin/lead-endpoint";
+export { ADMIN_CALL_ENDPOINTS } from "./admin/call-endpoint";
+export { ADMIN_BROCHURE_ENDPOINTS } from "./admin/brochure-endpoint";
