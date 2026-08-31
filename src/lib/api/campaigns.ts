@@ -1,4 +1,5 @@
 import apiClient from "@/lib/axios";
+import { CAMPAIGN_ENDPOINTS } from "@/constants/api-routes/campaign-endpoint";
 import type { ApiResponse } from "@/types/api";
 import type {
   Campaign,
@@ -9,11 +10,15 @@ import type {
   UpdateCampaignInput,
 } from "@/types/campaign";
 
-// V1: Campaigns architecture mapped to /api/v1/campaigns
+/**
+ * Tenant campaign operations.
+ * Backend module: `modules/campaigns` (tenant routes).
+ */
 export const campaignsApi = {
   getAll: async (): Promise<Campaign[]> => {
-    const res =
-      await apiClient.get<ApiResponse<Campaign[]>>("/api/v1/campaigns");
+    const res = await apiClient.get<ApiResponse<Campaign[]>>(
+      CAMPAIGN_ENDPOINTS.BASE,
+    );
     if (!res.data.success || !res.data.data) {
       throw new Error(res.data.error ?? "Failed to fetch campaigns");
     }
@@ -22,7 +27,7 @@ export const campaignsApi = {
 
   getById: async (id: string): Promise<Campaign> => {
     const res = await apiClient.get<ApiResponse<Campaign>>(
-      `/api/v1/campaigns/${id}`,
+      CAMPAIGN_ENDPOINTS.BY_ID(id),
     );
     if (!res.data.success || !res.data.data) {
       throw new Error(res.data.error ?? "Failed to fetch campaign");
@@ -32,7 +37,7 @@ export const campaignsApi = {
 
   create: async (data: CreateCampaignInput): Promise<Campaign> => {
     const res = await apiClient.post<ApiResponse<Campaign>>(
-      "/api/v1/campaigns",
+      CAMPAIGN_ENDPOINTS.BASE,
       data,
     );
     if (!res.data.success || !res.data.data) {
@@ -43,7 +48,7 @@ export const campaignsApi = {
 
   update: async (id: string, data: UpdateCampaignInput): Promise<Campaign> => {
     const res = await apiClient.patch<ApiResponse<Campaign>>(
-      `/api/v1/campaigns/${id}`,
+      CAMPAIGN_ENDPOINTS.BY_ID(id),
       data,
     );
     if (!res.data.success || !res.data.data) {
@@ -57,7 +62,7 @@ export const campaignsApi = {
     formData.append("file", file);
 
     const res = await apiClient.post<ApiResponse<ParseLeadsResult>>(
-      `/api/v1/campaigns/${id}/parse-leads`,
+      CAMPAIGN_ENDPOINTS.PARSE_LEADS(id),
       formData,
       { headers: { "Content-Type": "multipart/form-data" } },
     );
@@ -69,7 +74,7 @@ export const campaignsApi = {
 
   getStats: async (id: string): Promise<CampaignStats> => {
     const res = await apiClient.get<ApiResponse<CampaignStats>>(
-      `/api/v1/campaigns/${id}/stats`,
+      CAMPAIGN_ENDPOINTS.STATS(id),
     );
     if (!res.data.success || !res.data.data) {
       throw new Error(res.data.error ?? "Failed to fetch campaign stats");
@@ -79,40 +84,11 @@ export const campaignsApi = {
 
   getCampaignPerformance: async (id: string): Promise<CampaignPerformance> => {
     const res = await apiClient.get<ApiResponse<CampaignPerformance>>(
-      `/api/v1/campaigns/${id}/performance`,
+      CAMPAIGN_ENDPOINTS.PERFORMANCE(id),
     );
     if (!res.data.success || !res.data.data) {
       throw new Error(res.data.error ?? "Failed to fetch campaign performance");
     }
     return res.data.data;
-  },
-
-  /*
-   * ── DEPRECATED IN V1 ──────────────────────────────────────────────────────────
-   * The following actions are removed on the v1 Campaign Controller.
-   * Uploading, running, scheduling, and stopping calls is now delegated directly
-   * to Batches API: `/api/v1/campaigns/:campaignId/batches/:batchId/[run|schedule|stop]`.
-   */
-  /** @deprecated Use batchesApi.create */
-  uploadCSV: () => {
-    throw new Error(
-      "Deprecated in V1. Please configure your batch sequence via Batches API instead.",
-    );
-  },
-  /** @deprecated Use batchesApi.run */
-  start: () => {
-    throw new Error(
-      "Deprecated in V1. Please fire a batch run via batchesApi.run instead.",
-    );
-  },
-  /** @deprecated Use batchesApi.stop */
-  pause: () => {
-    throw new Error(
-      "Deprecated in V1. Please halt batches via batchesApi.stop instead.",
-    );
-  },
-  /** @deprecated Use batchesApi.stop */
-  cancelSchedule: () => {
-    throw new Error("Deprecated in V1. Use batchesApi.stop instead.");
   },
 };

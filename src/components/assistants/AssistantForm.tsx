@@ -8,12 +8,12 @@ import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Spinner } from "@/components/ui/Spinner";
-import { useAdminBolnaAgents } from "@/hooks/useAssistants";
 import type {
   Assistant,
   RegisterAssistantInput,
   UpdateAssistantInput,
 } from "@/types/assistant";
+import { useAdminBolnaAgents } from "@/hooks/admin/useAdminAssistants";
 
 // ─── Unified Validation Schema ────────────────────────────────────────────────
 const assistantFormSchema = z.object({

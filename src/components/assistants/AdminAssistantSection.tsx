@@ -10,18 +10,19 @@ import {
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageSpinner } from "@/components/ui/Spinner";
-import {
-  useAdminAssistants,
-  useAdminDeleteAssistant,
-  useAdminRegisterAssistant,
-  useAdminUpdateAssistant,
-  useAdminSyncAssistant,
-} from "@/hooks/useAssistants";
+
 import type {
   Assistant,
   RegisterAssistantInput,
   UpdateAssistantInput,
 } from "@/types/assistant";
+import {
+  useAdminAssistants,
+  useAdminDeleteAssistant,
+  useAdminRegisterAssistant,
+  useAdminSyncAssistant,
+  useAdminUpdateAssistant,
+} from "@/hooks/admin/useAdminAssistants";
 
 interface AdminAssistantSectionProps {
   tenantId: string;
