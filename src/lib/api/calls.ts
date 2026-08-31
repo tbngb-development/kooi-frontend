@@ -1,22 +1,28 @@
 import apiClient from "@/lib/axios";
-import { ApiResponse, PaginatedCallsResponse, Pagination } from "@/types/api";
-import {
+import { CALL_ENDPOINTS } from "@/constants/api-routes/call-endpoint";
+import type {
+  ApiResponse,
+  PaginatedCallsResponse,
+  Pagination,
+} from "@/types/api";
+import type {
   Call,
   CallQueryParams,
   CallStats,
   CallTranscriptResponse,
 } from "@/types/call";
 
-// V1: Voice Call queries mapped to /api/v1/calls
+/**
+ * Tenant call operations API.
+ * Backend module: `modules/calls` (tenant routes).
+ */
 export const callsApi = {
   getAll: async (
     params: CallQueryParams = {},
   ): Promise<{ calls: Call[]; pagination: Pagination }> => {
     const res = await apiClient.get<PaginatedCallsResponse<Call>>(
-      "/api/v1/calls",
-      {
-        params,
-      },
+      CALL_ENDPOINTS.BASE,
+      { params },
     );
     if (!res.data.success || !res.data.data) {
       throw new Error("Failed to fetch calls");
@@ -25,7 +31,9 @@ export const callsApi = {
   },
 
   getById: async (id: string): Promise<Call> => {
-    const res = await apiClient.get<ApiResponse<Call>>(`/api/v1/calls/${id}`);
+    const res = await apiClient.get<ApiResponse<Call>>(
+      CALL_ENDPOINTS.BY_ID(id),
+    );
     if (!res.data.success || !res.data.data) {
       throw new Error(res.data.error ?? "Failed to fetch call");
     }
@@ -34,7 +42,7 @@ export const callsApi = {
 
   getTranscript: async (id: string): Promise<CallTranscriptResponse> => {
     const res = await apiClient.get<ApiResponse<CallTranscriptResponse>>(
-      `/api/v1/calls/${id}/transcript`,
+      CALL_ENDPOINTS.TRANSCRIPT(id),
     );
     if (!res.data.success || !res.data.data) {
       throw new Error(res.data.error ?? "Failed to fetch transcript");
@@ -46,7 +54,7 @@ export const callsApi = {
     campaignId?: string;
   }): Promise<CallStats> => {
     const res = await apiClient.get<ApiResponse<CallStats>>(
-      "/api/v1/calls/stats",
+      CALL_ENDPOINTS.STATS,
       { params },
     );
     if (!res.data.success || !res.data.data) {

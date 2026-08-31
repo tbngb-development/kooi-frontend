@@ -1,31 +1,30 @@
-// src/hooks/useCalls.ts
-
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
 import { callsApi } from "@/lib/api/calls";
+import { QUERY_KEYS } from "@/constants/config/query-keys";
 import type { CallQueryParams } from "@/types/call";
 
-export const CALLS_KEY = ["calls"] as const;
-
 export function useCalls(params: CallQueryParams = {}) {
+  const queryParamsRecord = params as Record<string, unknown>;
   return useQuery({
-    queryKey: [...CALLS_KEY, params],
+    queryKey: QUERY_KEYS.CALLS.list(queryParamsRecord),
     queryFn: () => callsApi.getAll(params),
   });
 }
 
 export function useCall(id: string) {
   return useQuery({
-    queryKey: [...CALLS_KEY, id],
+    queryKey: QUERY_KEYS.CALLS.detail(id),
     queryFn: () => callsApi.getById(id),
     enabled: Boolean(id),
   });
 }
 
 export function useCallStats(params?: { campaignId?: string }) {
+  const queryParamsRecord = (params ?? {}) as Record<string, unknown>;
   return useQuery({
-    queryKey: [...CALLS_KEY, "stats", params],
-    queryFn: () => callsApi.getCallStats(params), // from lib/api/calls.ts
+    queryKey: QUERY_KEYS.CALLS.stats(queryParamsRecord),
+    queryFn: () => callsApi.getCallStats(params),
   });
 }

@@ -38,4 +38,32 @@ export const QUERY_KEYS = {
     stats: (campaignId: string, batchId: string) =>
       [...QUERY_KEYS.BATCHES.all, campaignId, batchId, "stats"] as const,
   },
+  LEADS: {
+    all: ["leads"] as const,
+    list: (params: Record<string, unknown>) =>
+      [...QUERY_KEYS.LEADS.all, "list", params] as const,
+    detail: (id: string) => [...QUERY_KEYS.LEADS.all, "detail", id] as const,
+    stats: (params: Record<string, unknown>) =>
+      [...QUERY_KEYS.LEADS.all, "stats", params] as const,
+  },
+  CALLS: {
+    all: ["calls"] as const,
+    list: (params: Record<string, unknown>) =>
+      [...QUERY_KEYS.CALLS.all, "list", params] as const,
+    detail: (id: string) => [...QUERY_KEYS.CALLS.all, "detail", id] as const,
+    transcript: (id: string) =>
+      [...QUERY_KEYS.CALLS.all, "transcript", id] as const,
+    stats: (params: Record<string, unknown>) =>
+      [...QUERY_KEYS.CALLS.all, "stats", params] as const,
+  },
+  BROCHURES: {
+    all: ["brochures"] as const,
+    detail: (id: string) => [...QUERY_KEYS.BROCHURES.all, id] as const,
+  },
+  DASHBOARD: {
+    all: ["dashboard"] as const,
+    overview: () => [...QUERY_KEYS.DASHBOARD.all, "overview"] as const,
+    activity: () => [...QUERY_KEYS.DASHBOARD.all, "activity"] as const,
+    campaigns: () => [...QUERY_KEYS.DASHBOARD.all, "campaigns"] as const,
+  },
 } as const;

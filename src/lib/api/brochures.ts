@@ -1,11 +1,18 @@
 import apiClient from "@/lib/axios";
-import { ApiResponse } from "@/types/api";
-import { Brochure, BrochureExtractionResult, BrochureSummary, FlattenedBrochure } from "@/types/brochure";
+import { BROCHURE_ENDPOINTS } from "@/constants/api-routes/brochure-endpoint";
+import type { ApiResponse } from "@/types/api";
+import type {
+  Brochure,
+  BrochureExtractionResult,
+  BrochureSummary,
+  FlattenedBrochure,
+} from "@/types/brochure";
 
-
-// V1: Pluralized routes targeting /api/v1/brochures
+/**
+ * Tenant brochure extraction and query catalog operations.
+ * Backend module: `modules/brochure` (tenant routes).
+ */
 export const brochureApi = {
-  // ── Extract PDF → returns AI extracted structured preview ──────────────────
   extract: async (
     file: File,
     onUploadProgress?: (percent: number) => void,
@@ -14,7 +21,7 @@ export const brochureApi = {
     formData.append("file", file);
 
     const res = await apiClient.post<ApiResponse<BrochureExtractionResult>>(
-      "/api/v1/brochures/extract",
+      BROCHURE_ENDPOINTS.EXTRACT,
       formData,
       {
         headers: { "Content-Type": "multipart/form-data" },
@@ -23,7 +30,7 @@ export const brochureApi = {
             onUploadProgress(Math.round((e.loaded * 100) / e.total));
           }
         },
-        timeout: 120_000, // Extractor processing headroom
+        timeout: 120_000,
       },
     );
 
@@ -33,32 +40,31 @@ export const brochureApi = {
     return res.data.data;
   },
 
-  // ── Save validated brochure data ──────────────────────────────────────────
   save: async (
     data: FlattenedBrochure,
   ): Promise<{ brochureId: string; brochure: Brochure }> => {
     const res = await apiClient.post<
       ApiResponse<{ brochureId: string; brochure: Brochure }>
-    >("/api/v1/brochures/save", data);
+    >(BROCHURE_ENDPOINTS.SAVE, data);
     if (!res.data.success || !res.data.data) {
       throw new Error(res.data.error ?? "Failed to write brochure payload");
     }
     return res.data.data;
   },
 
-  // ── Query listings ────────────────────────────────────────────────────────
   getAll: async (): Promise<BrochureSummary[]> => {
-    const res = await apiClient.get<ApiResponse<BrochureSummary[]>>("/api/v1/brochures");
+    const res = await apiClient.get<ApiResponse<BrochureSummary[]>>(
+      BROCHURE_ENDPOINTS.BASE,
+    );
     if (!res.data.success || !res.data.data) {
       throw new Error(res.data.error ?? "Failed to fetch brochures list");
     }
     return res.data.data;
   },
 
-  // ── Query detailed brochure specifications ────────────────────────────────
   getById: async (id: string): Promise<Brochure> => {
     const res = await apiClient.get<ApiResponse<Brochure>>(
-      `/api/v1/brochures/${id}`,
+      BROCHURE_ENDPOINTS.BY_ID(id),
     );
     if (!res.data.success || !res.data.data) {
       throw new Error(res.data.error ?? "Failed to fetch brochure entity");
@@ -66,13 +72,12 @@ export const brochureApi = {
     return res.data.data;
   },
 
-  // ── Edit properties ───────────────────────────────────────────────────────
   update: async (
     id: string,
     data: Partial<FlattenedBrochure>,
   ): Promise<Brochure> => {
     const res = await apiClient.patch<ApiResponse<Brochure>>(
-      `/api/v1/brochures/${id}`,
+      BROCHURE_ENDPOINTS.BY_ID(id),
       data,
     );
     if (!res.data.success || !res.data.data) {
@@ -81,10 +86,9 @@ export const brochureApi = {
     return res.data.data;
   },
 
-  // ── Remove brochure ───────────────────────────────────────────────────────
   delete: async (id: string): Promise<void> => {
     const res = await apiClient.delete<ApiResponse<null>>(
-      `/api/v1/brochures/${id}`,
+      BROCHURE_ENDPOINTS.BY_ID(id),
     );
     if (!res.data.success) {
       throw new Error(res.data.error ?? "Failed to delete brochure");

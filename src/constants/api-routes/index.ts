@@ -7,3 +7,7 @@ export { ASSISTANT_ENDPOINTS } from "./assistant-endpoint";
 export { ADMIN_ASSISTANT_ENDPOINTS } from "./admin/assistant-endpoint";
 export { CAMPAIGN_ENDPOINTS } from "./campaign-endpoint";
 export { BATCH_ENDPOINTS } from "./batch-endpoint";
+export { LEAD_ENDPOINTS } from "./lead-endpoint";
+export { CALL_ENDPOINTS } from "./call-endpoint";
+export { BROCHURE_ENDPOINTS } from "./brochure-endpoint";
+export { DASHBOARD_ENDPOINTS } from "./dashboard-endpoint";

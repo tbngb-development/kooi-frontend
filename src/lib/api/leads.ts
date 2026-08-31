@@ -1,17 +1,28 @@
 import apiClient from "@/lib/axios";
-import { ApiResponse, PaginatedLeadsResponse, Pagination } from "@/types/api";
-import { Lead, LeadDetail, LeadQueryParams, LeadStats } from "@/types/lead";
+import { LEAD_ENDPOINTS } from "@/constants/api-routes/lead-endpoint";
+import type {
+  ApiResponse,
+  PaginatedLeadsResponse,
+  Pagination,
+} from "@/types/api";
+import type {
+  Lead,
+  LeadDetail,
+  LeadQueryParams,
+  LeadStats,
+} from "@/types/lead";
 
-// V1: Leads query API mapped to /api/v1/leads
+/**
+ * Tenant lead operations API.
+ * Backend module: `modules/leads` (tenant routes).
+ */
 export const leadsApi = {
   getAll: async (
     params: LeadQueryParams = {},
   ): Promise<{ leads: Lead[]; pagination: Pagination }> => {
     const res = await apiClient.get<PaginatedLeadsResponse<Lead>>(
-      "/api/v1/leads",
-      {
-        params,
-      },
+      LEAD_ENDPOINTS.BASE,
+      { params },
     );
     if (!res.data.success || !res.data.data) {
       throw new Error("Failed to fetch leads");
@@ -21,7 +32,7 @@ export const leadsApi = {
 
   getById: async (id: string): Promise<LeadDetail> => {
     const res = await apiClient.get<ApiResponse<LeadDetail>>(
-      `/api/v1/leads/${id}`,
+      LEAD_ENDPOINTS.BY_ID(id),
     );
     if (!res.data.success || !res.data.data) {
       throw new Error(res.data.error ?? "Failed to fetch lead");
@@ -31,10 +42,8 @@ export const leadsApi = {
 
   getStats: async (params?: { campaignId?: string }): Promise<LeadStats> => {
     const res = await apiClient.get<ApiResponse<LeadStats>>(
-      "/api/v1/leads/stats",
-      {
-        params,
-      },
+      LEAD_ENDPOINTS.STATS,
+      { params },
     );
     if (!res.data.success || !res.data.data) {
       throw new Error(res.data.error ?? "Failed to fetch lead stats");
