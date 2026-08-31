@@ -100,18 +100,3 @@ export interface UpdateUserInput {
   name?: string;
   role?: TenantRole;
 }
-
-// ─── Legacy compat ────────────────────────────────────────────────────────────
-
-/** @deprecated Use TenantRole from authStore */
-export type UserRole = "SUPER_ADMIN" | "ADMIN" | "USER";
-
-/** @deprecated Use User interface above */
-export interface LegacyUser {
-  id: string;
-  email: string;
-  name: string;
-  role: UserRole;
-  tenantId: string;
-  createdAt: string;
-}

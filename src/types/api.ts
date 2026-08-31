@@ -51,22 +51,3 @@ export interface PaginatedCallsResponse<T> {
   error?: string;
   code?: string;
 }
-
-// ─── Legacy compat (remove after full migration) ─────────────────────────────
-
-/** @deprecated Use ApiError instead */
-export interface LegacyApiError {
-  success: boolean;
-  error?: string;
-  message?: string;
-}
-
-/** @deprecated Use Pagination instead */
-export interface ApiMeta {
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-  hasNextPage: boolean;
-  hasPreviousPage: boolean;
-}

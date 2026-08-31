@@ -1,5 +1,4 @@
 // ─── V1 Batch Types ──────────────────────────────────────────────────────────
-// Separate file to keep types/index.ts clean. Re-exported from index.ts.
 
 export type BatchStatus =
   | "CREATED"

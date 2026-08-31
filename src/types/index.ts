@@ -6,7 +6,6 @@ export type {
   Pagination,
   PaginatedLeadsResponse,
   PaginatedCallsResponse,
-  ApiMeta,
 } from "./api";
 
 export type {
@@ -24,7 +23,6 @@ export type {
   TeamMember,
   CreateUserInput,
   UpdateUserInput,
-  UserRole,
 } from "./user";
 
 export type { TenantRole, Membership, V1User } from "@/store/authStore";
@@ -37,7 +35,6 @@ export type {
   BatchCreateStats,
   BatchStats,
 } from "./batch";
-import type { LeadBatch, RetryConfig } from "./batch";
 
 // ─── Enums ────────────────────────────────────────────────────────────────────
 
@@ -732,55 +729,4 @@ export interface CallStats {
   qualificationRate: string;
   dispositionBreakdown: Record<string, number>;
   temperatureBreakdown: Record<string, number>;
-}
-
-// ─── Legacy compat (remove after full migration) ─────────────────────────────
-
-/** @deprecated Use Pagination from ./api */
-export interface PaginationMeta {
-  total: number;
-  page: number;
-  limit: number;
-  pages: number;
-}
-
-/** @deprecated Use domain-specific paginated responses */
-export interface PaginatedData<T> {
-  items: T[];
-  pagination: PaginationMeta;
-  calls?: Call[];
-  leads?: Lead[];
-}
-
-/** @deprecated */
-export interface PaginatedResponse<T> {
-  success: boolean;
-  data: PaginatedData<T>;
-  message: string;
-}
-
-/** @deprecated */
-export interface IBaseQueryOptions {
-  page: number;
-  limit: number;
-  search?: string;
-  orderBy?: string;
-  orderDir?: "asc" | "desc";
-  includeDeleted?: boolean;
-}
-
-/** @deprecated */
-export interface IUser {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  createdAt: Date;
-}
-
-/** @deprecated */
-export interface ILoginResponse {
-  data: IUser;
-  token?: string;
-  message?: string;
 }
