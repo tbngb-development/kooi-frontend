@@ -5,7 +5,7 @@ import {
   useParams,
   usePathname,
   useSearchParams,
-  useRouter, 
+  useRouter,
 } from "next/navigation";
 import { useCalls, useCallStats } from "@/hooks/useCalls";
 import { useCampaign } from "@/hooks/useCampaigns";
@@ -108,7 +108,7 @@ export default function CampaignCallsPage() {
     setSearchInput(urlSearch);
   }, [urlSearch]);
 
-  // ─── URL Update Helper ───
+  // ─── URL Update Helper (For manual filters & pagination) ───
   const updateFilter = useCallback(
     (key: string, value: string | number | null) => {
       const current = new URLSearchParams(Array.from(searchParams.entries()));
@@ -134,13 +134,41 @@ export default function CampaignCallsPage() {
     [searchParams, pathname, router],
   );
 
+  // ─── Quick Filter Helper (For Stat Cards - Mutually Exclusive) ───
+  const handleQuickFilter = useCallback(
+    (key: string, value: string) => {
+      const current = new URLSearchParams(Array.from(searchParams.entries()));
+      const isActive = current.get(key) === value;
+
+      if (isActive) {
+        // Toggle OFF: If already active, remove it
+        current.delete(key);
+      } else {
+        // Clear conflicting quick-filter fields (disposition & temperature)
+        current.delete("leadTemperature");
+        current.delete("disposition");
+
+        // Apply the newly selected quick-filter
+        current.set(key, value);
+      }
+
+      // Always reset to page 1 on active filter adjustments
+      current.delete("page");
+
+      const query = current.toString();
+      router.replace(query ? `${pathname}?${query}` : pathname, {
+        scroll: false,
+      });
+    },
+    [searchParams, pathname, router],
+  );
+
   // Push debounced search input to URL
   useEffect(() => {
     if (debouncedSearch !== urlSearch) {
       updateFilter("search", debouncedSearch);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedSearch]);
+  }, [debouncedSearch, urlSearch, updateFilter]);
 
   const handleReset = () => {
     setSearchInput("");
@@ -222,12 +250,7 @@ export default function CampaignCallsPage() {
           color="text-amber-600"
           iconBg="bg-amber-50"
           loading={statsLoading}
-          onClick={() =>
-            updateFilter(
-              "leadTemperature",
-              leadTemperature === "HOT" ? null : "HOT",
-            )
-          }
+          onClick={() => handleQuickFilter("leadTemperature", "HOT")}
           active={leadTemperature === "HOT"}
         />
         <MiniStatCard
@@ -238,12 +261,7 @@ export default function CampaignCallsPage() {
           iconBg="bg-blue-50"
           loading={statsLoading}
           onClick={() =>
-            updateFilter(
-              "disposition",
-              disposition === "QUALIFIED_CONSULTANT_FOLLOWUP"
-                ? null
-                : "QUALIFIED_CONSULTANT_FOLLOWUP",
-            )
+            handleQuickFilter("disposition", "QUALIFIED_CONSULTANT_FOLLOWUP")
           }
           active={disposition === "QUALIFIED_CONSULTANT_FOLLOWUP"}
         />
@@ -254,14 +272,7 @@ export default function CampaignCallsPage() {
           color="text-indigo-600"
           iconBg="bg-indigo-50"
           loading={statsLoading}
-          onClick={() =>
-            updateFilter(
-              "disposition",
-              disposition === "FOLLOWUP_REQUESTED"
-                ? null
-                : "FOLLOWUP_REQUESTED",
-            )
-          }
+          onClick={() => handleQuickFilter("disposition", "FOLLOWUP_REQUESTED")}
           active={disposition === "FOLLOWUP_REQUESTED"}
         />
       </div>
