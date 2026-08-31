@@ -1,5 +1,5 @@
 /**
- * Platform admin routes.
+ * Platform super administration routes.
  */
 export const ADMIN_ROUTES = {
   LOGIN: "/admin/login",
