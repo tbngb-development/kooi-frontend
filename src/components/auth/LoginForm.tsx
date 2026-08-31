@@ -3,6 +3,8 @@
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { useLogin, useSelectTenant } from "@/hooks/useAuth";
+import { Membership } from "@/types/tenant";
+import { User } from "@/types/user";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Eye,
@@ -18,7 +20,6 @@ import Link from "next/link";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import type { V1User, Membership } from "@/store/authStore";
 
 const loginSchema = z.object({
   email: z.string().email("Enter a valid email address"),
@@ -33,7 +34,7 @@ export function LoginForm() {
     "credentials",
   );
 
-  const [tempUser, setTempUser] = useState<V1User | null>(null);
+  const [tempUser, setTempUser] = useState<User | null>(null);
   const [availableTenants, setAvailableTenants] = useState<Membership[]>([]);
 
   const { mutate: login, isPending: isLoginPending } = useLogin();

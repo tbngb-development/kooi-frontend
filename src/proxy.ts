@@ -1,13 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
+import { APP_ROUTES } from "@/constants/routes/app.routes";
+import { ADMIN_ROUTES } from "@/constants/routes/admin.routes";
 
-const AUTH_PAGES = ["/login", "/register", "/admin/login"];
+const AUTH_PAGES = [
+  APP_ROUTES.LOGIN,
+  APP_ROUTES.REGISTER,
+  ADMIN_ROUTES.LOGIN,
+] as string[];
 
 function getSessionInfo(req: NextRequest) {
   const hasAccessToken = req.cookies.has("access_token");
   const hasSessionCookie = req.cookies.get("has-session")?.value === "true";
-  const hasLegacyToken = req.cookies.has("auth-token");
 
-  const isAuthenticated = hasAccessToken || hasSessionCookie || hasLegacyToken;
+  const isAuthenticated = hasAccessToken || hasSessionCookie;
 
   const isPlatformAdmin =
     req.cookies.get("is-platform-admin")?.value === "true" ||
@@ -37,8 +42,7 @@ export function proxy(req: NextRequest) {
   }
 
   // ── 2. Public Landing Page ("/") ──────────────────────────────────────────
-  // Allow all visitors (authenticated or not) to view the landing page
-  if (pathname === "/") {
+  if (pathname === APP_ROUTES.HOME) {
     return NextResponse.next();
   }
 
@@ -58,12 +62,12 @@ export function proxy(req: NextRequest) {
     if (isAuthenticated) {
       if (isPlatformAdmin) {
         return preventCache(
-          NextResponse.redirect(new URL("/admin/dashboard", req.url)),
+          NextResponse.redirect(new URL(ADMIN_ROUTES.DASHBOARD, req.url)),
         );
       }
-      if (pathname === "/login" || pathname === "/register") {
+      if (pathname === APP_ROUTES.LOGIN || pathname === APP_ROUTES.REGISTER) {
         return preventCache(
-          NextResponse.redirect(new URL("/dashboard", req.url)),
+          NextResponse.redirect(new URL(APP_ROUTES.DASHBOARD, req.url)),
         );
       }
     }
@@ -74,13 +78,13 @@ export function proxy(req: NextRequest) {
   if (pathname.startsWith("/admin")) {
     if (!isAuthenticated) {
       return preventCache(
-        NextResponse.redirect(new URL("/admin/login", req.url)),
+        NextResponse.redirect(new URL(ADMIN_ROUTES.LOGIN, req.url)),
       );
     }
     if (!isPlatformAdmin) {
       // Non-platform admin trying to enter admin panel -> bounce back to tenant workspace
       return preventCache(
-        NextResponse.redirect(new URL("/dashboard", req.url)),
+        NextResponse.redirect(new URL(APP_ROUTES.DASHBOARD, req.url)),
       );
     }
     return preventCache(NextResponse.next());
@@ -88,7 +92,7 @@ export function proxy(req: NextRequest) {
 
   // ── 5. Protected Tenant Workspace Routes ──────────────────────────────────
   if (!isAuthenticated) {
-    const loginUrl = new URL("/login", req.url);
+    const loginUrl = new URL(APP_ROUTES.LOGIN, req.url);
     loginUrl.searchParams.set("callbackUrl", pathname);
     return preventCache(NextResponse.redirect(loginUrl));
   }

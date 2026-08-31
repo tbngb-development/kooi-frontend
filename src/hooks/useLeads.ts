@@ -1,30 +1,31 @@
-// src/hooks/useLeads.ts
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
 import { leadsApi } from "@/lib/api/leads";
-import type { LeadQueryParams, LeadStats } from "@/types";
-
-export const LEADS_KEY = ["leads"] as const;
+import { QUERY_KEYS } from "@/constants/config/query-keys";
+import type { LeadQueryParams, LeadStats } from "@/types/lead";
 
 export function useLeads(params: LeadQueryParams = {}) {
+  // Safe mapping to guarantee a structured query key structure
+  const queryParamsRecord = params as Record<string, unknown>;
   return useQuery({
-    queryKey: [...LEADS_KEY, params],
+    queryKey: QUERY_KEYS.LEADS.list(queryParamsRecord),
     queryFn: () => leadsApi.getAll(params),
   });
 }
 
 export function useLead(id: string) {
   return useQuery({
-    queryKey: [...LEADS_KEY, id],
+    queryKey: QUERY_KEYS.LEADS.detail(id),
     queryFn: () => leadsApi.getById(id),
     enabled: Boolean(id),
   });
 }
 
 export function useLeadStats(params?: { campaignId?: string }) {
+  const queryParamsRecord = (params ?? {}) as Record<string, unknown>;
   return useQuery<LeadStats>({
-    queryKey: [...LEADS_KEY, "stats", params], // ✅ distinct from list queries
+    queryKey: QUERY_KEYS.LEADS.stats(queryParamsRecord),
     queryFn: () => leadsApi.getStats(params),
   });
 }

@@ -12,7 +12,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { ChevronLeft, Building2, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
-import type { Assistant } from "@/types";
+import type { Assistant } from "@/types/assistant";
 
 const schema = z.object({
   name: z.string().min(2, "Campaign name must be at least 2 characters"),

@@ -4,47 +4,51 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { campaignsApi } from "@/lib/api/campaigns";
 import { getAxiosErrorMessage } from "@/lib/axios-error-message";
+import { QUERY_KEYS } from "@/constants/config/query-keys";
 import type {
   CampaignPerformance,
   CreateCampaignInput,
   ParseLeadsResult,
   UpdateCampaignInput,
-} from "@/types";
+} from "@/types/campaign";
 
-export const CAMPAIGNS_KEY = ["campaigns"] as const;
+/**
+ * Tenant Campaign Manager hooks.
+ * V1: Polling parameters are set to false by default to prevent client-side rate limits.
+ */
 
 export function useCampaigns() {
   return useQuery({
-    queryKey: CAMPAIGNS_KEY,
+    queryKey: QUERY_KEYS.CAMPAIGNS.all,
     queryFn: campaignsApi.getAll,
   });
 }
 
 export function useCampaign(id: string, pollWhileRunning = false) {
   return useQuery({
-    queryKey: [...CAMPAIGNS_KEY, id],
+    queryKey: QUERY_KEYS.CAMPAIGNS.detail(id),
     queryFn: () => campaignsApi.getById(id),
     enabled: Boolean(id),
     refetchInterval: (query) => {
       if (!pollWhileRunning) return false;
       const status = query.state.data?.status;
-      return status === "RUNNING" ? 5000 : false;
+      return status === "RUNNING" ? 15000 : false; // Safe 15s interval fallback
     },
   });
 }
 
 export function useCampaignStats(id: string, pollWhileRunning = false) {
   return useQuery({
-    queryKey: [...CAMPAIGNS_KEY, id, "stats"],
+    queryKey: QUERY_KEYS.CAMPAIGNS.stats(id),
     queryFn: () => campaignsApi.getStats(id),
     enabled: Boolean(id),
-    refetchInterval: () => (pollWhileRunning ? 5000 : false),
+    refetchInterval: () => (pollWhileRunning ? 15000 : false),
   });
 }
 
 export function useCampaignPerformance(id: string, enabled = true) {
   return useQuery<CampaignPerformance>({
-    queryKey: ["campaigns", id, "performance"],
+    queryKey: QUERY_KEYS.CAMPAIGNS.performance(id),
     queryFn: () => campaignsApi.getCampaignPerformance(id),
     enabled: enabled && !!id,
   });
@@ -56,7 +60,7 @@ export function useCreateCampaign() {
   return useMutation({
     mutationFn: (data: CreateCampaignInput) => campaignsApi.create(data),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: CAMPAIGNS_KEY });
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.CAMPAIGNS.all });
       toast.success("Campaign created successfully!");
     },
     onError: (error: unknown) => {
@@ -71,8 +75,8 @@ export function useUpdateCampaign(id: string) {
   return useMutation({
     mutationFn: (data: UpdateCampaignInput) => campaignsApi.update(id, data),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: CAMPAIGNS_KEY });
-      qc.invalidateQueries({ queryKey: [...CAMPAIGNS_KEY, id] });
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.CAMPAIGNS.all });
+      qc.invalidateQueries({ queryKey: QUERY_KEYS.CAMPAIGNS.detail(id) });
       toast.success("Campaign updated successfully!");
     },
     onError: (error: unknown) => {
@@ -90,12 +94,6 @@ export function useParseCSV(campaignId: string) {
     },
   });
 }
-
-/*
- * ── V1 DEPRECATED HOOK STUBS ──────────────────────────────────────────────────
- * These stubs catch any remaining legacy components that haven't transitioned
- * to Batch hooks yet, safely guiding development toward BatchActions instead.
- */
 
 /** @deprecated Use useCreateBatch from useBatches instead */
 export function useUploadCSV() {

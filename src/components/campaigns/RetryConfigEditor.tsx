@@ -55,7 +55,7 @@ export function RetryConfigEditor({ value, onChange }: RetryConfigEditorProps) {
       retry_intervals_minutes:
         sortedIntervals.length > 0 ? sortedIntervals : [60],
     });
-  }, [enabled, retryNoAnswer, retryFailed, retryBusy, selectedIntervals]);
+  }, [enabled, retryNoAnswer, retryFailed, retryBusy, selectedIntervals, onChange]);
 
   const toggleInterval = (minutes: number) => {
     if (selectedIntervals.includes(minutes)) {

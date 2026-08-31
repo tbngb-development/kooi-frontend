@@ -1,4 +1,5 @@
 import apiClient from "@/lib/axios";
+import { BATCH_ENDPOINTS } from "@/constants/api-routes/batch-endpoint";
 import type { ApiResponse } from "@/types/api";
 import type {
   LeadBatch,
@@ -7,12 +8,15 @@ import type {
   RetryConfig,
 } from "@/types/batch";
 
-// V1: Batches interface nested perfectly inside V1 campaigns router /api/v1/campaigns
-const BASE = "/api/v1/campaigns";
-
+/**
+ * Tenant campaign calling batch sequence operations.
+ * Backend module: `modules/batches` (tenant routes nested inside campaigns).
+ */
 export const batchesApi = {
   getAll: async (campaignId: string): Promise<LeadBatch[]> => {
-    const res = await apiClient.get<ApiResponse<LeadBatch[]>>(`${BASE}/${campaignId}/batches`);
+    const res = await apiClient.get<ApiResponse<LeadBatch[]>>(
+      BATCH_ENDPOINTS.BASE(campaignId),
+    );
     if (!res.data.success || !res.data.data) {
       throw new Error(res.data.error ?? "Failed to fetch batches");
     }
@@ -21,7 +25,7 @@ export const batchesApi = {
 
   getById: async (campaignId: string, batchId: string): Promise<LeadBatch> => {
     const res = await apiClient.get<ApiResponse<LeadBatch>>(
-      `${BASE}/${campaignId}/batches/${batchId}`,
+      BATCH_ENDPOINTS.BY_ID(campaignId, batchId),
     );
     if (!res.data.success || !res.data.data) {
       throw new Error(res.data.error ?? "Failed to fetch batch details");
@@ -41,7 +45,7 @@ export const batchesApi = {
     }
 
     const res = await apiClient.post<ApiResponse<BatchCreateResponse>>(
-      `${BASE}/${campaignId}/batches`,
+      BATCH_ENDPOINTS.BASE(campaignId),
       formData,
       { headers: { "Content-Type": "multipart/form-data" } },
     );
@@ -55,9 +59,9 @@ export const batchesApi = {
     campaignId: string,
     batchId: string,
   ): Promise<{ batch: LeadBatch; message: string }> => {
-    const res = await apiClient.post<ApiResponse<{ batch: LeadBatch; message: string }>>(
-      `${BASE}/${campaignId}/batches/${batchId}/run`,
-    );
+    const res = await apiClient.post<
+      ApiResponse<{ batch: LeadBatch; message: string }>
+    >(BATCH_ENDPOINTS.RUN(campaignId, batchId));
     if (!res.data.success || !res.data.data) {
       throw new Error(res.data.error ?? "Failed to run batch");
     }
@@ -69,10 +73,9 @@ export const batchesApi = {
     batchId: string,
     scheduledAt: string,
   ): Promise<{ batch: LeadBatch; message: string }> => {
-    const res = await apiClient.post<ApiResponse<{ batch: LeadBatch; message: string }>>(
-      `${BASE}/${campaignId}/batches/${batchId}/schedule`,
-      { scheduledAt },
-    );
+    const res = await apiClient.post<
+      ApiResponse<{ batch: LeadBatch; message: string }>
+    >(BATCH_ENDPOINTS.SCHEDULE(campaignId, batchId), { scheduledAt });
     if (!res.data.success || !res.data.data) {
       throw new Error(res.data.error ?? "Failed to schedule batch start");
     }
@@ -83,9 +86,9 @@ export const batchesApi = {
     campaignId: string,
     batchId: string,
   ): Promise<{ batch: LeadBatch; warning: string }> => {
-    const res = await apiClient.post<ApiResponse<{ batch: LeadBatch; warning: string }>>(
-      `${BASE}/${campaignId}/batches/${batchId}/stop`,
-    );
+    const res = await apiClient.post<
+      ApiResponse<{ batch: LeadBatch; warning: string }>
+    >(BATCH_ENDPOINTS.STOP(campaignId, batchId));
     if (!res.data.success || !res.data.data) {
       throw new Error(res.data.error ?? "Failed to stop batch progress");
     }
@@ -101,13 +104,15 @@ export const batchesApi = {
     remainingLeads: number;
     message: string;
   }> => {
-    const res = await apiClient.post<ApiResponse<{
-      originalBatchId: string;
-      newBatch: LeadBatch;
-      remainingLeads: number;
-      message: string;
-    }>>(`${BASE}/${campaignId}/batches/${batchId}/resume`);
-    
+    const res = await apiClient.post<
+      ApiResponse<{
+        originalBatchId: string;
+        newBatch: LeadBatch;
+        remainingLeads: number;
+        message: string;
+      }>
+    >(BATCH_ENDPOINTS.RESUME(campaignId, batchId));
+
     if (!res.data.success || !res.data.data) {
       throw new Error(res.data.error ?? "Failed to resume halted batch");
     }
@@ -119,7 +124,7 @@ export const batchesApi = {
     batchId: string,
   ): Promise<{ message: string }> => {
     const res = await apiClient.delete<ApiResponse<{ message: string }>>(
-      `${BASE}/${campaignId}/batches/${batchId}`,
+      BATCH_ENDPOINTS.BY_ID(campaignId, batchId),
     );
     if (!res.data.success || !res.data.data) {
       throw new Error(res.data.error ?? "Failed to delete batch");
@@ -132,7 +137,7 @@ export const batchesApi = {
     batchId: string,
   ): Promise<BatchStats> => {
     const res = await apiClient.get<ApiResponse<BatchStats>>(
-      `${BASE}/${campaignId}/batches/${batchId}/stats`,
+      BATCH_ENDPOINTS.STATS(campaignId, batchId),
     );
     if (!res.data.success || !res.data.data) {
       throw new Error(res.data.error ?? "Failed to fetch batch metrics");

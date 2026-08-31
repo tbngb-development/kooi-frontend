@@ -5,14 +5,10 @@ import { Pagination } from "@/components/ui/Pagination";
 import { CallStatusBadge } from "./CallStatusBadge";
 import { formatDateOnly, formatTimeOnly } from "@/lib/utils/formatDate";
 import { formatDuration } from "@/lib/utils/formatDuration";
-import type {
-  Call,
-  Disposition,
-  LeadTemperature,
-  PaginationMeta,
-} from "@/types";
+import type { Call, Disposition, LeadTemperature } from "@/types/call";
 import { Phone } from "lucide-react";
 import Link from "next/link";
+import { Pagination as PaginationMeta } from "@/types/api";
 
 const dispositionLabel: Record<Disposition, string> = {
   INTERESTED_SEND_DETAILS: "Send Details",
@@ -31,8 +27,6 @@ const dispositionLabel: Record<Disposition, string> = {
   NO_RESPONSE: "No Response",
   CALL_DROPPED: "Dropped",
 };
-
-
 
 const temperatureStyle: Record<LeadTemperature, string> = {
   HOT: "bg-error-100 text-error-700",

@@ -2,7 +2,7 @@
 
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
 import { formatRelative } from "@/lib/utils/formatDate";
-import type { DashboardActivity, DashboardQualifiedLead } from "@/types";
+import type { DashboardActivity, DashboardQualifiedLead } from "@/types/dashboard";
 import { UserCheck } from "lucide-react";
 
 // ─── Disposition label map ────────────────────────────────────────────────────

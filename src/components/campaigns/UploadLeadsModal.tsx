@@ -8,7 +8,8 @@ import { Spinner } from "@/components/ui/Spinner";
 import { useParseCSV } from "@/hooks/useCampaigns";
 import { useCreateBatch } from "@/hooks/useBatches";
 import { RetryConfigEditor } from "./RetryConfigEditor";
-import type { ParseLeadsResult, RetryConfig } from "@/types";
+import type {  RetryConfig } from "@/types/batch";
+import { ParseLeadsResult } from "@/types/campaign";
 
 interface UploadLeadsModalProps {
   campaignId: string;

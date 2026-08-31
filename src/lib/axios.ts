@@ -1,4 +1,7 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
+import { AUTH_ENDPOINTS } from "@/constants/api-routes/auth-endpoint";
+import { ADMIN_AUTH_ENDPOINTS } from "@/constants/api-routes/admin/auth-endpoint";
+import { AUTH_STORAGE_KEY } from "@/constants/config/auth.config";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
 
@@ -8,10 +11,10 @@ export const apiClient = axios.create({
     "Content-Type": "application/json",
   },
   timeout: 120_000,
-  withCredentials: true, // HTTP-only cookies
+  withCredentials: true,
 });
 
-// ─── Refresh Queue (prevents duplicate refresh calls) ─────────────────────────
+// ─── Refresh Queue ────────────────────────────────────────────────────────────
 let isRefreshing = false;
 let failedQueue: Array<{
   resolve: (value: unknown) => void;
@@ -29,6 +32,18 @@ const processQueue = (error: unknown) => {
   failedQueue = [];
 };
 
+// ─── Auth endpoint detection ──────────────────────────────────────────────────
+const AUTH_PATHS = [
+  AUTH_ENDPOINTS.REFRESH,
+  AUTH_ENDPOINTS.LOGIN,
+  ADMIN_AUTH_ENDPOINTS.LOGIN,
+  AUTH_ENDPOINTS.REGISTER,
+] as const;
+
+function isAuthEndpoint(url: string): boolean {
+  return AUTH_PATHS.some((path) => url.includes(path));
+}
+
 // ─── Response Interceptor ─────────────────────────────────────────────────────
 apiClient.interceptors.response.use(
   (response) => response,
@@ -44,21 +59,13 @@ apiClient.interceptors.response.use(
       _retry?: boolean;
     };
 
-    // On 401, attempt cookie-based refresh before redirecting
     if (error.response?.status === 401 && !originalRequest._retry) {
       const url = originalRequest.url ?? "";
 
-      // NEVER attempt refresh on auth endpoints (login, register, refresh)
-      if (
-        url.includes("/auth/refresh") ||
-        url.includes("/auth/login") ||
-        url.includes("/admin/auth/login") ||
-        url.includes("/auth/register")
-      ) {
+      if (isAuthEndpoint(url)) {
         return rejectWithNormalisedError(error);
       }
 
-      // Queue concurrent requests while refreshing
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
@@ -69,7 +76,7 @@ apiClient.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        await apiClient.post("/api/v1/auth/refresh", {});
+        await apiClient.post(AUTH_ENDPOINTS.REFRESH, {});
         processQueue(null);
         return apiClient(originalRequest);
       } catch (refreshError) {
@@ -84,10 +91,6 @@ apiClient.interceptors.response.use(
   },
 );
 
-/**
- * Normalises V1 error responses and only redirects to login when an
- * existing session has actually expired — NOT on failed login attempts.
- */
 function rejectWithNormalisedError(
   error: AxiosError<{
     success?: boolean;
@@ -98,11 +101,6 @@ function rejectWithNormalisedError(
   shouldRedirect = false,
 ) {
   const url = error.config?.url ?? "";
-  const isAuthEndpoint =
-    url.includes("/auth/login") ||
-    url.includes("/admin/auth/login") ||
-    url.includes("/auth/register") ||
-    url.includes("/auth/refresh");
 
   if (typeof window !== "undefined") {
     const currentPath = window.location.pathname;
@@ -111,15 +109,13 @@ function rejectWithNormalisedError(
       currentPath === "/admin/login" ||
       currentPath === "/register";
 
-    // Only redirect if:
-    // 1. Explicitly requested (e.g. refresh token expired), OR
-    // 2. Received a 401 on a PROTECTED route while NOT already on a login page
     if (
-      (shouldRedirect || (error.response?.status === 401 && !isAuthEndpoint)) &&
+      (shouldRedirect ||
+        (error.response?.status === 401 && !isAuthEndpoint(url))) &&
       !isOnAuthPage
     ) {
       try {
-        localStorage.removeItem("auth-storage");
+        localStorage.removeItem(AUTH_STORAGE_KEY);
       } catch {
         // ignore
       }

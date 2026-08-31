@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { formatDate } from "@/lib/utils/formatDate";
-import type { Assistant } from "@/types";
+import type { Assistant } from "@/types/assistant";
 
 interface AssistantCardProps {
   assistant: Assistant;

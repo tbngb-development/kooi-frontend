@@ -97,7 +97,9 @@ export function BrochureUploader({
             <p className="text-base font-semibold text-text-primary">
               {currentStage}
             </p>
-            <p className="text-base text-text-muted mt-1">{selectedFile.name}</p>
+            <p className="text-base text-text-muted mt-1">
+              {selectedFile.name}
+            </p>
           </div>
 
           {/* Progress bar */}

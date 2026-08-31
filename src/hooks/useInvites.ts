@@ -4,7 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { createInvite as apiCreateInvite } from "@/lib/api/auth";
 import { getAxiosErrorMessage } from "@/lib/axios-error-message";
-import type { InviteInput } from "@/types/user";
+import { InviteInput } from "@/types/auth";
 
 export function useCreateInvite() {
   return useMutation({

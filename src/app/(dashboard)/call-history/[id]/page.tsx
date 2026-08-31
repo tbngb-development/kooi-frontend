@@ -9,7 +9,7 @@ import { PageSpinner } from "@/components/ui/Spinner";
 import { useCall } from "@/hooks/useCalls";
 import { formatDateTime } from "@/lib/utils/formatDate";
 import { formatDuration } from "@/lib/utils/formatDuration";
-import type { CallAnalysis, Disposition, LeadTemperature } from "@/types";
+import type { CallAnalysis, Disposition, LeadTemperature } from "@/types/call";
 import {
   ChevronLeft,
   Clock,

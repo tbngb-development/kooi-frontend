@@ -7,7 +7,7 @@ import type {
   Assistant,
   RegisterAssistantInput,
   UpdateAssistantInput,
-} from "@/types";
+} from "@/types/assistant";
 
 export type AssistantModalState =
   | { mode: "closed" }

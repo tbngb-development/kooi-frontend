@@ -15,10 +15,10 @@ import { useAuthStore } from "@/store/authStore";
 import { useUsers, useDeleteUser } from "@/hooks/useUsers";
 import { useCreateInvite } from "@/hooks/useInvites";
 import { formatDate } from "@/lib/utils/formatDate";
-import type { TenantRole } from "@/store/authStore";
+import { TenantRole } from "@/types/tenant";
 
 const inviteSchema = z.object({
-  email: z.string().email("Enter a valid email address"),
+  email: z.email("Enter a valid email address"),
   role: z.enum(["ADMIN", "USER"]),
 });
 

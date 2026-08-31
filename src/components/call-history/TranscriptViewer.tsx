@@ -1,6 +1,6 @@
 // src/components/calls/TranscriptViewer.tsx
 
-import type { TranscriptMessage } from "@/types";
+import type { TranscriptMessage } from "@/types/call";
 import { cn } from "@/lib/utils/cn";
 import { Bot, User } from "lucide-react";
 import { formatTranscriptDuration } from "@/lib/utils/formatDate";

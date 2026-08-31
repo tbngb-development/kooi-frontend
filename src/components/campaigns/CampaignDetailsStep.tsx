@@ -11,7 +11,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod/v4";
 import Link from "next/link";
-import type { Assistant, RetryConfig } from "@/types";
+import type { Assistant } from "@/types/assistant";
+import { RetryConfig } from "@/types/batch";
 
 const schema = z.object({
   name: z.string().min(2, "Campaign name must be at least 2 characters"),

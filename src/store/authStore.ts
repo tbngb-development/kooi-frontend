@@ -1,35 +1,19 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { AUTH_STORAGE_KEY } from "@/constants/config/auth.config";
+import type { User } from "@/types/user";
+import type { Membership, TenantRole } from "@/types/tenant";
 
-// ─── V1 Types ─────────────────────────────────────────────────────────────────
-export type TenantRole = "OWNER" | "ADMIN" | "USER";
-
-export interface V1User {
-  id: string;
-  email: string;
-  name: string;
-  isPlatformAdmin: boolean;
-}
-
-export interface Membership {
-  membershipId: string;
-  tenantId: string;
-  tenantName: string;
-  role: TenantRole;
-}
-
-// ─── Store ────────────────────────────────────────────────────────────────────
 interface AuthState {
-  user: V1User | null;
+  user: User | null;
   memberships: Membership[];
   activeTenantId: string | null;
   isAuthenticated: boolean;
 
-  // Actions
-  setAuth: (user: V1User, memberships: Membership[]) => void;
+  setAuth: (user: User, memberships: Membership[]) => void;
   setActiveTenant: (tenantId: string) => void;
   clearAuth: () => void;
-  updateUser: (partial: Partial<V1User>) => void;
+  updateUser: (partial: Partial<User>) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -44,7 +28,6 @@ export const useAuthStore = create<AuthState>()(
         set({
           user,
           memberships,
-          // Auto-select if only one tenant
           activeTenantId:
             memberships.length === 1 ? memberships[0].tenantId : null,
           isAuthenticated: true,
@@ -66,8 +49,7 @@ export const useAuthStore = create<AuthState>()(
         })),
     }),
     {
-      name: "auth-storage",
-      // V1: No token to persist — cookies handle auth
+      name: AUTH_STORAGE_KEY,
       partialize: (state) => ({
         user: state.user,
         memberships: state.memberships,
@@ -78,7 +60,8 @@ export const useAuthStore = create<AuthState>()(
   ),
 );
 
-// ─── Derived Helpers (use outside React or in selectors) ──────────────────────
+// ─── Derived Helpers ──────────────────────────────────────────────────────────
+
 export const getActiveMembership = (): Membership | undefined => {
   const { memberships, activeTenantId } = useAuthStore.getState();
   return memberships.find((m) => m.tenantId === activeTenantId);

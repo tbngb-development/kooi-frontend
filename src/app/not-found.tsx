@@ -1,7 +1,4 @@
-// src/app/not-found.tsx
-
 import Link from "next/link";
-import { ADMIN_ROUTES } from "@/constants/routes/admin.routes";
 import GoBackButton from "@/components/ui/GoBackButton";
 
 export default function NotFound() {

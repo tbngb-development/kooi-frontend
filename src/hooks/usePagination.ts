@@ -1,6 +1,4 @@
-// src/hooks/usePagination.ts
-
-import { useState } from 'react';
+import { useState } from "react";
 
 interface UsePaginationOptions {
   initialPage?: number;
@@ -19,5 +17,13 @@ export function usePagination({
   const prevPage = () => setPage((prev) => Math.max(1, prev - 1));
   const reset = () => setPage(1);
 
-  return { page, limit, setPage: goToPage, nextPage, prevPage, reset, setLimit };
+  return {
+    page,
+    limit,
+    setPage: goToPage,
+    nextPage,
+    prevPage,
+    reset,
+    setLimit,
+  };
 }
