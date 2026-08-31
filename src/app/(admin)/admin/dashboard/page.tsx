@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { PageSpinner } from "@/components/ui/Spinner";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { useTenants, useToggleTenantStatus } from "@/hooks/useTenants";
+import { useTenants, useToggleTenantStatus } from "@/hooks/admin/useAdminTenants";
 import { formatDate } from "@/lib/utils/formatDate";
 import { Building2, Phone, Users } from "lucide-react";
 import Link from "next/link";

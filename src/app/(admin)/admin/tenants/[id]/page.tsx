@@ -24,7 +24,7 @@ import {
   useTenant,
   useTenantStats,
   useToggleTenantStatus,
-} from "@/hooks/useTenants";
+} from "@/hooks/admin/useAdminTenants";
 import { formatDate } from "@/lib/utils/formatDate";
 
 // ── Stat Card ─────────────────────────────────────────────────────────────────
@@ -148,7 +148,7 @@ export default function TenantDetailPage({
 
   // Render email and apiKey safely with strict fallbacks
   const tenantEmail = "No contact email configured";
-  const rawApiKey =  "Api key un-available";
+  const rawApiKey = "Api key un-available";
   const maskedApiKey = rawApiKey
     ? `${rawApiKey.slice(0, 8)}${"•".repeat(24)}${rawApiKey.slice(-4)}`
     : "Configuration missing";
