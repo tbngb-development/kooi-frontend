@@ -7,3 +7,5 @@ export * from "./admin-batches";
 export * from "./admin-leads";
 export * from "./admin-calls";
 export * from "./admin-brochures";
+export * from "./admin-plans";
+export * from "./admin-bolna-keys";

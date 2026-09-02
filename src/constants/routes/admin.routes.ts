@@ -14,4 +14,6 @@ export const ADMIN_ROUTES = {
     `/admin/tenants/${id}/calls/${callId}` as const,
   TENANT_ASSISTANTS: (id: string) => `/admin/tenants/${id}/assistants` as const,
   TENANT_BATCHES: (id: string) => `/admin/tenants/${id}/batches` as const,
+  PLANS: "/admin/plans",
+  API_KEYS: "/admin/api-keys",
 } as const;

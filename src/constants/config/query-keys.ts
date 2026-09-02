@@ -117,4 +117,16 @@ export const QUERY_KEYS = {
     detail: (tenantId: string, id: string) =>
       ["admin", "brochures", tenantId, id] as const,
   },
+  PLANS: {
+    all: ["plans"] as const,
+    available: () => [...QUERY_KEYS.PLANS.all, "available"] as const,
+    mine: () => [...QUERY_KEYS.PLANS.all, "mine"] as const,
+  },
+  ADMIN_PLANS: {
+    all: ["admin", "plans"] as const,
+    detail: (id: string) => ["admin", "plans", id] as const,
+  },
+  ADMIN_BOLNA_KEYS: {
+    all: ["admin", "bolna-keys"] as const,
+  },
 } as const;

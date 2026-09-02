@@ -25,4 +25,5 @@ export const APP_ROUTES = {
   ASSISTANT_DETAIL: (id: string) => `/assistants/${id}` as const,
   SETTINGS: "/settings",
   USERS: "/users",
+  PLANS: "/plans",
 } as const;
