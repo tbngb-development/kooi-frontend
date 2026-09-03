@@ -14,6 +14,7 @@ import {
   User,
   CreditCard,
   KeyRound,
+  MailPlus,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
@@ -32,6 +33,11 @@ export function AdminSidebar() {
       name: "Tenants",
       href: ADMIN_ROUTES.TENANTS,
       icon: Building2,
+    },
+    {
+      name: "Invites",
+      href: ADMIN_ROUTES.INVITES,
+      icon: MailPlus,
     },
     { name: "Plans", href: ADMIN_ROUTES.PLANS, icon: CreditCard },
     { name: "API Keys", href: ADMIN_ROUTES.API_KEYS, icon: KeyRound },

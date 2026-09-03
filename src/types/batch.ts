@@ -1,5 +1,3 @@
-// ─── V1 Batch Types ──────────────────────────────────────────────────────────
-
 export type BatchStatus =
   | "CREATED"
   | "SCHEDULED"
@@ -61,4 +59,13 @@ export interface BatchStats {
   totalCost: number;
 }
 
+export interface BatchBalanceWarning {
+  balance: number; // in paisa
+  estimatedCost: number; // in paisa
+}
 
+export interface RunOrScheduleBatchResponse {
+  batch: LeadBatch;
+  message: string;
+  balanceWarning?: BatchBalanceWarning;
+}

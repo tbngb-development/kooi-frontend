@@ -129,4 +129,21 @@ export const QUERY_KEYS = {
   ADMIN_BOLNA_KEYS: {
     all: ["admin", "bolna-keys"] as const,
   },
+  WALLET: {
+    all: ["wallet"] as const,
+    balance: () => [...QUERY_KEYS.WALLET.all, "balance"] as const,
+    transactions: (page: number, limit: number) =>
+      [...QUERY_KEYS.WALLET.all, "transactions", page, limit] as const,
+  },
+  PAYMENTS: {
+    all: ["payments"] as const,
+    orderStatus: (orderId: string) =>
+      [...QUERY_KEYS.PAYMENTS.all, "order", orderId] as const,
+  },
+  OWNER_INVITE: {
+    public: (token: string) => ["owner-invite", "public", token] as const,
+  },
+  ADMIN_INVITES: {
+    all: ["admin", "invites"] as const,
+  },
 } as const;

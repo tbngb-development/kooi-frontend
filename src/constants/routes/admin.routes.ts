@@ -16,4 +16,5 @@ export const ADMIN_ROUTES = {
   TENANT_BATCHES: (id: string) => `/admin/tenants/${id}/batches` as const,
   PLANS: "/admin/plans",
   API_KEYS: "/admin/api-keys",
+  INVITES: "/admin/invites",
 } as const;

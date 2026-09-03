@@ -1,0 +1,5 @@
+import { API_PREFIXES } from "@/constants/config/api-prefix";
+
+export const ADMIN_INVITE_ENDPOINTS = {
+  BASE: `${API_PREFIXES.ADMIN}/invites`,
+} as const;

@@ -9,6 +9,9 @@ export { CALL_ENDPOINTS } from "./call-endpoint";
 export { BROCHURE_ENDPOINTS } from "./brochure-endpoint";
 export { DASHBOARD_ENDPOINTS } from "./dashboard-endpoint";
 export { PLAN_ENDPOINTS } from "./plan-endpoint";
+export { OWNER_INVITE_ENDPOINTS } from "./owner-invite-endpoint";
+export { WALLET_ENDPOINTS } from "./wallet-endpoint";
+export { PAYMENT_ENDPOINTS } from "./payment-endpoint";
 
 export { ADMIN_AUTH_ENDPOINTS } from "./admin/auth-endpoint";
 export { ADMIN_TENANT_ENDPOINTS } from "./admin/tenant-endpoint";
@@ -21,3 +24,4 @@ export { ADMIN_CALL_ENDPOINTS } from "./admin/call-endpoint";
 export { ADMIN_BROCHURE_ENDPOINTS } from "./admin/brochure-endpoint";
 export { ADMIN_PLAN_ENDPOINTS } from "./admin/plan-endpoint";
 export { ADMIN_BOLNA_KEY_ENDPOINTS } from "./admin/bolna-key-endpoint";
+export { ADMIN_INVITE_ENDPOINTS } from "./admin/invite-endpoint";

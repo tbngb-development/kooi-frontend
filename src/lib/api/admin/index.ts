@@ -9,3 +9,4 @@ export * from "./admin-calls";
 export * from "./admin-brochures";
 export * from "./admin-plans";
 export * from "./admin-bolna-keys";
+export * from "./admin-invites";

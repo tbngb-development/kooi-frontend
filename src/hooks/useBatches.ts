@@ -6,6 +6,9 @@ import { batchesApi } from "@/lib/api/batches";
 import { getAxiosErrorMessage } from "@/lib/axios-error-message";
 import { QUERY_KEYS } from "@/constants/config/query-keys";
 import type { RetryConfig } from "@/types/batch";
+import { useRouter } from "next/navigation";
+import { APP_ROUTES } from "@/constants/routes/app.routes";
+import { paisaToInr } from "@/constants/config/wallet.config";
 
 export function useBatches(campaignId: string) {
   return useQuery({
@@ -57,6 +60,7 @@ export function useCreateBatch(campaignId: string) {
 
 export function useRunBatch(campaignId: string) {
   const qc = useQueryClient();
+  const router = useRouter();
 
   return useMutation({
     mutationFn: (batchId: string) => batchesApi.run(campaignId, batchId),
@@ -65,16 +69,33 @@ export function useRunBatch(campaignId: string) {
       qc.invalidateQueries({
         queryKey: QUERY_KEYS.CAMPAIGNS.detail(campaignId),
       });
-      toast.success(data.message);
+
+      if (data.balanceWarning) {
+        toast.warning("Low balance warning", {
+          description: `Current balance (${paisaToInr(data.balanceWarning.balance)}) is below the estimated batch cost (${paisaToInr(data.balanceWarning.estimatedCost)}). Calls may stop mid-run.`,
+          duration: 8000,
+        });
+      } else {
+        toast.success(data.message);
+      }
     },
     onError: (err: unknown) => {
-      toast.error(getAxiosErrorMessage(err));
+      const msg = getAxiosErrorMessage(err);
+      toast.error(msg);
+
+      if (
+        msg.toLowerCase().includes("balance") ||
+        msg.includes("INSUFFICIENT_BALANCE")
+      ) {
+        router.push(APP_ROUTES.SETTINGS);
+      }
     },
   });
 }
 
 export function useScheduleBatch(campaignId: string) {
   const qc = useQueryClient();
+  const router = useRouter();
 
   return useMutation({
     mutationFn: ({
@@ -89,10 +110,26 @@ export function useScheduleBatch(campaignId: string) {
       qc.invalidateQueries({
         queryKey: QUERY_KEYS.CAMPAIGNS.detail(campaignId),
       });
-      toast.success(data.message);
+
+      if (data.balanceWarning) {
+        toast.warning("Low balance warning", {
+          description: `Current balance (${paisaToInr(data.balanceWarning.balance)}) is below the estimated batch cost (${paisaToInr(data.balanceWarning.estimatedCost)}).`,
+          duration: 8000,
+        });
+      } else {
+        toast.success(data.message);
+      }
     },
     onError: (err: unknown) => {
-      toast.error(getAxiosErrorMessage(err));
+      const msg = getAxiosErrorMessage(err);
+      toast.error(msg);
+
+      if (
+        msg.toLowerCase().includes("balance") ||
+        msg.includes("INSUFFICIENT_BALANCE")
+      ) {
+        router.push(APP_ROUTES.SETTINGS);
+      }
     },
   });
 }
