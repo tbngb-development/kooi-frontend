@@ -78,7 +78,7 @@ export default function TenantPaymentsPage({
                 <thead>
                   <tr className="border-b border-surface-border bg-surface-muted text-text-secondary font-semibold">
                     <th className="px-5 py-3">Receipt ID</th>
-                    <th className="px-5 py-3">Billing Slabs</th>
+                    <th className="px-5 py-3">Amount</th>
                     <th className="px-5 py-3">Purpose</th>
                     <th className="px-5 py-3">Status</th>
                     <th className="px-5 py-3 text-right">Settled On</th>
