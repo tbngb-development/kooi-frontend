@@ -26,3 +26,25 @@ export interface UpdateUserInput {
   name?: string;
   role?: TenantRole;
 }
+
+export interface AdminUserTenantMap {
+  tenantId: string;
+  tenantName: string;
+  role: string;
+}
+
+export interface AdminUser {
+  id: string;
+  name: string;
+  email: string;
+  isActive: boolean;
+  createdAt: string;
+  tenants: AdminUserTenantMap[];
+}
+
+export interface AdminUsersPage {
+  items: AdminUser[];
+  total: number;
+  page: number;
+  limit: number;
+}

@@ -12,6 +12,10 @@ import {
   Shield,
   Loader2,
   User,
+  CreditCard,
+  KeyRound,
+  MailPlus,
+  Users2,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
@@ -31,6 +35,23 @@ export function AdminSidebar() {
       href: ADMIN_ROUTES.TENANTS,
       icon: Building2,
     },
+    {
+      name: "Invites",
+      href: ADMIN_ROUTES.INVITES,
+      icon: MailPlus,
+    },
+    {
+      name: "Payments",
+      href: ADMIN_ROUTES.PAYMENTS,
+      icon: CreditCard,
+    },
+    {
+      name: "Users",
+      href: ADMIN_ROUTES.USERS,
+      icon: Users2,
+    },
+    { name: "Plans", href: ADMIN_ROUTES.PLANS, icon: CreditCard },
+    { name: "API Keys", href: ADMIN_ROUTES.API_KEYS, icon: KeyRound },
   ];
 
   return (

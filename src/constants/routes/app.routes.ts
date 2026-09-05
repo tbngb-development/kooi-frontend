@@ -1,11 +1,10 @@
-/**
- * Tenant application routes.
- * Single source of truth for navigation, redirects, and middleware matching.
- */
 export const APP_ROUTES = {
   HOME: "/",
   LOGIN: "/login",
   REGISTER: "/register",
+  ACCEPT_INVITE: (token: string) => `/accept-invite/${token}` as const,
+  ONBOARDING_PLANS: "/onboarding/plans", // New route
+  ONBOARDING_PAYMENT: "/onboarding/payment",
   DASHBOARD: "/dashboard",
   CAMPAIGNS: "/campaigns",
   CAMPAIGN_NEW: "/campaigns/new",
@@ -25,4 +24,5 @@ export const APP_ROUTES = {
   ASSISTANT_DETAIL: (id: string) => `/assistants/${id}` as const,
   SETTINGS: "/settings",
   USERS: "/users",
+  PLANS: "/plans",
 } as const;

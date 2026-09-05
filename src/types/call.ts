@@ -107,6 +107,8 @@ export interface Call {
   status: CallStatus;
   duration: number | null;
   cost: number | null;
+  platformCost: number | null;
+  billableSeconds: number | null;
   recording: string | null;
   transcript: string | null;
   transcriptMessages: TranscriptMessage[] | null;

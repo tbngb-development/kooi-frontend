@@ -6,6 +6,7 @@ import type {
   BatchCreateResponse,
   BatchStats,
   RetryConfig,
+  RunOrScheduleBatchResponse,
 } from "@/types/batch";
 
 /**
@@ -58,10 +59,10 @@ export const batchesApi = {
   run: async (
     campaignId: string,
     batchId: string,
-  ): Promise<{ batch: LeadBatch; message: string }> => {
-    const res = await apiClient.post<
-      ApiResponse<{ batch: LeadBatch; message: string }>
-    >(BATCH_ENDPOINTS.RUN(campaignId, batchId));
+  ): Promise<RunOrScheduleBatchResponse> => {
+    const res = await apiClient.post<ApiResponse<RunOrScheduleBatchResponse>>(
+      BATCH_ENDPOINTS.RUN(campaignId, batchId),
+    );
     if (!res.data.success || !res.data.data) {
       throw new Error(res.data.error ?? "Failed to run batch");
     }
@@ -72,10 +73,11 @@ export const batchesApi = {
     campaignId: string,
     batchId: string,
     scheduledAt: string,
-  ): Promise<{ batch: LeadBatch; message: string }> => {
-    const res = await apiClient.post<
-      ApiResponse<{ batch: LeadBatch; message: string }>
-    >(BATCH_ENDPOINTS.SCHEDULE(campaignId, batchId), { scheduledAt });
+  ): Promise<RunOrScheduleBatchResponse> => {
+    const res = await apiClient.post<ApiResponse<RunOrScheduleBatchResponse>>(
+      BATCH_ENDPOINTS.SCHEDULE(campaignId, batchId),
+      { scheduledAt },
+    );
     if (!res.data.success || !res.data.data) {
       throw new Error(res.data.error ?? "Failed to schedule batch start");
     }

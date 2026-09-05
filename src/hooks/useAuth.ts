@@ -10,6 +10,7 @@ import {
   logout as apiLogout,
 } from "@/lib/api/auth";
 import { useAuthStore } from "@/store/authStore";
+import { useTenantStore } from "@/store/tenantStore";
 import { AUTH_MESSAGES, AUTH_REDIRECTS } from "@/constants/config/auth.config";
 import {
   setSessionIndicator,
@@ -17,6 +18,7 @@ import {
 } from "@/lib/session-cookies";
 import type { User } from "@/types/user";
 import type { Membership } from "@/types/tenant";
+import { APP_ROUTES } from "@/constants/routes/app.routes";
 
 export function useLogin() {
   const { setAuth, setActiveTenant } = useAuthStore();
@@ -56,6 +58,7 @@ export function useLogin() {
 
 export function useSelectTenant() {
   const { setAuth, setActiveTenant } = useAuthStore();
+  const { setTenantContext } = useTenantStore();
   const router = useRouter();
 
   return useMutation({
@@ -75,6 +78,10 @@ export function useSelectTenant() {
       setAuth(user, memberships);
       setActiveTenant(res.membership.tenantId);
       setSessionIndicator(res.membership.role, user.isPlatformAdmin);
+
+      // Pre-initialize tenant store workspace profile ID
+      setTenantContext(res.membership.tenantId, null, "NONE");
+
       toast.success(AUTH_MESSAGES.WORKSPACE_LOADED(res.membership.tenantName));
       router.push(
         user.isPlatformAdmin
@@ -87,9 +94,9 @@ export function useSelectTenant() {
     },
   });
 }
-
 export function useRegister() {
   const { setAuth, setActiveTenant } = useAuthStore();
+  const { setTenantContext } = useTenantStore();
   const router = useRouter();
 
   return useMutation({
@@ -112,23 +119,30 @@ export function useRegister() {
       setAuth(user, [membership]);
       setActiveTenant(data.tenant.id);
       setSessionIndicator(membership.role, false);
+
+      // Initialize workspace with an unassigned NONE plan status
+      setTenantContext(data.tenant.id, null, "NONE");
+
       toast.success(AUTH_MESSAGES.ORG_PROVISIONED);
-      router.push(AUTH_REDIRECTS.TENANT_HOME);
+
+      // Route direct to plan selection catalog
+      router.push(APP_ROUTES.ONBOARDING_PLANS);
     },
     onError: (error: Error) => {
       toast.error(error.message);
     },
   });
 }
-
 export function useLogout() {
   const { clearAuth } = useAuthStore();
+  const { clearTenantContext } = useTenantStore();
   const router = useRouter();
 
   return useMutation({
     mutationFn: apiLogout,
     onMutate: () => {
       clearAuth();
+      clearTenantContext();
       clearSessionIndicator();
     },
     onSuccess: () => {

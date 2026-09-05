@@ -37,10 +37,9 @@ export function useAdminLogin() {
       setAuth(user, data.memberships);
       if (data.memberships.length > 0) {
         setActiveTenant(data.memberships[0].tenantId);
-        setSessionIndicator(data.memberships[0].role, true);
-      } else {
-        setSessionIndicator("ADMIN", true);
       }
+
+      setSessionIndicator("SUPER_ADMIN", true);
 
       toast.success(AUTH_MESSAGES.ADMIN_WELCOME);
       router.push(AUTH_REDIRECTS.ADMIN_HOME);

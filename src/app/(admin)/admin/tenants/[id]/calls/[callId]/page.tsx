@@ -18,8 +18,9 @@ import {
   Thermometer,
   Target,
   Clock,
-  DollarSign,
+  IndianRupee,
 } from "lucide-react";
+import { paisaToInr } from "@/constants/config/wallet.config";
 
 const tempVariant: Record<
   string,
@@ -76,8 +77,8 @@ export default function AdminCallDetailPage({ params }: PageProps) {
             },
             {
               label: "Cost",
-              value: call.cost ? `$${call.cost.toFixed(3)}` : "—",
-              icon: DollarSign,
+              value: call.platformCost ? paisaToInr(call.platformCost) : "₹0.00",
+              icon: IndianRupee,
             },
             {
               label: "Lead",

@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { AdminSidebar } from "@/components/layout/AdminSidebar";
 import { useAuthStore } from "@/store/authStore";
 import { Spinner } from "@/components/ui/Spinner";
 import { ADMIN_ROUTES } from "@/constants/routes/admin.routes";
+import { APP_ROUTES } from "@/constants/routes/app.routes";
 
 export default function AdminLayout({
   children,
@@ -13,29 +14,52 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { user, isAuthenticated } = useAuthStore();
+
+  const [hasHydrated, setHasHydrated] = useState(false);
   const [isAuthorized, setIsAuthorized] = useState(false);
 
+  // 1. Wait for Zustand persist to hydrate state from localStorage
   useEffect(() => {
-    // Session Verification & Role enforcement
-    if (!isAuthenticated) {
-      router.replace(ADMIN_ROUTES.LOGIN);
-    } else if (!user?.isPlatformAdmin) {
-      // Bounce unauthorized tenant users out of the admin console
-      router.replace("/dashboard");
-    } else {
+    if (useAuthStore.persist.hasHydrated()) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setIsAuthorized(true);
+      setHasHydrated(true);
     }
-  }, [user, isAuthenticated, router]);
+    const unsubscribe = useAuthStore.persist.onFinishHydration(() => {
+      setHasHydrated(true);
+    });
+    return () => unsubscribe();
+  }, []);
 
-  if (!isAuthorized) {
+  // 2. Perform authentication and platform admin authorization check
+  useEffect(() => {
+    if (!hasHydrated) return;
+
+    if (!isAuthenticated) {
+      router.replace(
+        `${ADMIN_ROUTES.LOGIN}?callbackUrl=${encodeURIComponent(pathname)}`,
+      );
+      return;
+    }
+
+    if (!user?.isPlatformAdmin) {
+      // Non-admin trying to access admin panel -> redirect to tenant dashboard
+      router.replace(APP_ROUTES.DASHBOARD);
+      return;
+    }
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsAuthorized(true);
+  }, [hasHydrated, isAuthenticated, user, router, pathname]);
+
+  if (!hasHydrated || !isAuthorized) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-surface-muted">
         <div className="flex flex-col items-center gap-3">
           <Spinner className="h-8 w-8 text-error-600" />
           <p className="text-sm font-medium text-text-muted animate-pulse">
-            Authenticating system privileges...
+            Authenticating platform administrator privileges...
           </p>
         </div>
       </div>

@@ -9,9 +9,11 @@ interface AuthState {
   memberships: Membership[];
   activeTenantId: string | null;
   isAuthenticated: boolean;
+  paymentRequired: boolean; // NEW
 
   setAuth: (user: User, memberships: Membership[]) => void;
   setActiveTenant: (tenantId: string) => void;
+  setPaymentRequired: (required: boolean) => void; // NEW
   clearAuth: () => void;
   updateUser: (partial: Partial<User>) => void;
 }
@@ -23,6 +25,7 @@ export const useAuthStore = create<AuthState>()(
       memberships: [],
       activeTenantId: null,
       isAuthenticated: false,
+      paymentRequired: false,
 
       setAuth: (user, memberships) =>
         set({
@@ -35,12 +38,15 @@ export const useAuthStore = create<AuthState>()(
 
       setActiveTenant: (tenantId) => set({ activeTenantId: tenantId }),
 
+      setPaymentRequired: (required) => set({ paymentRequired: required }),
+
       clearAuth: () =>
         set({
           user: null,
           memberships: [],
           activeTenantId: null,
           isAuthenticated: false,
+          paymentRequired: false,
         }),
 
       updateUser: (partial) =>
@@ -55,12 +61,11 @@ export const useAuthStore = create<AuthState>()(
         memberships: state.memberships,
         activeTenantId: state.activeTenantId,
         isAuthenticated: state.isAuthenticated,
+        paymentRequired: state.paymentRequired,
       }),
     },
   ),
 );
-
-// ─── Derived Helpers ──────────────────────────────────────────────────────────
 
 export const getActiveMembership = (): Membership | undefined => {
   const { memberships, activeTenantId } = useAuthStore.getState();

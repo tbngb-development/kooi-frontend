@@ -117,4 +117,33 @@ export const QUERY_KEYS = {
     detail: (tenantId: string, id: string) =>
       ["admin", "brochures", tenantId, id] as const,
   },
+  PLANS: {
+    all: ["plans"] as const,
+    available: () => [...QUERY_KEYS.PLANS.all, "available"] as const,
+    mine: () => [...QUERY_KEYS.PLANS.all, "mine"] as const,
+  },
+  ADMIN_PLANS: {
+    all: ["admin", "plans"] as const,
+    detail: (id: string) => ["admin", "plans", id] as const,
+  },
+  ADMIN_BOLNA_KEYS: {
+    all: ["admin", "bolna-keys"] as const,
+  },
+  WALLET: {
+    all: ["wallet"] as const,
+    balance: () => [...QUERY_KEYS.WALLET.all, "balance"] as const,
+    transactions: (page: number, limit: number) =>
+      [...QUERY_KEYS.WALLET.all, "transactions", page, limit] as const,
+  },
+  PAYMENTS: {
+    all: ["payments"] as const,
+    orderStatus: (orderId: string) =>
+      [...QUERY_KEYS.PAYMENTS.all, "order", orderId] as const,
+  },
+  OWNER_INVITE: {
+    public: (token: string) => ["owner-invite", "public", token] as const,
+  },
+  ADMIN_INVITES: {
+    all: ["admin", "invites"] as const,
+  },
 } as const;
