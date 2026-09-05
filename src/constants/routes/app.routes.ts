@@ -3,6 +3,7 @@ export const APP_ROUTES = {
   LOGIN: "/login",
   REGISTER: "/register",
   ACCEPT_INVITE: (token: string) => `/accept-invite/${token}` as const,
+  ONBOARDING_PLANS: "/onboarding/plans", // New route
   ONBOARDING_PAYMENT: "/onboarding/payment",
   DASHBOARD: "/dashboard",
   CAMPAIGNS: "/campaigns",

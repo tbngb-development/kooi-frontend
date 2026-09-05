@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useMyPlan } from "@/hooks/usePlans";
 import { useAuthStore } from "@/store/authStore";
+import { useTenantStore } from "@/store/tenantStore";
 import { RazorpayCheckoutButton } from "@/components/payments/RazorpayCheckoutButton";
 import { Card } from "@/components/ui/Card";
 import { Spinner } from "@/components/ui/Spinner";
@@ -16,16 +17,18 @@ import { useLogout } from "@/hooks/useAuth";
 export default function OnboardingPaymentPage() {
   const router = useRouter();
   const { setPaymentRequired } = useAuthStore();
+  const { markPaymentDone } = useTenantStore();
   const { data: tenantPlan, isLoading, refetch } = useMyPlan();
   const { mutate: logout, isPending: isLoggingOut } = useLogout();
 
   useEffect(() => {
-    // If the plan is active, clear the payment restriction and proceed to dashboard
     if (tenantPlan && tenantPlan.status === "ACTIVE") {
+      // Sync success state to both stores
       setPaymentRequired(false);
+      markPaymentDone();
       router.replace(APP_ROUTES.DASHBOARD);
     }
-  }, [tenantPlan, router, setPaymentRequired]);
+  }, [tenantPlan, router, setPaymentRequired, markPaymentDone]);
 
   if (isLoading) {
     return (
@@ -96,6 +99,7 @@ export default function OnboardingPaymentPage() {
             label="Activate & Credit Wallet"
             onSuccess={() => {
               setPaymentRequired(false);
+              markPaymentDone();
               refetch();
             }}
             className="w-full h-11 text-base font-semibold"

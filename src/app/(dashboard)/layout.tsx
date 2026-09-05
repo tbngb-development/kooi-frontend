@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
+import { useTenantStore } from "@/store/tenantStore";
 import { useMyPlan } from "@/hooks/usePlans";
 import { APP_ROUTES } from "@/constants/routes/app.routes";
 import { Sidebar } from "@/components/layout/Sidebar";
@@ -15,7 +16,9 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, user, activeTenantId } = useAuthStore();
+  const { setTenantContext } = useTenantStore();
+
   const { data: tenantPlan, isLoading } = useMyPlan();
   const [isAuthorized, setIsAuthorized] = useState(false);
 
@@ -27,20 +30,41 @@ export default function DashboardLayout({
 
     if (isLoading) return;
 
-    // Platform Admins bypass the onboarding payment restriction
+    // Platform Admins bypass the plan/payment restriction
     if (user?.isPlatformAdmin) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsAuthorized(true);
       return;
     }
 
-    // Force redirection if onboarding payment is required
-    if (tenantPlan?.status === "PENDING_PAYMENT") {
-      router.replace(APP_ROUTES.ONBOARDING_PAYMENT);
+    if (tenantPlan) {
+      // Sync plan status and active workspace ID to the Tenant Store
+      setTenantContext(activeTenantId, tenantPlan.plan, tenantPlan.status);
+
+      // Force redirection if onboarding plan is pending activation or expired
+      if (
+        tenantPlan.status === "PENDING_PAYMENT" ||
+        tenantPlan.status === "EXPIRED" ||
+        tenantPlan.status === "CANCELLED"
+      ) {
+        // Direct unactivated workspaces to choose their onboarding tier first
+        router.replace(APP_ROUTES.ONBOARDING_PLANS);
+      } else {
+        setIsAuthorized(true);
+      }
     } else {
-      setIsAuthorized(true);
+      // If tenant has no plan record at all, send them to select one
+      router.replace(APP_ROUTES.ONBOARDING_PLANS);
     }
-  }, [isAuthenticated, user, tenantPlan, isLoading, router]);
+  }, [
+    isAuthenticated,
+    user,
+    activeTenantId,
+    tenantPlan,
+    isLoading,
+    router,
+    setTenantContext,
+  ]);
 
   if (!isAuthorized || isLoading) {
     return (

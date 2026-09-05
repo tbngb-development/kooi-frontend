@@ -25,4 +25,15 @@ export const plansApi = {
       return null;
     }
   },
+
+  select: async (planId: string): Promise<TenantPlan> => {
+    const res = await apiClient.post<ApiResponse<TenantPlan>>(
+      PLAN_ENDPOINTS.SELECT(planId),
+      {},
+    );
+    if (!res.data.success || !res.data.data) {
+      throw new Error(res.data.error ?? "Failed to assign plan package");
+    }
+    return res.data.data;
+  },
 };
