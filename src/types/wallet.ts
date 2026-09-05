@@ -18,6 +18,8 @@ export type WalletTxType =
   | "BONUS"
   | "ADJUSTMENT";
 
+export type WalletAdjustmentType = "CREDIT" | "DEBIT" | "BONUS";
+
 export type WalletTxReferenceType =
   | "CALL"
   | "RECHARGE"
@@ -46,4 +48,11 @@ export interface WalletTransactionsPage {
 export interface BalanceWarning {
   balance: number;
   estimatedCost: number;
+}
+
+export interface AdjustWalletInput {
+  tenantId: string;
+  amountPaisa: number;
+  type: WalletAdjustmentType;
+  description: string;
 }

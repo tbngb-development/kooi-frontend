@@ -11,6 +11,8 @@ import {
   PhoneCall,
   Bot,
   Layers,
+  Wallet,
+  CreditCard,
 } from "lucide-react";
 
 interface AdminTenantNavProps {
@@ -24,6 +26,18 @@ const tabs = [
     label: "Overview",
     icon: LayoutDashboard,
     href: (id: string) => ADMIN_ROUTES.TENANT_DETAIL(id),
+  },
+  {
+    key: "wallet",
+    label: "Wallet",
+    icon: Wallet,
+    href: (id: string) => ADMIN_ROUTES.TENANT_WALLET(id),
+  },
+  {
+    key: "payments",
+    label: "Payments",
+    icon: CreditCard,
+    href: (id: string) => ADMIN_ROUTES.TENANT_PAYMENTS(id),
   },
   {
     key: "campaigns",
@@ -61,6 +75,8 @@ export function AdminTenantNav({ tenantId, tenantName }: AdminTenantNavProps) {
   const pathname = usePathname();
 
   const activeKey = (() => {
+    if (pathname.includes("/wallet")) return "wallet";
+    if (pathname.includes("/payments")) return "payments";
     if (pathname.includes("/campaigns")) return "campaigns";
     if (pathname.includes("/leads")) return "leads";
     if (pathname.includes("/calls")) return "calls";

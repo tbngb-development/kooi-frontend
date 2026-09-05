@@ -24,4 +24,26 @@ export const adminInvitesApi = {
     }
     return res.data.data;
   },
+
+  resend: async (id: string): Promise<OwnerInvite> => {
+    const res = await apiClient.post<ApiResponse<OwnerInvite>>(
+      ADMIN_INVITE_ENDPOINTS.RESEND(id),
+      {},
+    );
+    if (!res.data.success || !res.data.data) {
+      throw new Error(res.data.error ?? "Failed to resend invite");
+    }
+    return res.data.data;
+  },
+
+  revoke: async (id: string): Promise<OwnerInvite> => {
+    const res = await apiClient.post<ApiResponse<OwnerInvite>>(
+      ADMIN_INVITE_ENDPOINTS.REVOKE(id),
+      {},
+    );
+    if (!res.data.success || !res.data.data) {
+      throw new Error(res.data.error ?? "Failed to revoke invite");
+    }
+    return res.data.data;
+  },
 };

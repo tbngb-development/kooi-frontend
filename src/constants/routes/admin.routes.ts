@@ -1,8 +1,12 @@
 export const ADMIN_ROUTES = {
   LOGIN: "/admin/login",
   DASHBOARD: "/admin/dashboard",
+  PAYMENTS: "/admin/payments",
+  USERS: "/admin/users",
   TENANTS: "/admin/tenants",
   TENANT_DETAIL: (id: string) => `/admin/tenants/${id}` as const,
+  TENANT_WALLET: (id: string) => `/admin/tenants/${id}/wallet` as const,
+  TENANT_PAYMENTS: (id: string) => `/admin/tenants/${id}/payments` as const,
   TENANT_CAMPAIGNS: (id: string) => `/admin/tenants/${id}/campaigns` as const,
   TENANT_CAMPAIGN_DETAIL: (id: string, campId: string) =>
     `/admin/tenants/${id}/campaigns/${campId}` as const,

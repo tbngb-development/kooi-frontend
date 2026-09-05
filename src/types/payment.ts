@@ -41,3 +41,27 @@ export interface OrderStatusResponse {
   orderId: string;
   payments: RazorpayPaymentInfo[];
 }
+
+export interface AdminPayment {
+  id: string;
+  tenantId: string;
+  tenantName: string;
+  amount: number; // in paisa
+  status: "SUCCESS" | "FAILED" | "PENDING";
+  purpose: string;
+  createdAt: string;
+}
+
+export interface AdminPaymentsPage {
+  items: AdminPayment[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface AdminPaymentSummary {
+  totalRevenue: number; // in paisa
+  mrrApprox: number; // in paisa
+  successCount: number;
+  failedCount: number;
+}

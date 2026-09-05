@@ -10,3 +10,6 @@ export * from "./admin-brochures";
 export * from "./admin-plans";
 export * from "./admin-bolna-keys";
 export * from "./admin-invites";
+export * from "./admin-wallet";
+export * from "./admin-payments";
+export * from "./admin-users";

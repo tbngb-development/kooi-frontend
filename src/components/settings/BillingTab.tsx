@@ -148,7 +148,7 @@ export default function BillingTab() {
       <div className="space-y-3">
         <h3 className="text-sm font-bold text-text-primary flex items-center gap-1.5">
           <History size={15} />
-          Transaction Ledger
+          Transaction History 
         </h3>
 
         <Card className="overflow-hidden border border-surface-border rounded-xl bg-surface">

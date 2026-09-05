@@ -5,6 +5,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   useAdminInvites,
   useCreateOwnerInvite,
+  useResendAdminInvite,
+  useRevokeAdminInvite,
 } from "@/hooks/admin/useAdminInvites";
 import { useAdminPlans } from "@/hooks/admin/useAdminPlans";
 import { QUERY_KEYS } from "@/constants/config/query-keys";
@@ -21,10 +23,18 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { Mail, Plus, Check, Copy } from "lucide-react";
+import {
+  Mail,
+  Plus,
+  Check,
+  Copy,
+  MoreVertical,
+  RefreshCw,
+  Trash2,
+} from "lucide-react";
 import type { InviteStatus } from "@/types/invite";
+import { formatDateOnly, formatTimeOnly } from "@/lib/utils/formatDate";
 
-// Explicit non-coerced validation schema
 const inviteSchema = z.object({
   email: z.string().email("Invalid email address"),
   tenantName: z.string().min(1, "Workspace name required"),
@@ -47,11 +57,14 @@ const statusVariants: Record<
 export default function AdminInvitesPage() {
   const qc = useQueryClient();
   const { data: invites, isLoading, isFetching } = useAdminInvites();
-  const { data: plans } = useAdminPlans(false); // Fetch active plans only
+  const { data: plans } = useAdminPlans(false);
   const createMutation = useCreateOwnerInvite();
+  const resendMutation = useResendAdminInvite();
+  const revokeMutation = useRevokeAdminInvite();
 
   const [showForm, setShowForm] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
 
   const {
     register,
@@ -60,24 +73,14 @@ export default function AdminInvitesPage() {
     formState: { errors },
   } = useForm<InviteFormValues>({
     resolver: zodResolver(inviteSchema),
-    defaultValues: {
-      email: "",
-      tenantName: "",
-      planId: "",
-      expiryDays: 7,
-    },
+    defaultValues: { email: "", tenantName: "", planId: "", expiryDays: 7 },
   });
 
   const handleCreate = (data: InviteFormValues) => {
     createMutation.mutate(data, {
       onSuccess: () => {
         setShowForm(false);
-        reset({
-          email: "",
-          tenantName: "",
-          planId: "",
-          expiryDays: 7,
-        });
+        reset({ email: "", tenantName: "", planId: "", expiryDays: 7 });
       },
     });
   };
@@ -97,7 +100,6 @@ export default function AdminInvitesPage() {
 
   return (
     <div className="p-6 max-w-7xl w-full mx-auto space-y-6">
-      {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-text-primary tracking-tight">
@@ -124,7 +126,6 @@ export default function AdminInvitesPage() {
         </div>
       </div>
 
-      {/* Invites Catalog */}
       <Card className="overflow-hidden border border-surface-border rounded-xl bg-surface">
         {isLoading ? (
           <div className="p-12 flex justify-center">
@@ -177,26 +178,79 @@ export default function AdminInvitesPage() {
                       </Badge>
                     </td>
                     <td className="px-5 py-4 text-xs text-text-muted">
-                      {new Date(inv.expiresAt).toLocaleDateString()}
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-base font-medium text-text-primary leading-none">
+                          {formatTimeOnly(inv.expiresAt)}
+                        </span>
+                        <span className="text-base text-text-muted leading-none">
+                          {formatDateOnly(inv.expiresAt)}
+                        </span>
+                      </div>
                     </td>
-                    <td className="px-5 py-4 text-right">
-                      {inv.status === "PENDING" && (
-                        <button
-                          onClick={() => handleCopy(inv.id, inv.inviteUrl)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-surface-border text-xs font-semibold text-text-secondary hover:bg-surface-subtle transition-colors cursor-pointer"
-                        >
-                          {copiedId === inv.id ? (
-                            <>
-                              <Check size={12} className="text-brand-600" />{" "}
-                              Copied
-                            </>
-                          ) : (
-                            <>
-                              <Copy size={12} /> Copy Link
-                            </>
-                          )}
-                        </button>
-                      )}
+                    <td className="px-5 py-4 text-right relative">
+                      <div className="flex items-center justify-end gap-1.5">
+                        {inv.status === "PENDING" && (
+                          <>
+                            <button
+                              onClick={() => handleCopy(inv.id, inv.inviteUrl)}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-surface-border text-xs font-semibold text-text-secondary hover:bg-surface-subtle transition-colors cursor-pointer"
+                            >
+                              {copiedId === inv.id ? (
+                                <>
+                                  <Check size={12} className="text-brand-600" />{" "}
+                                  Copied
+                                </>
+                              ) : (
+                                <>
+                                  <Copy size={12} /> Copy Link
+                                </>
+                              )}
+                            </button>
+
+                            {/* Dropdown Action Menu */}
+                            <div className="relative">
+                              <button
+                                onClick={() =>
+                                  setActiveMenuId(
+                                    activeMenuId === inv.id ? null : inv.id,
+                                  )
+                                }
+                                className="p-1.5 rounded-lg border border-surface-border text-text-secondary hover:bg-surface-subtle transition-colors cursor-pointer"
+                              >
+                                <MoreVertical size={14} />
+                              </button>
+                              {activeMenuId === inv.id && (
+                                <>
+                                  <div
+                                    className="fixed inset-0 z-10"
+                                    onClick={() => setActiveMenuId(null)}
+                                  />
+                                  <div className="absolute right-0 mt-1.5 w-40 bg-surface border border-surface-border rounded-lg shadow-lg py-1 z-20 text-left">
+                                    <button
+                                      onClick={() => {
+                                        setActiveMenuId(null);
+                                        resendMutation.mutate(inv.id);
+                                      }}
+                                      className="w-full px-3 py-2 text-xs font-semibold text-text-secondary hover:bg-surface-hover hover:text-text-primary flex items-center gap-2 cursor-pointer"
+                                    >
+                                      <RefreshCw size={12} /> Resend Email
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setActiveMenuId(null);
+                                        revokeMutation.mutate(inv.id);
+                                      }}
+                                      className="w-full px-3 py-2 text-xs font-semibold text-error-600 hover:bg-error-50 flex items-center gap-2 cursor-pointer"
+                                    >
+                                      <Trash2 size={12} /> Revoke Invite
+                                    </button>
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                          </>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -206,7 +260,6 @@ export default function AdminInvitesPage() {
         )}
       </Card>
 
-      {/* Invite Form Modal */}
       <Modal
         isOpen={showForm}
         onClose={() => setShowForm(false)}

@@ -3,9 +3,11 @@
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import { usePublicInvite, useAcceptOwnerInvite } from "@/hooks/useOwnerInvite";
-import { useSelectTenant } from "@/hooks/useAuth"; // Import select tenant hook
+import { useSelectTenant } from "@/hooks/useAuth";
+import { login as loginApi } from "@/lib/api/auth";
 import { useAuthStore } from "@/store/authStore";
 import { APP_ROUTES } from "@/constants/routes/app.routes";
+import { getAxiosErrorMessage } from "@/lib/axios-error-message";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
@@ -36,12 +38,11 @@ export default function AcceptInvitePage({ params }: PageProps) {
   const router = useRouter();
   const { setPaymentRequired } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const { data: invite, isLoading, error } = usePublicInvite(token);
-  const { mutate: acceptInvite, isPending: isAccepting } =
-    useAcceptOwnerInvite();
-  const { mutate: selectTenant, isPending: isSelectingTenant } =
-    useSelectTenant();
+  const { mutateAsync: acceptInviteAsync } = useAcceptOwnerInvite();
+  const { mutateAsync: selectTenantAsync } = useSelectTenant();
 
   const {
     register,
@@ -83,45 +84,61 @@ export default function AcceptInvitePage({ params }: PageProps) {
     );
   }
 
-  const onSubmit = (data: AcceptFormValues) => {
-    acceptInvite(
-      {
+  const onSubmit = async (data: AcceptFormValues) => {
+    setIsProcessing(true);
+    try {
+      // 1. Accept the invitation on backend (creates user and tenant)
+      const res = await acceptInviteAsync({
         token,
         email: invite.email,
         name: data.name,
         password: data.password,
-      },
-      {
-        onSuccess: (res) => {
-          const userObj: User = {
-            id: res.user.id,
-            email: res.user.email,
-            name: res.user.name,
-            isPlatformAdmin: false,
-          };
+      });
 
-          const structuredMembership: Membership = {
-            membershipId: res.membership.id,
-            tenantId: res.tenant.id,
-            tenantName: res.tenant.name,
-            role: res.membership.role,
-          };
+      // 2. Log in with the newly established credentials to establish session cookies
+      await loginApi({
+        email: invite.email,
+        password: data.password,
+      });
 
-          // Lock the payment required flag before selecting tenant context
-          setPaymentRequired(res.paymentRequired);
+      const userObj: User = {
+        id: res.user.id,
+        email: res.user.email,
+        name: res.user.name,
+        isPlatformAdmin: false,
+      };
 
-          // Force context selection immediately after account activation
-          selectTenant({
-            tenantId: res.tenant.id,
-            user: userObj,
-            memberships: [structuredMembership],
-          });
-        },
-      },
-    );
+      const structuredMembership: Membership = {
+        membershipId: res.membership.id,
+        tenantId: res.tenant.id,
+        tenantName: res.tenant.name,
+        role: res.membership.role,
+      };
+
+      // 3. Update payment required state in store
+      setPaymentRequired(res.paymentRequired);
+
+      // 4. Select the tenant context with active authentication session
+      await selectTenantAsync({
+        tenantId: res.tenant.id,
+        user: userObj,
+        memberships: [structuredMembership],
+      });
+
+      toast.success("Workspace activated successfully!");
+
+      // 5. Navigate according to onboarding status
+      if (res.paymentRequired) {
+        router.push("/onboarding/payment");
+      } else {
+        router.push(APP_ROUTES.DASHBOARD ?? "/dashboard");
+      }
+    } catch (err: unknown) {
+      toast.error(getAxiosErrorMessage(err));
+    } finally {
+      setIsProcessing(false);
+    }
   };
-
-  const isWorking = isAccepting || isSelectingTenant;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-surface-muted p-4 sm:p-6 lg:p-8">
@@ -159,7 +176,7 @@ export default function AcceptInvitePage({ params }: PageProps) {
           <Input
             label="Full Display Name"
             error={errors.name?.message}
-            disabled={isWorking}
+            disabled={isProcessing}
             leftIcon={<UserIcon size={14} className="text-text-placeholder" />}
             placeholder="John Doe"
             {...register("name")}
@@ -170,7 +187,7 @@ export default function AcceptInvitePage({ params }: PageProps) {
               label="Establish Access Password"
               type={showPassword ? "text" : "password"}
               error={errors.password?.message}
-              disabled={isWorking}
+              disabled={isProcessing}
               leftIcon={<Lock size={14} className="text-text-placeholder" />}
               placeholder="••••••••"
               rightIcon={
@@ -188,7 +205,7 @@ export default function AcceptInvitePage({ params }: PageProps) {
 
           <Button
             type="submit"
-            loading={isWorking}
+            loading={isProcessing}
             className="w-full mt-2 h-11 text-base font-semibold"
           >
             Activate Account
