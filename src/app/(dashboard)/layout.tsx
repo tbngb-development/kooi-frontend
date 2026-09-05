@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
 import { useTenantStore } from "@/store/tenantStore";
 import { useMyPlan } from "@/hooks/usePlans";
@@ -16,19 +16,39 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { isAuthenticated, user, activeTenantId } = useAuthStore();
   const { setTenantContext } = useTenantStore();
 
-  const { data: tenantPlan, isLoading } = useMyPlan();
+  const [hasHydrated, setHasHydrated] = useState(false);
   const [isAuthorized, setIsAuthorized] = useState(false);
 
+  // 1. Wait for Zustand persist to finish hydrating from localStorage
   useEffect(() => {
+    if (useAuthStore.persist.hasHydrated()) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setHasHydrated(true);
+    }
+    const unsubscribe = useAuthStore.persist.onFinishHydration(() => {
+      setHasHydrated(true);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const { data: tenantPlan, isLoading: isPlanLoading } = useMyPlan();
+
+  useEffect(() => {
+    // Do not perform auth checks until Zustand rehydration is complete
+    if (!hasHydrated) return;
+
     if (!isAuthenticated) {
-      router.replace(APP_ROUTES.LOGIN);
+      router.replace(
+        `${APP_ROUTES.LOGIN}?callbackUrl=${encodeURIComponent(pathname)}`,
+      );
       return;
     }
 
-    if (isLoading) return;
+    if (isPlanLoading) return;
 
     // Platform Admins bypass the plan/payment restriction
     if (user?.isPlatformAdmin) {
@@ -38,35 +58,33 @@ export default function DashboardLayout({
     }
 
     if (tenantPlan) {
-      // Sync plan status and active workspace ID to the Tenant Store
       setTenantContext(activeTenantId, tenantPlan.plan, tenantPlan.status);
 
-      // Force redirection if onboarding plan is pending activation or expired
       if (
         tenantPlan.status === "PENDING_PAYMENT" ||
         tenantPlan.status === "EXPIRED" ||
         tenantPlan.status === "CANCELLED"
       ) {
-        // Direct unactivated workspaces to choose their onboarding tier first
         router.replace(APP_ROUTES.ONBOARDING_PLANS);
       } else {
         setIsAuthorized(true);
       }
     } else {
-      // If tenant has no plan record at all, send them to select one
       router.replace(APP_ROUTES.ONBOARDING_PLANS);
     }
   }, [
+    hasHydrated,
     isAuthenticated,
     user,
     activeTenantId,
     tenantPlan,
-    isLoading,
+    isPlanLoading,
     router,
+    pathname,
     setTenantContext,
   ]);
 
-  if (!isAuthorized || isLoading) {
+  if (!hasHydrated || isPlanLoading || !isAuthorized) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-surface-muted">
         <Spinner className="text-brand-600 h-8 w-8" />

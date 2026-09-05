@@ -7,7 +7,7 @@ import {
   ShieldAlert,
   Sparkles,
   Sliders,
-  DollarSign,
+  IndianRupee,
   Database,
   Check,
 } from "lucide-react";
@@ -123,7 +123,7 @@ export function PlanDetailDrawer({
           {/* Section: Billing / Monetary Tiers */}
           <div className="space-y-3">
             <h3 className="text-xs font-bold uppercase tracking-wider text-text-placeholder flex items-center gap-1.5">
-              <DollarSign size={14} className="text-brand-600" />
+              <IndianRupee size={14} className="text-brand-600" />
               Monetary & Rate Tiers
             </h3>
             <div className="grid grid-cols-2 gap-3">

@@ -25,6 +25,7 @@ import {
   TrendingUp,
   Layers,
 } from "lucide-react";
+import { paisaToInr } from "@/constants/config/wallet.config";
 
 const statusVariant: Record<string, "gray" | "info" | "success" | "error"> = {
   DRAFT: "gray",
@@ -58,7 +59,7 @@ export default function AdminCampaignDetailPage({ params }: PageProps) {
     isLoading,
     isFetching,
   } = useAdminCampaign(tenantId, campId);
-  const { data: stats } = useAdminCampaignStats(tenantId, campId);
+  // const { data: stats } = useAdminCampaignStats(tenantId, campId);
   const { data: performance } = useAdminCampaignPerformance(tenantId, campId);
   const { data: batches } = useAdminBatches(tenantId, campId);
 
@@ -110,7 +111,7 @@ export default function AdminCampaignDetailPage({ params }: PageProps) {
         },
         {
           label: "Cost/Lead",
-          value: `$${performance.costPerLead.toFixed(2)}`,
+          value: paisaToInr(performance.totalCost),
           color: "text-secondary-600",
         },
       ]

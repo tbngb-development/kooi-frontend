@@ -76,7 +76,7 @@ export function CampaignStats({
           loading={isLoadingPerformance}
         />
         {/* <StatCard
-          icon={<DollarSign size={16} />}
+          icon={<IndianRupee size={16} />}
           label="Total Cost"
           value={
             performance
@@ -140,7 +140,7 @@ export function CampaignStats({
             loading={isLoadingPerformance}
           />
           <InsightBadge
-            icon={<DollarSign size={15} />}
+            icon={<IndianRupee size={15} />}
             title="Top Requested Budget"
             value={performance?.topBudget ?? "—"}
             subtitle="Most frequent budget range"

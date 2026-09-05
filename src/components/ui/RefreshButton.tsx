@@ -7,36 +7,32 @@ interface RefreshButtonProps {
   onRefresh: () => void;
   isRefreshing?: boolean;
   label?: string;
+  className?: string;
 }
 
 export function RefreshButton({
   onRefresh,
   isRefreshing = false,
   label = "Refresh",
+  className,
 }: RefreshButtonProps) {
   return (
     <Button
       variant="secondary"
       size="sm"
       onClick={onRefresh}
-      loading={isRefreshing}
-      className="gap-1.5"
+      disabled={isRefreshing}
+      leftIcon={
+        <RefreshCw
+          size={14}
+          className={`shrink-0 transition-transform ${
+            isRefreshing ? "animate-spin" : ""
+          }`}
+        />
+      }
+      className={className}
     >
-      <RefreshCw size={14} className={isRefreshing ? "animate-spin" : ""} />
       {label}
     </Button>
   );
 }
-
-/* Usage
- *  const qc = useQueryClient();
- * const { isFetching } = useLeads();
- *
- * return (
- *   <RefreshButton
- *    onRefresh={() => qc.invalidateQueries({ queryKey: QUERY_KEYS.LEADS.all })}
- *    isRefreshing={isFetching}
- *  />
- * );
- *
- */

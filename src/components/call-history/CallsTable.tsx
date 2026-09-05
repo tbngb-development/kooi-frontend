@@ -6,9 +6,10 @@ import { CallStatusBadge } from "./CallStatusBadge";
 import { formatDateOnly, formatTimeOnly } from "@/lib/utils/formatDate";
 import { formatDuration } from "@/lib/utils/formatDuration";
 import type { Call, Disposition, LeadTemperature } from "@/types/call";
-import { Phone } from "lucide-react";
 import Link from "next/link";
 import { Pagination as PaginationMeta } from "@/types/api";
+import { paisaToInr } from "@/constants/config/wallet.config";
+import { Phone } from "lucide-react";
 
 const dispositionLabel: Record<Disposition, string> = {
   INTERESTED_SEND_DETAILS: "Send Details",
@@ -167,9 +168,9 @@ export function CallsTable({
                       )}
                     </td>
                     <td className="px-4 py-3 text-right text-text-secondary">
-                      {call?.cost != null
-                        ? `$${(call.cost / 100).toFixed(2)}`
-                        : "$0.00"}
+                      {call?.platformCost != null
+                        ? paisaToInr(call.platformCost)
+                        : "₹0.00"}
                     </td>
                     <td className="px-4 py-3 text-right text-text-secondary">
                       {formatDuration(call.duration)}

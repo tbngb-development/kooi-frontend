@@ -16,6 +16,7 @@ import { Pagination } from "@/components/ui/Pagination";
 import { FilterBar, FilterSelect } from "@/components/ui/FilterBar";
 import { PhoneCall, ExternalLink } from "lucide-react";
 import Link from "next/link";
+import { paisaToInr } from "@/constants/config/wallet.config";
 
 const statusOptions = [
   { label: "Pending", value: "PENDING" },
@@ -170,7 +171,9 @@ export default function AdminTenantCallsPage({ params }: PageProps) {
                           {call.duration ? `${call.duration}s` : "—"}
                         </td>
                         <td className="px-5 py-4 text-right font-mono font-semibold">
-                          {call.cost ? `$${call.cost.toFixed(3)}` : "—"}
+                          {call.platformCost
+                            ? paisaToInr(call.platformCost)
+                            : "—"}
                         </td>
                         <td className="px-5 py-4 text-xs text-text-muted">
                           {call.startedAt

@@ -9,7 +9,8 @@ const AUTH_PAGES = [
 ] as string[];
 
 function getSessionInfo(req: NextRequest) {
-  const hasAccessToken = req.cookies.has("access_token");
+  const hasAccessToken =
+    req.cookies.has("access_token") || req.cookies.has("admin_access_token");
   const hasSessionCookie = req.cookies.get("has-session")?.value === "true";
 
   const isAuthenticated = hasAccessToken || hasSessionCookie;
@@ -28,10 +29,10 @@ function getSessionInfo(req: NextRequest) {
 }
 
 export function proxy(req: NextRequest) {
-  const { pathname } = req.nextUrl;
+  const { pathname, searchParams } = req.nextUrl;
   const { isAuthenticated, isPlatformAdmin } = getSessionInfo(req);
 
-  // ── 1. Bypass static assets, resources, and public API calls ──────────────
+  // ── 1. Bypass static assets, API, and public files ─────────────────────────
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/api") ||
@@ -41,12 +42,11 @@ export function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // ── 2. Public Landing Page ("/") ──────────────────────────────────────────
-  if (pathname === APP_ROUTES.HOME) {
+  // ── 2. Public Routes ───────────────────────────────────────────────────────
+  if (pathname === APP_ROUTES.HOME || pathname.startsWith("/accept-invite")) {
     return NextResponse.next();
   }
 
-  // Helper to construct response with strict Cache-Control headers for protected views
   const preventCache = (res: NextResponse) => {
     res.headers.set(
       "Cache-Control",
@@ -57,63 +57,57 @@ export function proxy(req: NextRequest) {
     return res;
   };
 
-  // ── 3. Auth Pages (/login, /register, /admin/login) ───────────────────────
+  // ── 3. Auth Pages (/login, /register, /admin/login) ────────────────────────
   if (AUTH_PAGES.includes(pathname)) {
     if (isAuthenticated) {
+      // If there is a callbackUrl query param, respect it instead of defaulting to /dashboard
+      const callbackUrl = searchParams.get("callbackUrl");
+
       if (isPlatformAdmin) {
-        return preventCache(
-          NextResponse.redirect(new URL(ADMIN_ROUTES.DASHBOARD, req.url)),
-        );
+        const target = callbackUrl?.startsWith("/admin")
+          ? callbackUrl
+          : ADMIN_ROUTES.DASHBOARD;
+        return preventCache(NextResponse.redirect(new URL(target, req.url)));
       }
+
       if (pathname === APP_ROUTES.LOGIN || pathname === APP_ROUTES.REGISTER) {
-        return preventCache(
-          NextResponse.redirect(new URL(APP_ROUTES.DASHBOARD, req.url)),
-        );
+        const target =
+          callbackUrl && !callbackUrl.startsWith("/admin")
+            ? callbackUrl
+            : APP_ROUTES.DASHBOARD;
+        return preventCache(NextResponse.redirect(new URL(target, req.url)));
       }
     }
     return NextResponse.next();
   }
 
-  // ── 4. Platform Admin Routes (/admin/*) ───────────────────────────────────
+  // ── 4. Platform Admin Routes (/admin/*) ────────────────────────────────────
   if (pathname.startsWith("/admin")) {
     if (!isAuthenticated) {
-      return preventCache(
-        NextResponse.redirect(new URL(ADMIN_ROUTES.LOGIN, req.url)),
-      );
+      const loginUrl = new URL(ADMIN_ROUTES.LOGIN, req.url);
+      loginUrl.searchParams.set("callbackUrl", pathname);
+      return preventCache(NextResponse.redirect(loginUrl));
     }
+
     if (!isPlatformAdmin) {
-      // Non-platform admin trying to enter admin panel -> bounce back to tenant workspace
       return preventCache(
         NextResponse.redirect(new URL(APP_ROUTES.DASHBOARD, req.url)),
       );
     }
+
     return preventCache(NextResponse.next());
   }
 
-  // ── 5. Protected Tenant Workspace Routes ──────────────────────────────────
+  // ── 5. Protected Tenant Workspace Routes ───────────────────────────────────
   if (!isAuthenticated) {
     const loginUrl = new URL(APP_ROUTES.LOGIN, req.url);
     loginUrl.searchParams.set("callbackUrl", pathname);
     return preventCache(NextResponse.redirect(loginUrl));
   }
 
-  // Apply cache-prevention headers to authenticated page renders
   return preventCache(NextResponse.next());
 }
 
 export const config = {
-  matcher: [
-    "/",
-    "/login",
-    "/register",
-    "/admin/:path*",
-    "/dashboard/:path*",
-    "/campaigns/:path*",
-    "/assistants/:path*",
-    "/leads/:path*",
-    "/calls/:path*",
-    "/users/:path*",
-    "/settings/:path*",
-    "/brochures/:path*",
-  ],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)"],
 };

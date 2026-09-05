@@ -29,7 +29,7 @@ export interface DashboardRecentCall {
   bolnaCallId: string | null;
   status: string;
   duration: number | null;
-  cost: number | null;
+  platformCost: number | null;
   recording: string | null;
   startedAt: string | null;
   createdAt: string;
