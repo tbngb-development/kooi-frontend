@@ -119,12 +119,7 @@ export default function AdminTenantDetailPage({ params }: PageProps) {
       href: ADMIN_ROUTES.TENANT_ASSISTANTS(tenantId),
       icon: Bot,
     },
-    {
-      label: "Batches",
-      count: null,
-      href: ADMIN_ROUTES.TENANT_BATCHES(tenantId),
-      icon: Building2,
-    },
+    
   ];
 
   return (

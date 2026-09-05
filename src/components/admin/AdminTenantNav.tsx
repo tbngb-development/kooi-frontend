@@ -63,12 +63,7 @@ const tabs = [
     icon: Bot,
     href: (id: string) => ADMIN_ROUTES.TENANT_ASSISTANTS(id),
   },
-  {
-    key: "batches",
-    label: "Batches",
-    icon: Layers,
-    href: (id: string) => ADMIN_ROUTES.TENANT_BATCHES(id),
-  },
+ 
 ];
 
 export function AdminTenantNav({ tenantId, tenantName }: AdminTenantNavProps) {
@@ -81,7 +76,6 @@ export function AdminTenantNav({ tenantId, tenantName }: AdminTenantNavProps) {
     if (pathname.includes("/leads")) return "leads";
     if (pathname.includes("/calls")) return "calls";
     if (pathname.includes("/assistants")) return "assistants";
-    if (pathname.includes("/batches")) return "batches";
     return "overview";
   })();
 
