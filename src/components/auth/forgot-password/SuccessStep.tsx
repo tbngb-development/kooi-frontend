@@ -4,7 +4,11 @@ import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 import { APP_ROUTES } from "@/constants/routes/app.routes";
 
-export function SuccessStep() {
+interface SuccessStepProps {
+  loginUrl?: string; 
+}
+
+export function SuccessStep({ loginUrl = APP_ROUTES.LOGIN }: SuccessStepProps) {
   return (
     <div className="flex flex-col items-center text-center py-6">
       <div className="flex h-16 w-16 items-center justify-center rounded-full bg-success-50 border border-success-200 mb-5">
@@ -17,7 +21,7 @@ export function SuccessStep() {
         Redirecting you to the login page…
       </p>
       <Link
-        href={APP_ROUTES.LOGIN}
+        href={loginUrl}
         className="mt-6 text-base font-semibold text-brand-600 hover:text-brand-500 transition-colors"
       >
         Go to login now

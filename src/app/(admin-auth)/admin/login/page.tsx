@@ -9,6 +9,8 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useAdminLogin } from "@/hooks/admin/useAdminAuth";
+import Link from "next/link";
+import { ADMIN_ROUTES } from "@/constants/routes/admin.routes";
 
 const adminSchema = z.object({
   email: z.string().email("Enter a valid admin identity email"),
@@ -59,25 +61,38 @@ export default function AdminLoginPage() {
             {...register("email")}
           />
 
-          <Input
-            label="Security Passphrase"
-            type={showPassword ? "text" : "password"}
-            placeholder="••••••••"
-            leftIcon={<Lock size={14} className="text-text-muted" />}
-            disabled={isPending}
-            rightIcon={
-              <button
-                type="button"
-                onClick={() => setShowPassword((p) => !p)}
-                className="focus-ring rounded p-1 text-text-muted hover:text-text-primary transition-colors"
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-base font-medium text-text-secondary">
+                Security Passphrase
+              </label>
+              <Link
+                href={ADMIN_ROUTES.FORGOT_PASSWORD}
+                className="text-sm font-semibold text-error-600 hover:text-error-500 transition-colors"
+                tabIndex={-1}
               >
-                {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
-              </button>
-            }
-            error={errors.password?.message}
-            className="bg-surface-subtle text-text-primary border-surface-border placeholder-text-placeholder focus:ring-error-500 focus:border-error-500"
-            {...register("password")}
-          />
+                Forgot?
+              </Link>
+            </div>
+            <Input
+              type={showPassword ? "text" : "password"}
+              placeholder="••••••••"
+              leftIcon={<Lock size={14} className="text-text-muted" />}
+              disabled={isPending}
+              rightIcon={
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((p) => !p)}
+                  className="focus-ring rounded p-1 text-text-muted hover:text-text-primary transition-colors"
+                >
+                  {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                </button>
+              }
+              error={errors.password?.message}
+              className="bg-surface-subtle text-text-primary border-surface-border placeholder-text-placeholder focus:ring-error-500 focus:border-error-500"
+              {...register("password")}
+            />
+          </div>
 
           <Button
             type="submit"

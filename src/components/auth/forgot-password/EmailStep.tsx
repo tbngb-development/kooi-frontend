@@ -20,6 +20,7 @@ interface EmailStepProps {
   isPending: boolean;
   globalError: string | null;
   onSubmit: (values: EmailStepFormValues) => void;
+  backToLoginUrl?: string; 
 }
 
 export function EmailStep({
@@ -27,6 +28,7 @@ export function EmailStep({
   isPending,
   globalError,
   onSubmit,
+  backToLoginUrl = APP_ROUTES.LOGIN,
 }: EmailStepProps) {
   const {
     register,
@@ -77,7 +79,7 @@ export function EmailStep({
 
       <div className="mt-6 pt-5 border-t border-surface-border text-center">
         <Link
-          href={APP_ROUTES.LOGIN}
+          href={backToLoginUrl}
           className="text-base font-medium text-brand-600 hover:text-brand-500 transition-colors"
         >
           Back to sign in

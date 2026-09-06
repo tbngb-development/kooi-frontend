@@ -1,5 +1,6 @@
 export const ADMIN_ROUTES = {
   LOGIN: "/admin/login",
+  FORGOT_PASSWORD: "/admin/forgot-password", 
   DASHBOARD: "/admin/dashboard",
   PAYMENTS: "/admin/payments",
   USERS: "/admin/users",

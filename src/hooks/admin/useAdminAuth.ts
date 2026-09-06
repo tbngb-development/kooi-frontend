@@ -6,6 +6,10 @@ import { toast } from "sonner";
 import {
   adminLogin as apiAdminLogin,
   adminLogout as apiAdminLogout,
+  adminForgotPassword as apiAdminForgotPassword,
+  adminVerifyOtp as apiAdminVerifyOtp,
+  adminResetPassword as apiAdminResetPassword,
+  adminChangePassword as apiAdminChangePassword,
 } from "@/lib/api/admin/admin-auth";
 import { useAuthStore } from "@/store/authStore";
 import { AUTH_MESSAGES, AUTH_REDIRECTS } from "@/constants/config/auth.config";
@@ -14,6 +18,7 @@ import {
   clearSessionIndicator,
 } from "@/lib/session-cookies";
 import type { User } from "@/types/user";
+import { ADMIN_ROUTES } from "@/constants/routes/admin.routes";
 
 export function useAdminLogin() {
   const { setAuth, setActiveTenant } = useAuthStore();
@@ -65,6 +70,63 @@ export function useAdminLogout() {
     },
     onError: () => {
       router.push(AUTH_REDIRECTS.ADMIN_LOGIN);
+    },
+  });
+}
+
+// ─── Admin Forgot Password Hooks ─────────────────────────────────────────────
+
+export function useAdminForgotPassword() {
+  return useMutation({
+    mutationFn: apiAdminForgotPassword,
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+}
+
+export function useAdminVerifyOtp() {
+  return useMutation({
+    mutationFn: apiAdminVerifyOtp,
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+}
+
+export function useAdminResetPassword() {
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: apiAdminResetPassword,
+    onSuccess: () => {
+      toast.success(
+        "Security passphrase reset successful! Redirecting to credentials gate…",
+      );
+      setTimeout(() => router.push(ADMIN_ROUTES.LOGIN), 3000);
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+}
+
+export function useAdminChangePassword() {
+  const { clearAuth } = useAuthStore();
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: apiAdminChangePassword,
+    onSuccess: () => {
+      clearAuth();
+      clearSessionIndicator();
+      toast.success(
+        "Security passphrase changed. Please establish a new authenticated session.",
+      );
+      router.push(ADMIN_ROUTES.LOGIN);
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
     },
   });
 }
