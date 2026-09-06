@@ -55,8 +55,7 @@ export default function BillingTab() {
                 {tenantPlan.plan.name}
               </h4>
               <p className="text-sm text-text-muted mt-0.5">
-                Rate: {paisaToInr(tenantPlan.plan.perMinuteRate)} / min · Pulsed
-                every {tenantPlan.plan.billingIncrementSec}s
+                Rate: {paisaToInr(tenantPlan.plan.perMinuteRate)} / min
               </p>
             </div>
             <div className="flex flex-col items-start sm:items-end gap-1.5">
