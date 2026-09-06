@@ -20,7 +20,8 @@ export function RechargeSlabs({ onSuccess }: RechargeSlabsProps) {
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
+      {/* Grid: 2 columns on mobile, 3 on intermediate, 5 on desktop */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3">
         {RECHARGE_SLABS_PAISA.map((slab) => {
           const isSelected = selectedSlab === slab;
           // Apply bonuses optimistically for display
@@ -29,6 +30,7 @@ export function RechargeSlabs({ onSuccess }: RechargeSlabsProps) {
           if (slab >= 10_000_00) bonusText = "+ ₹1,200 Bonus";
           if (slab >= 25_000_00) bonusText = "+ ₹3,500 Bonus";
           if (slab >= 100_000_00) bonusText = "+ ₹15,000 Bonus";
+          if (slab >= 300_000_00) bonusText = "+ ₹40,000 Bonus";
 
           return (
             <button
@@ -69,12 +71,13 @@ export function RechargeSlabs({ onSuccess }: RechargeSlabsProps) {
         })}
       </div>
 
-      <Card className="p-4 bg-surface-muted border-surface-border flex items-center justify-between">
+      {/* Checkout Row: Stacked on mobile, row on larger layouts */}
+      <Card className="p-4 bg-surface-muted border-surface-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <p className="text-xs font-bold text-text-secondary uppercase tracking-wider">
             Recharge Amount
           </p>
-          <p className="text-lg font-extrabold text-text-primary font-mono mt-0.5">
+          <p className="text-lg sm:text-xl font-extrabold text-text-primary font-mono mt-0.5">
             {paisaToInr(selectedSlab)}
           </p>
         </div>
@@ -83,7 +86,7 @@ export function RechargeSlabs({ onSuccess }: RechargeSlabsProps) {
           amountPaisa={selectedSlab}
           label="Proceed to Secure Checkout"
           onSuccess={onSuccess}
-          className="h-10 text-sm font-semibold"
+          className="h-10 text-sm font-semibold w-full sm:w-auto shrink-0 justify-center"
         />
       </Card>
     </div>

@@ -17,7 +17,7 @@ export function WalletBalance({ className, mini = false }: WalletBalanceProps) {
     return (
       <div
         className={cn(
-          "h-11 bg-surface-subtle animate-pulse rounded-lg",
+          "h-24 bg-surface-subtle animate-pulse rounded-xl",
           className,
         )}
       />
@@ -62,7 +62,7 @@ export function WalletBalance({ className, mini = false }: WalletBalanceProps) {
         className,
       )}
     >
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
         <div className="flex items-center gap-2">
           <WalletIcon
             size={16}
@@ -76,30 +76,33 @@ export function WalletBalance({ className, mini = false }: WalletBalanceProps) {
             Workspace Balance
           </span>
         </div>
-        {isLowBalance && (
-          <div className="flex items-center gap-1 text-[10px] font-extrabold text-error-600 bg-error-100/50 px-1.5 py-0.5 rounded uppercase tracking-wide">
-            <AlertTriangle size={10} /> Low Balance
-          </div>
-        )}
+
+        {/* Badge Group Side-by-Side */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          {isLowBalance && (
+            <div className="inline-flex items-center gap-1 text-[10px] font-extrabold text-error-600 bg-error-100/50 px-2 py-0.5 rounded uppercase tracking-wide">
+              <AlertTriangle size={10} /> Low Balance
+            </div>
+          )}
+          {wallet.bonusBalance > 0 && (
+            <div className="inline-flex items-center gap-1 text-[10px] font-extrabold text-secondary-600 bg-secondary-50 border border-secondary-100 px-2 py-0.5 rounded uppercase tracking-wide animate-pulse">
+              <Sparkles size={10} />
+              <span>Bonus: {paisaToInr(wallet.bonusBalance)}</span>
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="mt-2.5">
+      <div className="mt-3">
         <h3
           className={cn(
-            "text-2xl font-bold font-mono tracking-tight",
+            "text-2xl sm:text-3xl font-bold font-mono tracking-tight",
             isLowBalance ? "text-error-700" : "text-text-primary",
           )}
         >
           {paisaToInr(wallet.balance)}
         </h3>
       </div>
-
-      {wallet.bonusBalance > 0 && (
-        <div className="flex items-center gap-1.5 mt-2 text-xs font-semibold text-secondary-600 bg-secondary-50 border border-secondary-100/50 rounded-lg p-1.5">
-          <Sparkles size={12} className="shrink-0 animate-pulse" />
-          <span>Includes {paisaToInr(wallet.bonusBalance)} bonus credits</span>
-        </div>
-      )}
     </div>
   );
 }
