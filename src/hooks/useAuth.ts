@@ -8,6 +8,10 @@ import {
   register as apiRegister,
   selectTenant as apiSelectTenant,
   logout as apiLogout,
+  forgotPassword as apiForgotPassword,
+  verifyOtp as apiVerifyOtp,
+  resetPassword as apiResetPassword,
+  changePassword as apiChangePassword,
 } from "@/lib/api/auth";
 import { useAuthStore } from "@/store/authStore";
 import { useTenantStore } from "@/store/tenantStore";
@@ -151,6 +155,63 @@ export function useLogout() {
     },
     onError: () => {
       router.push(AUTH_REDIRECTS.TENANT_LOGIN);
+    },
+  });
+}
+
+// ─── Forgot Password (Unauthenticated) ───────────────────────────────────────
+
+export function useForgotPassword() {
+  return useMutation({
+    mutationFn: apiForgotPassword,
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+}
+
+export function useVerifyOtp() {
+  return useMutation({
+    mutationFn: apiVerifyOtp,
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+}
+
+export function useResetPassword() {
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: apiResetPassword,
+    onSuccess: () => {
+      toast.success("Password reset successful! Redirecting to login…");
+      setTimeout(() => router.push(APP_ROUTES.LOGIN), 3000);
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+}
+
+// ─── Change Password (Authenticated) ─────────────────────────────────────────
+
+export function useChangePassword() {
+  const { clearAuth } = useAuthStore();
+  const { clearTenantContext } = useTenantStore();
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: apiChangePassword,
+    onSuccess: () => {
+      clearAuth();
+      clearTenantContext();
+      clearSessionIndicator();
+      toast.success("Password changed. Please log in again.");
+      router.push(APP_ROUTES.LOGIN);
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
     },
   });
 }

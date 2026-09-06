@@ -1,18 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import { KeyRound, Lock, LogOut, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { useLogout } from "@/hooks/useAuth";
+import { ChangePasswordModal } from "@/components/settings/ChangePasswordModal";
 import { toast } from "sonner";
 
 export function SecurityTab() {
   const logoutMutation = useLogout();
-
-  const handleChangePassword = () => {
-    toast.info("Password change coming soon", {
-      description: "Contact support to reset your password.",
-    });
-  };
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
 
   const handleSignOutAll = () => {
     toast.info("Session revocation coming soon");
@@ -38,7 +35,7 @@ export function SecurityTab() {
         <Button
           size="sm"
           variant="outline"
-          onClick={handleChangePassword}
+          onClick={() => setIsChangePasswordOpen(true)}
           leftIcon={<KeyRound size={13} />}
         >
           Change
@@ -96,6 +93,12 @@ export function SecurityTab() {
           </div>
         </div>
       </div>
+
+      {/* Change Password Modal */}
+      <ChangePasswordModal
+        isOpen={isChangePasswordOpen}
+        onClose={() => setIsChangePasswordOpen(false)}
+      />
     </div>
   );
 }

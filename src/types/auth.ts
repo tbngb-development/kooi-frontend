@@ -80,3 +80,43 @@ export interface AcceptInviteResponse {
     role: string;
   };
 }
+
+// ─── Password Reset (Unauthenticated) ────────────────────────────────────────
+
+export interface ForgotPasswordInput {
+  email: string;
+}
+
+export interface ForgotPasswordResponse {
+  message: string;
+}
+
+export interface VerifyOtpInput {
+  email: string;
+  otp: string;
+}
+
+export interface VerifyOtpResponse {
+  resetToken: string;
+  expiresIn: number;
+}
+
+export interface ResetPasswordInput {
+  resetToken: string;
+  newPassword: string;
+}
+
+export interface ResetPasswordResponse {
+  message: string;
+}
+
+// ─── Change Password (Authenticated) ─────────────────────────────────────────
+
+export interface ChangePasswordInput {
+  oldPassword: string;
+  newPassword: string;
+}
+
+export interface ChangePasswordResponse {
+  message: string;
+}

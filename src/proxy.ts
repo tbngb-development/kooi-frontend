@@ -5,6 +5,7 @@ import { ADMIN_ROUTES } from "@/constants/routes/admin.routes";
 const AUTH_PAGES = [
   APP_ROUTES.LOGIN,
   APP_ROUTES.REGISTER,
+  APP_ROUTES.FORGOT_PASSWORD,
   ADMIN_ROUTES.LOGIN,
 ] as string[];
 
@@ -57,9 +58,10 @@ export function proxy(req: NextRequest) {
     return res;
   };
 
-  // ── 3. Auth Pages (/login, /register, /admin/login) ────────────────────────
+  // ── 3. Auth Pages (/login, /register, /forgot-password, /admin/login) ──────
   if (AUTH_PAGES.includes(pathname)) {
-    if (isAuthenticated) {
+    // If authenticated, redirect away from auth pages (except forgot-password)
+    if (isAuthenticated && pathname !== APP_ROUTES.FORGOT_PASSWORD) {
       // If there is a callbackUrl query param, respect it instead of defaulting to /dashboard
       const callbackUrl = searchParams.get("callbackUrl");
 
@@ -78,6 +80,17 @@ export function proxy(req: NextRequest) {
         return preventCache(NextResponse.redirect(new URL(target, req.url)));
       }
     }
+
+    // Allow unauthenticated access to forgot-password page
+    if (pathname === APP_ROUTES.FORGOT_PASSWORD) {
+      if (isAuthenticated) {
+        return preventCache(
+          NextResponse.redirect(new URL(APP_ROUTES.DASHBOARD, req.url)),
+        );
+      }
+      return preventCache(NextResponse.next());
+    }
+
     return NextResponse.next();
   }
 
