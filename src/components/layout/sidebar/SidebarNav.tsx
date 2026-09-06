@@ -32,7 +32,7 @@ export function SidebarNav({ items, pathname, onNavigate }: SidebarNavProps) {
                 href={item.href}
                 onClick={onNavigate}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-all duration-150",
+                  "flex items-center gap-3 px-3 py-2 rounded-md text-base font-medium transition-all duration-150",
                   isActive
                     ? "bg-zinc-800 text-brand-400 shadow-sm"
                     : "text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-100",
