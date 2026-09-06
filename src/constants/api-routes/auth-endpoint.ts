@@ -9,4 +9,8 @@ export const AUTH_ENDPOINTS = {
   PROFILE: `${API_PREFIXES.TENANT}/auth/profile`,
   INVITES: `${API_PREFIXES.TENANT}/auth/invites`,
   ACCEPT_INVITE: `${API_PREFIXES.TENANT}/auth/accept-invite`,
+  FORGOT_PASSWORD: `${API_PREFIXES.TENANT}/auth/forgot-password`,
+  VERIFY_OTP: `${API_PREFIXES.TENANT}/auth/forgot-password/verify-otp`,
+  RESET_PASSWORD: `${API_PREFIXES.TENANT}/auth/reset-password`,
+  CHANGE_PASSWORD: `${API_PREFIXES.TENANT}/auth/change-password`,
 } as const;

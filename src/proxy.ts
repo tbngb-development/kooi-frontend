@@ -5,7 +5,9 @@ import { ADMIN_ROUTES } from "@/constants/routes/admin.routes";
 const AUTH_PAGES = [
   APP_ROUTES.LOGIN,
   APP_ROUTES.REGISTER,
+  APP_ROUTES.FORGOT_PASSWORD,
   ADMIN_ROUTES.LOGIN,
+  ADMIN_ROUTES.FORGOT_PASSWORD, 
 ] as string[];
 
 function getSessionInfo(req: NextRequest) {
@@ -57,10 +59,14 @@ export function proxy(req: NextRequest) {
     return res;
   };
 
-  // ── 3. Auth Pages (/login, /register, /admin/login) ────────────────────────
+  // ── 3. Auth Pages (/login, /register, /forgot-password, /admin/login, /admin/forgot-password)
   if (AUTH_PAGES.includes(pathname)) {
-    if (isAuthenticated) {
-      // If there is a callbackUrl query param, respect it instead of defaulting to /dashboard
+    // If authenticated, redirect away from non-forgot-password auth paths
+    if (
+      isAuthenticated &&
+      pathname !== APP_ROUTES.FORGOT_PASSWORD &&
+      pathname !== ADMIN_ROUTES.FORGOT_PASSWORD
+    ) {
       const callbackUrl = searchParams.get("callbackUrl");
 
       if (isPlatformAdmin) {
@@ -78,6 +84,15 @@ export function proxy(req: NextRequest) {
         return preventCache(NextResponse.redirect(new URL(target, req.url)));
       }
     }
+
+    // Explicitly allow public unauthenticated access to system forgot password views
+    if (
+      pathname === APP_ROUTES.FORGOT_PASSWORD ||
+      pathname === ADMIN_ROUTES.FORGOT_PASSWORD
+    ) {
+      return preventCache(NextResponse.next());
+    }
+
     return NextResponse.next();
   }
 

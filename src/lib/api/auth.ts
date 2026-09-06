@@ -12,6 +12,14 @@ import type {
   InviteResponse,
   AcceptInviteInput,
   AcceptInviteResponse,
+  ForgotPasswordInput,
+  ForgotPasswordResponse,
+  VerifyOtpInput,
+  VerifyOtpResponse,
+  ResetPasswordInput,
+  ResetPasswordResponse,
+  ChangePasswordInput,
+  ChangePasswordResponse,
 } from "@/types/auth";
 import type { ApiResponse } from "@/types/api";
 
@@ -78,6 +86,42 @@ export async function logout() {
   const { data } = await apiClient.post<ApiResponse<{ message: string }>>(
     AUTH_ENDPOINTS.LOGOUT,
     {},
+  );
+  return data.data;
+}
+
+// ─── Password Reset (Public) ─────────────────────────────────────────────────
+
+export async function forgotPassword(input: ForgotPasswordInput) {
+  const { data } = await apiClient.post<ApiResponse<ForgotPasswordResponse>>(
+    AUTH_ENDPOINTS.FORGOT_PASSWORD,
+    input,
+  );
+  return data.data;
+}
+
+export async function verifyOtp(input: VerifyOtpInput) {
+  const { data } = await apiClient.post<ApiResponse<VerifyOtpResponse>>(
+    AUTH_ENDPOINTS.VERIFY_OTP,
+    input,
+  );
+  return data.data;
+}
+
+export async function resetPassword(input: ResetPasswordInput) {
+  const { data } = await apiClient.post<ApiResponse<ResetPasswordResponse>>(
+    AUTH_ENDPOINTS.RESET_PASSWORD,
+    input,
+  );
+  return data.data;
+}
+
+// ─── Change Password (Authenticated) ─────────────────────────────────────────
+
+export async function changePassword(input: ChangePasswordInput) {
+  const { data } = await apiClient.post<ApiResponse<ChangePasswordResponse>>(
+    AUTH_ENDPOINTS.CHANGE_PASSWORD,
+    input,
   );
   return data.data;
 }
