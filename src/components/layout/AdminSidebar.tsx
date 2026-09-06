@@ -5,17 +5,18 @@ import { usePathname } from "next/navigation";
 import { useAdminLogout } from "@/hooks/admin/useAdminAuth";
 import { useAuthStore } from "@/store/authStore";
 import { ADMIN_ROUTES } from "@/constants/routes/admin.routes";
+import { Popover, usePopoverClose } from "@/components/ui/Popover";
 import {
   LayoutDashboard,
   Building2,
   LogOut,
   Shield,
   Loader2,
-  User,
   CreditCard,
   KeyRound,
   MailPlus,
   Users2,
+  ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
@@ -54,8 +55,12 @@ export function AdminSidebar() {
     { name: "API Keys", href: ADMIN_ROUTES.API_KEYS, icon: KeyRound },
   ];
 
+  const handleLogout = () => {
+    logout();
+  };
+
   return (
-    <aside className="w-64 border-r border-surface-border bg-surface flex flex-col h-screen sticky top-0">
+    <aside className="w-64 border-r border-surface-border bg-surface flex flex-col h-screen sticky top-0 shrink-0 z-30">
       {/* Brand Header */}
       <div className="h-16 border-b border-surface-border flex items-center px-6 gap-3 shrink-0">
         <div className="h-9 w-9 rounded-lg bg-error-50 border border-error-100 flex items-center justify-center text-error-600 shadow-sm shrink-0">
@@ -71,7 +76,7 @@ export function AdminSidebar() {
         </div>
       </div>
 
-      {/* Navigation */}
+      {/* Navigation Links */}
       <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto thin-scrollbar">
         {links.map((link) => {
           const isActive =
@@ -93,9 +98,7 @@ export function AdminSidebar() {
                 size={18}
                 className={cn(
                   "shrink-0 transition-colors",
-                  isActive
-                    ? "text-error-600"
-                    : "text-text-muted group-hover:text-text-secondary",
+                  isActive ? "text-error-600" : "text-text-muted",
                 )}
               />
               <span>{link.name}</span>
@@ -104,35 +107,101 @@ export function AdminSidebar() {
         })}
       </nav>
 
-      {/* User Context Footer */}
-      <div className="border-t border-surface-border p-4 bg-surface-muted/50 flex flex-col gap-3 shrink-0">
-        <div className="flex items-center gap-3 min-w-0 px-2">
-          <div className="h-9 w-9 rounded-full bg-surface-subtle border border-surface-border flex items-center justify-center text-text-secondary shrink-0">
-            <User size={16} />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-text-primary truncate">
-              {user?.name ?? "Super Admin"}
-            </p>
-            <p className="text-xs text-text-muted truncate">
-              {user?.email ?? "admin@system.com"}
-            </p>
-          </div>
-        </div>
-
-        <button
-          onClick={() => logout()}
-          disabled={isLoggingOut}
-          className="w-full flex items-center justify-center gap-2 h-10 rounded-lg text-sm font-semibold text-text-secondary border border-surface-border bg-surface hover:bg-surface-subtle transition-all disabled:opacity-50 focus-ring cursor-pointer"
+      {/* Integrated Admin Profile Menu Popover */}
+      <div className="border-t border-surface-border p-3 bg-surface-muted/30 shrink-0">
+        <Popover
+          placement="right"
+          align="end"
+          offset={16}
+          className="w-full"
+          panelClassName="w-64 bg-surface border border-surface-border text-text-primary shadow-2xl"
+          trigger={
+            <button
+              type="button"
+              className="flex w-full items-center gap-3 rounded-lg p-2 transition-colors hover:bg-surface-subtle focus-ring cursor-pointer text-left"
+            >
+              <div className="h-8 w-8 rounded-full bg-error-50 border border-error-100 flex items-center justify-center text-error-600 font-bold shrink-0 text-sm">
+                {user?.name?.charAt(0).toUpperCase() ?? "A"}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-text-primary truncate leading-tight">
+                  {user?.name ?? "Super Admin"}
+                </p>
+                <p className="text-[10px] text-error-600 font-bold tracking-wider uppercase mt-0.5">
+                  Platform Admin
+                </p>
+              </div>
+              <ChevronRight size={14} className="shrink-0 text-text-placeholder" />
+            </button>
+          }
         >
-          {isLoggingOut ? (
-            <Loader2 size={16} className="animate-spin" />
-          ) : (
-            <LogOut size={16} />
-          )}
-          <span>Close Session</span>
-        </button>
+          <AdminProfilePopoverContent
+            user={user}
+            isLoggingOut={isLoggingOut}
+            onLogout={handleLogout}
+          />
+        </Popover>
       </div>
     </aside>
+  );
+}
+
+// ─── Pure Popover Content Component ─────────────────────────────────────────
+interface AdminProfilePopoverContentProps {
+  user: { name: string; email?: string | null } | null;
+  isLoggingOut: boolean;
+  onLogout: () => void;
+}
+
+function AdminProfilePopoverContent({
+  user,
+  isLoggingOut,
+  onLogout,
+}: AdminProfilePopoverContentProps) {
+  const close = usePopoverClose();
+  const initials = user?.name?.charAt(0).toUpperCase() ?? "A";
+
+  const handleLogoutClick = () => {
+    close();
+    onLogout();
+  };
+
+  return (
+    <div className="bg-surface text-text-primary rounded-xl overflow-hidden">
+      {/* Mini Profile Brief */}
+      <div className="flex items-center gap-3 border-b border-surface-subtle p-3.5">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-error-100 bg-error-50 text-base font-bold text-error-600">
+          {initials}
+        </div>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-bold text-text-primary">
+            {user?.name ?? "Super Admin"}
+          </p>
+          <p className="truncate text-xs text-text-muted mt-0.5">
+            {user?.email ?? "admin@kooi.io"}
+          </p>
+          <span className="mt-2 inline-block rounded bg-error-50 border border-error-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-error-600">
+            System Operations
+          </span>
+        </div>
+      </div>
+
+      {/* Popover Actions */}
+      <div className="p-1.5">
+        <button
+          type="button"
+          onClick={handleLogoutClick}
+          disabled={isLoggingOut}
+          className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-text-secondary transition-colors hover:bg-error-50 hover:text-error-600 disabled:opacity-50 cursor-pointer text-left font-medium"
+        >
+          {isLoggingOut ? (
+            <Loader2 size={15} className="animate-spin text-error-600" />
+          ) : (
+            <LogOut size={15} className="text-text-muted group-hover:text-error-600" />
+          )}
+          <span>{isLoggingOut ? "Logging out..." : "Logout"}</span>
+        </button>
+      </div>
+    </div>
   );
 }

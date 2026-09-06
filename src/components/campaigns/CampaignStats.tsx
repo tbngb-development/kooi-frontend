@@ -20,16 +20,6 @@ export function CampaignStats({
   performance,
   isLoadingPerformance,
 }: CampaignStatsProps) {
-  const completionPct =
-    campaign.totalLeads > 0
-      ? Math.round((campaign.calledLeads / campaign.totalLeads) * 100)
-      : 0;
-
-  const successRate =
-    campaign.calledLeads > 0
-      ? Math.round((campaign.completedLeads / campaign.calledLeads) * 100)
-      : 0;
-
   return (
     <Card>
       <h3 className="text-base font-semibold text-text-primary mb-5">
@@ -75,29 +65,7 @@ export function CampaignStats({
           iconBg="bg-success-50"
           loading={isLoadingPerformance}
         />
-        {/* <StatCard
-          icon={<IndianRupee size={16} />}
-          label="Total Cost"
-          value={
-            performance
-              ? `$${performance.totalCost.toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}`
-              : "—"
-          }
-          color="text-emerald-600"
-          iconBg="bg-emerald-50"
-          loading={isLoadingPerformance}
-        />
-        <StatCard
-          icon={<TrendingUp size={16} />}
-          label="Cost Per Lead"
-          value={performance ? `$${performance.costPerLead.toFixed(2)}` : "—"}
-          color="text-violet-600"
-          iconBg="bg-violet-50"
-          loading={isLoadingPerformance}
-        /> */}
+
         <StatCard
           icon={<PhoneOff size={16} />}
           label="DNC Registered"
@@ -113,82 +81,6 @@ export function CampaignStats({
           color="text-error-600"
           iconBg="bg-error-50"
         />
-      </div>
-
-      {/* ─── AI Call Insights & Preferences ─── */}
-      {/* <div className="mb-6 border-t border-slate-300 pt-5">
-        <h4 className="text-base font-semibold text-text-muted uppercase tracking-wider mb-3">
-          Insights & Lead Demand
-        </h4>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <InsightBadge
-            icon={<Clock size={15} />}
-            title="Best Pickup Window"
-            value={performance?.bestPickupTime ?? "—"}
-            subtitle="Highest connection rate"
-            color="text-brand-600"
-            bg="bg-brand-50"
-            loading={isLoadingPerformance}
-          />
-          <InsightBadge
-            icon={<TrendingUp size={15} />}
-            title="Best Conversion Time"
-            value={performance?.bestConversionTime ?? "—"}
-            subtitle="Peak HOT / WARM leads"
-            color="text-amber-600"
-            bg="bg-amber-50"
-            loading={isLoadingPerformance}
-          />
-          <InsightBadge
-            icon={<IndianRupee size={15} />}
-            title="Top Requested Budget"
-            value={performance?.topBudget ?? "—"}
-            subtitle="Most frequent budget range"
-            color="text-emerald-600"
-            bg="bg-emerald-50"
-            loading={isLoadingPerformance}
-          />
-          <InsightBadge
-            icon={<Building2 size={15} />}
-            title="Popular Configuration"
-            value={performance?.topConfiguration ?? "—"}
-            subtitle="Most requested layout"
-            color="text-purple-600"
-            bg="bg-purple-50"
-            loading={isLoadingPerformance}
-          />
-        </div>
-      </div> */}
-
-      {/* ─── Progress Bars ─── */}
-      <div className="flex flex-col gap-3 pt-2">
-        <div>
-          <div className="flex items-center justify-between text-base text-text-muted mb-1.5">
-            <span className="font-medium">Campaign Progress</span>
-            <span>{completionPct}% complete</span>
-          </div>
-          <div className="h-2.5 rounded-full bg-surface-subtle overflow-hidden">
-            <div
-              className="h-full rounded-full bg-brand-500 transition-all duration-500"
-              style={{ width: `${completionPct}%` }}
-            />
-          </div>
-        </div>
-
-        <div>
-          <div className="flex items-center justify-between text-base text-text-muted mb-1.5">
-            <span className="font-medium">
-              Success Rate (HOT/WARM of called leads)
-            </span>
-            <span className="text-success-600 font-medium">{successRate}%</span>
-          </div>
-          <div className="h-2.5 rounded-full bg-surface-subtle overflow-hidden">
-            <div
-              className="h-full rounded-full bg-success-500 transition-all duration-500"
-              style={{ width: `${successRate}%` }}
-            />
-          </div>
-        </div>
       </div>
     </Card>
   );
