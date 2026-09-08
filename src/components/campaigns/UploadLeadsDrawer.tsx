@@ -151,7 +151,6 @@ export function UploadLeadsDrawer({
               { onSuccess: handleClose },
             )
           }
-          onDone={handleClose}
           isRunning={runBatch.isPending}
           isScheduling={scheduleBatch.isPending}
         />
@@ -268,14 +267,12 @@ function TriggerStep({
   batchId,
   onRun,
   onSchedule,
-  onDone,
   isRunning,
   isScheduling,
 }: {
   batchId: string;
   onRun: () => void;
   onSchedule: (date: Date) => void;
-  onDone: () => void;
   isRunning: boolean;
   isScheduling: boolean;
 }) {
@@ -369,9 +366,6 @@ function TriggerStep({
 
       {/* CTAs */}
       <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-2">
-        <Button variant="outline" onClick={onDone} disabled={isBusy}>
-          I&apos;ll Decide Later
-        </Button>
         <Button
           onClick={handleConfirm}
           loading={isBusy}
