@@ -7,10 +7,12 @@ import { Button } from "@/components/ui/Button";
 import { TextArea } from "@/components/ui/TextArea";
 import { Select } from "@/components/ui/Select";
 import { RetryConfigEditor } from "./RetryConfigEditor";
+import { FloatingBottomBar } from "./FloatingBottomBar";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod/v4";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import type { Assistant } from "@/types/assistant";
 import { RetryConfig } from "@/types/batch";
 
@@ -26,12 +28,14 @@ interface CampaignDetailsStepProps {
   assistants: Assistant[];
   initialValues: (FormValues & { defaultRetryConfig?: RetryConfig }) | null;
   onNext: (data: FormValues & { defaultRetryConfig?: RetryConfig }) => void;
+  onCancel: () => void;
 }
 
 export function CampaignDetailsStep({
   assistants,
   initialValues,
   onNext,
+  onCancel,
 }: CampaignDetailsStepProps) {
   const [retryConfig, setRetryConfig] = useState<RetryConfig | undefined>(
     initialValues?.defaultRetryConfig ?? undefined,
@@ -63,15 +67,15 @@ export function CampaignDetailsStep({
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
-      <Card>
-        <h3 className="text-base font-semibold text-text-primary mb-4">
-          Campaign Details
+    <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
+      <Card className="p-6">
+        <h3 className="text-base font-bold text-text-primary mb-5">
+          General Settings
         </h3>
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-5">
           <Input
-            label="Campaign name"
-            placeholder="Q4 Lead Outreach — Lodha Bellavista"
+            label="Campaign Name"
+            placeholder="Q4 Lead Outreach"
             error={errors.name?.message}
             {...register("name")}
           />
@@ -83,10 +87,10 @@ export function CampaignDetailsStep({
           />
 
           {assistantOptions.length === 0 ? (
-            <div className="rounded-md bg-amber-50 border border-amber-100 p-3">
-              <p className="text-base text-amber-700">
+            <div className="rounded-lg bg-amber-50 border border-amber-100 p-4">
+              <p className="text-sm text-amber-700">
                 No assistants found.{" "}
-                <Link href="/assistants/new" className="underline font-medium">
+                <Link href="/assistants/new" className="underline font-bold">
                   Register an assistant first
                 </Link>
                 .
@@ -104,22 +108,31 @@ export function CampaignDetailsStep({
         </div>
       </Card>
 
-      <Card>
-        <h3 className="text-base font-semibold text-text-primary mb-2">
+      <Card className="p-6">
+        <h3 className="text-base font-bold text-text-primary mb-1">
           Default Batch Auto-Retry Strategy
         </h3>
-        <p className="text-base text-text-muted mb-4">
+        <p className="text-sm text-text-muted mb-5">
           All new lead batches in this campaign will inherit these settings
           unless overridden during upload.
         </p>
         <RetryConfigEditor value={retryConfig} onChange={setRetryConfig} />
       </Card>
 
-      <div className="flex items-center gap-3">
-        <Button type="submit" disabled={assistantOptions.length === 0}>
-          Next — Configure Variables
-        </Button>
-      </div>
+      {/* ── Center Centered Pill-shaped Floating Bottom Bar ──────────────── */}
+      <FloatingBottomBar
+        onCancel={onCancel}
+        rightAction={
+          <Button
+            type="submit"
+            disabled={assistantOptions.length === 0}
+            rightIcon={<ArrowRight size={16} />}
+            className="rounded-full shadow-sm font-bold"
+          >
+            Next Step
+          </Button>
+        }
+      />
     </form>
   );
 }
