@@ -2,6 +2,7 @@
 
 import { paisaToInr } from "@/constants/config/wallet.config";
 import { useWallet } from "@/hooks/useWallet";
+import { useMyPlan } from "@/hooks/usePlans";
 import { cn } from "@/lib/utils/cn";
 import { AlertTriangle, Wallet } from "lucide-react";
 
@@ -13,12 +14,16 @@ interface SidebarWalletCardProps {
 /**
  * Compact, space-efficient wallet card for the sidebar.
  * Reduced vertical footprint with inline balance display.
+ * Reads lowBalanceThreshold from the active tenant plan (API v2).
  */
 export function SidebarWalletCard({
   onRechargeClick,
   className,
 }: SidebarWalletCardProps) {
-  const { data: wallet, isLoading } = useWallet();
+  const { data: wallet, isLoading: isWalletLoading } = useWallet();
+  const { data: tenantPlan, isLoading: isPlanLoading } = useMyPlan();
+
+  const isLoading = isWalletLoading || isPlanLoading;
 
   if (isLoading) {
     return (
@@ -33,9 +38,9 @@ export function SidebarWalletCard({
 
   if (!wallet) return null;
 
+  const lowBalanceThreshold = tenantPlan?.plan?.lowBalanceThreshold ?? null;
   const isLowBalance =
-    wallet.lowBalanceThreshold != null &&
-    wallet.balance <= wallet.lowBalanceThreshold;
+    lowBalanceThreshold !== null && wallet.balance <= lowBalanceThreshold;
 
   return (
     <button
@@ -56,7 +61,7 @@ export function SidebarWalletCard({
       <div className="flex items-center justify-between gap-2">
         {/* Left: Icon + Balance */}
         <div className="flex items-center gap-2 min-w-0">
-          <Wallet size={16} />
+          <Wallet size={16} className="text-white shrink-0" />
           <div className="min-w-0">
             <p className="text-xs font-semibold uppercase tracking-wider text-brand-100 leading-none">
               Balance

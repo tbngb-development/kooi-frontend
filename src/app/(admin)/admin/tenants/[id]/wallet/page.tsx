@@ -30,7 +30,7 @@ import {
   Plus,
   History,
 } from "lucide-react";
-import type { WalletTxType, WalletAdjustmentType } from "@/types/wallet";
+import type { WalletTxType, WalletTransaction } from "@/types/wallet";
 
 const adjustSchema = z.object({
   amountRupees: z.number().positive("Amount must be greater than zero"),
@@ -42,11 +42,11 @@ type AdjustFormValues = z.infer<typeof adjustSchema>;
 
 const typeVariants: Record<
   WalletTxType,
-  "success" | "error" | "purple" | "gray" | "default"
+  "success" | "error" | "purple" | "gray" | "blue"
 > = {
   CREDIT: "success",
   DEBIT: "error",
-  REFUND: "success",
+  REFUND: "blue",
   BONUS: "purple",
   ADJUSTMENT: "gray",
 };
@@ -88,7 +88,7 @@ export default function TenantWalletPage({
     adjustMutation.mutate(
       {
         tenantId,
-        amountPaisa: Math.round(values.amountRupees * 100),
+        amount: Math.round(values.amountRupees * 100), // In paisa
         type: values.type,
         description: values.description,
       },
@@ -207,7 +207,7 @@ export default function TenantWalletPage({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-surface-subtle font-medium text-text-primary">
-                  {txPage.items.map((tx) => (
+                  {txPage.items.map((tx: WalletTransaction) => (
                     <tr
                       key={tx.id}
                       className="hover:bg-surface-muted/50 transition-colors"
@@ -216,7 +216,7 @@ export default function TenantWalletPage({
                         {tx.id.slice(0, 14)}...
                       </td>
                       <td className="px-5 py-4">
-                        <Badge variant={typeVariants[tx.type]} dot>
+                        <Badge variant={typeVariants[tx.type] ?? "gray"} dot>
                           {tx.type}
                         </Badge>
                       </td>

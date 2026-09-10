@@ -7,11 +7,11 @@ import { formatDateOnly, formatTimeOnly } from "@/lib/utils/formatDate";
 import type { LeadBatch } from "@/types/batch";
 import {
   CheckCircle,
+  Clock,
   FileSpreadsheet,
   Phone,
   Users,
   XCircle,
-  Zap,
 } from "lucide-react";
 import { BatchActions } from "./BatchActions";
 import { BatchStatusBadge } from "./BatchStatusBadge";
@@ -186,13 +186,12 @@ function MetricCell({
  */
 function RunsAtCell({ batch }: { batch: LeadBatch }) {
   const runAt = batch.scheduledAt ?? batch.startedAt;
-  console.log('run at: ', runAt)
 
   if (!runAt) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-brand-50 border border-brand-100 px-2 py-0.5 text-[10px] font-bold text-brand-700 uppercase tracking-wide">
-        <Zap size={10} />
-        Instant
+      <span className="inline-flex items-center gap-1 rounded-full bg-surface-subtle border border-surface-border px-2 py-0.5 text-[10px] font-bold text-text-muted uppercase tracking-wider shrink-0">
+        {/* <Clock size={10} /> */}
+        Not Scheduled
       </span>
     );
   }

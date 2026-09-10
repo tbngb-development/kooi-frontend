@@ -50,8 +50,8 @@ const TABS: TabDefinition[] = [
   },
   {
     key: "billing",
-    label: "Billing & Ledger",
-    description: "Wallet balance, recharges, and transactions",
+    label: "Plans & Billing",
+    description: "Manage your active plan, usage, and transaction history",
     icon: CreditCard,
     adminOnly: true,
   },

@@ -1,16 +1,3 @@
-export interface Wallet {
-  id: string;
-  tenantId: string;
-  balance: number;
-  bonusBalance: number;
-  bonusExpiresAt: string | null;
-  isActive: boolean;
-  lowBalanceThreshold: number | null;
-  lowBalanceAlertSent: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
 export type WalletTxType =
   | "CREDIT"
   | "DEBIT"
@@ -18,41 +5,38 @@ export type WalletTxType =
   | "BONUS"
   | "ADJUSTMENT";
 
-export type WalletAdjustmentType = "CREDIT" | "DEBIT" | "BONUS";
-
-export type WalletTxReferenceType =
-  | "CALL"
-  | "RECHARGE"
-  | "PLAN_BONUS"
-  | "ADJUSTMENT";
+export interface Wallet {
+  id: string;
+  tenantId: string;
+  balance: number; // in paisa
+  bonusBalance: number; // in paisa
+  bonusExpiresAt: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export interface WalletTransaction {
   id: string;
+  walletId: string;
   type: WalletTxType;
-  amount: number;
-  balanceAfter: number;
-  bonusBalanceAfter: number;
+  amount: number; // in paisa
+  balanceAfter: number; // in paisa
   description: string;
-  referenceType: WalletTxReferenceType | null;
-  referenceId: string | null;
   createdAt: string;
 }
 
-export interface WalletTransactionsPage {
+export interface WalletTransactionPage {
   items: WalletTransaction[];
   total: number;
   page: number;
   limit: number;
 }
 
-export interface BalanceWarning {
-  balance: number;
-  estimatedCost: number;
-}
-
+/** Admin payload for manually adjusting a tenant's wallet balance */
 export interface AdjustWalletInput {
   tenantId: string;
-  amountPaisa: number;
-  type: WalletAdjustmentType;
+  amount: number; // in paisa
+  type?: WalletTxType;
   description: string;
 }

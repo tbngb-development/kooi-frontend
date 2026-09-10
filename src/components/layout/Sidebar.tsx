@@ -13,10 +13,10 @@ import { useAuthStore } from "@/store/authStore";
 import {
   BarChart3,
   Bot,
+  Megaphone,
   Menu,
   Phone,
   Settings,
-  Target,
   Users,
   X,
 } from "lucide-react";
@@ -25,7 +25,7 @@ import { useState } from "react";
 
 const NAV_ITEMS: SidebarNavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: BarChart3 },
-  { label: "Campaigns", href: "/campaigns", icon: Target },
+  { label: "Campaigns", href: "/campaigns", icon: Megaphone },
   { label: "Assistants", href: "/assistants", icon: Bot },
   { label: "Call History", href: "/call-history", icon: Phone },
   { label: "Team", href: "/users", icon: Users, adminOnly: true },

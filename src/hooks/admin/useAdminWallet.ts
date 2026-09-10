@@ -35,6 +35,7 @@ export function useAdminWalletTransactions(
 
 export function useAdjustWallet() {
   const qc = useQueryClient();
+
   return useMutation({
     mutationFn: (input: AdjustWalletInput) => adminWalletApi.adjust(input),
     onSuccess: (_, variables) => {
@@ -44,7 +45,7 @@ export function useAdjustWallet() {
       qc.invalidateQueries({
         queryKey: ["admin", "wallet", variables.tenantId, "transactions"],
       });
-      toast.success("Wallet balanced adjusted successfully");
+      toast.success("Wallet balance adjusted successfully");
     },
     onError: (err: unknown) => toast.error(getAxiosErrorMessage(err)),
   });

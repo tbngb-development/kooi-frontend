@@ -33,7 +33,7 @@ export function SidebarProfileMenu({
     <Popover
       placement="right"
       align="end"
-      offset={15}
+      offset={18}
       className="w-full"
       panelClassName="w-64"
       trigger={
@@ -104,7 +104,7 @@ function ProfileMenuContent({
             <p className="truncate text-xs text-zinc-400">{user.email}</p>
           )}
           <div className="mt-1.5 flex items-center gap-1.5">
-            <span className="rounded bg-brand-400/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-brand-400">
+            <span className="rounded bg-brand-400/10 px-1.5 py-0.5 text-xs font-bold uppercase tracking-wider text-brand-400">
               {roleLabel}
             </span>
             <span className="truncate text-[10px] text-zinc-500">

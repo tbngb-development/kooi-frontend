@@ -1,29 +1,29 @@
-export const APP_ROUTES = {
-  HOME: "/",
-  LOGIN: "/login",
-  REGISTER: "/register",
-  FORGOT_PASSWORD: "/forgot-password", // ← NEW
-  ACCEPT_INVITE: (token: string) => `/accept-invite/${token}` as const,
-  ONBOARDING_PLANS: "/onboarding/plans",
-  ONBOARDING_PAYMENT: "/onboarding/payment",
-  DASHBOARD: "/dashboard",
-  CAMPAIGNS: "/campaigns",
-  CAMPAIGN_NEW: "/campaigns/new",
-  CAMPAIGN_DETAIL: (id: string) => `/campaigns/${id}` as const,
-  CAMPAIGN_LEADS: (id: string) => `/campaigns/${id}/leads` as const,
-  CAMPAIGN_LEAD_DETAIL: (campaignId: string, leadId: string) =>
-    `/campaigns/${campaignId}/leads/${leadId}` as const,
-  CAMPAIGN_CALLS: (id: string) => `/campaigns/${id}/calls` as const,
-  CAMPAIGN_CALL_DETAIL: (campaignId: string, callId: string) =>
-    `/campaigns/${campaignId}/calls/${callId}` as const,
-  LEADS: "/leads",
-  LEAD_DETAIL: (id: string) => `/leads/${id}` as const,
-  CALL_HISTORY: "/call-history",
-  CALL_DETAIL: (id: string) => `/call-history/${id}` as const,
-  ASSISTANTS: "/assistants",
-  ASSISTANT_NEW: "/assistants/new",
-  ASSISTANT_DETAIL: (id: string) => `/assistants/${id}` as const,
-  SETTINGS: "/settings",
-  USERS: "/users",
-  PLANS: "/plans",
-} as const;
+  export const APP_ROUTES = {
+    HOME: "/",
+    LOGIN: "/login",
+    REGISTER: "/register",
+    FORGOT_PASSWORD: "/forgot-password", // ← NEW
+    ACCEPT_INVITE: (token: string) => `/accept-invite/${token}` as const,
+    ONBOARDING_PLANS: "/onboarding/plans",
+    ONBOARDING_PAYMENT: "/onboarding/payment",
+    DASHBOARD: "/dashboard",
+    CAMPAIGNS: "/campaigns",
+    CAMPAIGN_NEW: "/campaigns/new",
+    CAMPAIGN_DETAIL: (id: string) => `/campaigns/${id}` as const,
+    CAMPAIGN_LEADS: (id: string) => `/campaigns/${id}/leads` as const,
+    CAMPAIGN_LEAD_DETAIL: (campaignId: string, leadId: string) =>
+      `/campaigns/${campaignId}/leads/${leadId}` as const,
+    CAMPAIGN_CALLS: (id: string) => `/campaigns/${id}/calls` as const,
+    CAMPAIGN_CALL_DETAIL: (campaignId: string, callId: string) =>
+      `/campaigns/${campaignId}/calls/${callId}` as const,
+    LEADS: "/leads",
+    LEAD_DETAIL: (id: string) => `/leads/${id}` as const,
+    CALL_HISTORY: "/call-history",
+    CALL_DETAIL: (id: string) => `/call-history/${id}` as const,
+    ASSISTANTS: "/assistants",
+    ASSISTANT_NEW: "/assistants/new",
+    ASSISTANT_DETAIL: (id: string) => `/assistants/${id}` as const,
+    SETTINGS: "/settings",
+    USERS: "/users",
+    PLANS: "/plans",
+  } as const;
