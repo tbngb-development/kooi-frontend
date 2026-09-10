@@ -82,9 +82,15 @@ export const campaignsApi = {
     return res.data.data;
   },
 
-  getCampaignPerformance: async (id: string): Promise<CampaignPerformance> => {
+  getCampaignPerformance: async (
+    id: string,
+    batchId?: string,
+  ): Promise<CampaignPerformance> => {
     const res = await apiClient.get<ApiResponse<CampaignPerformance>>(
       CAMPAIGN_ENDPOINTS.PERFORMANCE(id),
+      {
+        params: batchId ? { batchId } : undefined,
+      },
     );
     if (!res.data.success || !res.data.data) {
       throw new Error(res.data.error ?? "Failed to fetch campaign performance");

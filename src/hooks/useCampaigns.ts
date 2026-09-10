@@ -46,10 +46,18 @@ export function useCampaignStats(id: string, pollWhileRunning = false) {
   });
 }
 
-export function useCampaignPerformance(id: string, enabled = true) {
+export function useCampaignPerformance(
+  id: string,
+  batchId?: string,
+  enabled = true,
+) {
+  const baseKey = QUERY_KEYS.CAMPAIGNS.performance(id);
+
   return useQuery<CampaignPerformance>({
-    queryKey: QUERY_KEYS.CAMPAIGNS.performance(id),
-    queryFn: () => campaignsApi.getCampaignPerformance(id),
+    queryKey: Array.isArray(baseKey)
+      ? [...baseKey, batchId]
+      : [baseKey, batchId],
+    queryFn: () => campaignsApi.getCampaignPerformance(id, batchId),
     enabled: enabled && !!id,
   });
 }
