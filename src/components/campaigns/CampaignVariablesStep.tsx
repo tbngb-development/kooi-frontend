@@ -280,7 +280,7 @@ export function CampaignVariablesStep({
 
       {/* ── Document Upload Area ──────────────────────────────────────────── */}
       {documentLinked ? (
-        <div className="flex items-center gap-3 rounded-2xl bg-success-50 border border-success-200/50 p-5 shadow-sm">
+        <div className="flex items-center gap-3 rounded-2xl bg-success-50 border border-success-200 p-5 shadow-sm">
           <CheckCircle2 size={20} className="text-success-600 shrink-0" />
           <div className="flex-1 min-w-0">
             <p className="text-base font-bold text-success-900 truncate">
