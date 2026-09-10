@@ -71,7 +71,7 @@ export function Sidebar() {
   // ── Shared inner content ──
   const inner = (
     <div className="flex flex-col h-full bg-zinc-900 text-zinc-100">
-      <SidebarLogo tenantName={tenantName} />
+      <SidebarLogo />
       <SidebarNav
         items={visibleItems}
         pathname={pathname}
