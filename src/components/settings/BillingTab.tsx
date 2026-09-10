@@ -1,15 +1,19 @@
 "use client";
 
 import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Pagination } from "@/components/ui/Pagination";
 import { Spinner } from "@/components/ui/Spinner";
 import { paisaToInr } from "@/constants/config/wallet.config";
+import { APP_ROUTES } from "@/constants/routes/app.routes";
 import { useMyPlan } from "@/hooks/usePlans";
 import { useWallet, useWalletTransactions } from "@/hooks/useWallet";
-import type { WalletTxType } from "@/types/wallet";
-import { History, Sparkles } from "lucide-react";
+import { useAuthStore } from "@/store/authStore";
+import type { WalletTransaction, WalletTxType } from "@/types/wallet";
+import { ArrowUpCircle, History, AlertTriangle } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 
 const TX_VARIANTS: Record<
@@ -32,6 +36,12 @@ export default function BillingTab() {
     10,
   );
 
+  const { user, memberships, activeTenantId } = useAuthStore();
+  const activeRole = memberships.find(
+    (m) => m.tenantId === activeTenantId,
+  )?.role;
+  const canManagePlan = activeRole === "OWNER" || !!user?.isPlatformAdmin;
+
   if (isWalletLoading) {
     return (
       <div className="p-12 flex justify-center">
@@ -42,8 +52,7 @@ export default function BillingTab() {
 
   return (
     <div className="space-y-6">
-
-      {/* Current Plan */}
+      {/* Current Active Plan Card */}
       {tenantPlan && (
         <Card className="p-5">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -51,14 +60,27 @@ export default function BillingTab() {
               <p className="text-xs font-bold text-text-placeholder uppercase tracking-wider">
                 Current Active Plan
               </p>
-              <h4 className="text-xl font-bold text-text-primary mt-1">
+              <h4 className="text-xl font-bold text-text-primary mt-1 capitalize">
                 {tenantPlan.plan.name}
               </h4>
               <p className="text-sm text-text-muted mt-0.5">
-                Rate: {paisaToInr(tenantPlan.plan.perMinuteRate)} / min
+                Rate:{" "}
+                {tenantPlan.plan.pricingModel === "CUSTOM"
+                  ? "Custom"
+                  : `${paisaToInr(tenantPlan.plan.perMinuteRate)} / min`}
               </p>
+              <div className="mt-2 flex items-center gap-1.5 text-xs text-text-muted">
+                <AlertTriangle size={12} className="text-amber-500" />
+                <span>
+                  Low balance alert configured at{" "}
+                  <strong className="text-text-primary font-mono">
+                    {paisaToInr(tenantPlan.plan.lowBalanceThreshold)}
+                  </strong>
+                </span>
+              </div>
             </div>
-            <div className="flex flex-col items-start sm:items-end gap-1.5">
+
+            <div className="flex flex-col items-start sm:items-end gap-2">
               <Badge variant="success" dot>
                 Active
               </Badge>
@@ -67,12 +89,24 @@ export default function BillingTab() {
                   Balance: {paisaToInr(wallet.balance)}
                 </span>
               )}
+              {canManagePlan && (
+                <Link href={APP_ROUTES.PLANS}>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    leftIcon={<ArrowUpCircle size={14} />}
+                    className="mt-1"
+                  >
+                    Upgrade
+                  </Button>
+                </Link>
+              )}
             </div>
           </div>
         </Card>
       )}
 
-      {/* Transaction History */}
+      {/* Transaction History Ledger */}
       <section className="space-y-3">
         <h3 className="text-sm font-bold text-text-primary flex items-center gap-1.5">
           <History size={15} />
@@ -104,37 +138,39 @@ export default function BillingTab() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-surface-subtle font-medium text-text-primary">
-                    {txPage.items.map((tx) => (
-                      <tr
-                        key={tx.id}
-                        className="hover:bg-surface-muted/50 transition-colors"
-                      >
-                        <td className="px-5 py-3.5">
-                          <Badge variant={TX_VARIANTS[tx.type]}>
-                            {tx.type}
-                          </Badge>
-                        </td>
-                        <td className="px-5 py-3.5 text-xs text-text-secondary max-w-[200px] truncate">
-                          {tx.description}
-                        </td>
-                        <td
-                          className={`px-5 py-3.5 text-right font-mono font-bold ${
-                            tx.type === "DEBIT"
-                              ? "text-error-600"
-                              : "text-success-600"
-                          }`}
+                    {txPage.items.map((tx: WalletTransaction) => {
+                      const badgeVariant = TX_VARIANTS[tx.type] ?? "gray";
+
+                      return (
+                        <tr
+                          key={tx.id}
+                          className="hover:bg-surface-muted/50 transition-colors"
                         >
-                          {tx.type === "DEBIT" ? "-" : "+"}
-                          {paisaToInr(tx.amount)}
-                        </td>
-                        <td className="px-5 py-3.5 text-right font-mono text-xs text-text-muted">
-                          {paisaToInr(tx.balanceAfter)}
-                        </td>
-                        <td className="px-5 py-3.5 text-xs text-text-placeholder">
-                          {new Date(tx.createdAt).toLocaleString()}
-                        </td>
-                      </tr>
-                    ))}
+                          <td className="px-5 py-3.5">
+                            <Badge variant={badgeVariant}>{tx.type}</Badge>
+                          </td>
+                          <td className="px-5 py-3.5 text-xs text-text-secondary max-w-[200px] truncate">
+                            {tx.description}
+                          </td>
+                          <td
+                            className={`px-5 py-3.5 text-right font-mono font-bold ${
+                              tx.type === "DEBIT"
+                                ? "text-error-600"
+                                : "text-success-600"
+                            }`}
+                          >
+                            {tx.type === "DEBIT" ? "-" : "+"}
+                            {paisaToInr(tx.amount)}
+                          </td>
+                          <td className="px-5 py-3.5 text-right font-mono text-xs text-text-muted">
+                            {paisaToInr(tx.balanceAfter)}
+                          </td>
+                          <td className="px-5 py-3.5 text-xs text-text-placeholder">
+                            {new Date(tx.createdAt).toLocaleString()}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useWallet } from "@/hooks/useWallet";
+import { useMyPlan } from "@/hooks/usePlans";
 import { paisaToInr, paisaToInrShort } from "@/constants/config/wallet.config";
 import { Wallet as WalletIcon, Sparkles, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
@@ -11,7 +12,10 @@ interface WalletBalanceProps {
 }
 
 export function WalletBalance({ className, mini = false }: WalletBalanceProps) {
-  const { data: wallet, isLoading } = useWallet();
+  const { data: wallet, isLoading: isWalletLoading } = useWallet();
+  const { data: tenantPlan, isLoading: isPlanLoading } = useMyPlan();
+
+  const isLoading = isWalletLoading || isPlanLoading;
 
   if (isLoading || !wallet) {
     return (
@@ -24,9 +28,9 @@ export function WalletBalance({ className, mini = false }: WalletBalanceProps) {
     );
   }
 
+  const lowBalanceThreshold = tenantPlan?.plan?.lowBalanceThreshold ?? null;
   const isLowBalance =
-    wallet.lowBalanceThreshold !== null &&
-    wallet.balance <= wallet.lowBalanceThreshold;
+    lowBalanceThreshold !== null && wallet.balance <= lowBalanceThreshold;
 
   if (mini) {
     return (

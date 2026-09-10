@@ -3,7 +3,7 @@ import { ADMIN_WALLET_ENDPOINTS } from "@/constants/api-routes/admin/wallet-endp
 import type { ApiResponse } from "@/types/api";
 import type {
   Wallet,
-  WalletTransactionsPage,
+  WalletTransactionPage,
   AdjustWalletInput,
 } from "@/types/wallet";
 
@@ -25,8 +25,8 @@ export const adminWalletApi = {
     tenantId: string,
     page = 1,
     limit = 20,
-  ): Promise<WalletTransactionsPage> => {
-    const res = await apiClient.get<ApiResponse<WalletTransactionsPage>>(
+  ): Promise<WalletTransactionPage> => {
+    const res = await apiClient.get<ApiResponse<WalletTransactionPage>>(
       ADMIN_WALLET_ENDPOINTS.TRANSACTIONS,
       { params: { tenantId, page, limit } },
     );

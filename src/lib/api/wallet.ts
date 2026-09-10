@@ -1,7 +1,7 @@
 import apiClient from "@/lib/axios";
 import { WALLET_ENDPOINTS } from "@/constants/api-routes/wallet-endpoint";
 import type { ApiResponse } from "@/types/api";
-import type { Wallet, WalletTransactionsPage } from "@/types/wallet";
+import type { Wallet, WalletTransactionPage } from "@/types/wallet";
 
 export const walletApi = {
   get: async (): Promise<Wallet> => {
@@ -15,8 +15,8 @@ export const walletApi = {
   listTransactions: async (
     page = 1,
     limit = 20,
-  ): Promise<WalletTransactionsPage> => {
-    const res = await apiClient.get<ApiResponse<WalletTransactionsPage>>(
+  ): Promise<WalletTransactionPage> => {
+    const res = await apiClient.get<ApiResponse<WalletTransactionPage>>(
       WALLET_ENDPOINTS.TRANSACTIONS,
       { params: { page, limit } },
     );

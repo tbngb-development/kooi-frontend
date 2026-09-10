@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Modal } from "@/components/ui/Modal";
 import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 import { RefreshButton } from "@/components/ui/RefreshButton";
 import {
@@ -21,46 +22,203 @@ import {
   ToggleLeft,
   ToggleRight,
 } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import type { CreatePlanInput, Plan, PlanFeatures } from "@/types/plan";
+import { paisaToInr } from "@/constants/config/wallet.config";
+import type {
+  AgentCapability,
+  CallingChannel,
+  CreatePlanInput,
+  DashboardTier,
+  IntegrationTier,
+  Plan,
+  PricingModel,
+  SupportTier,
+} from "@/types/plan";
+
+// ── Fixed Zod Schema & Types ────────────────────────────────────────────────
+
+const nullableNumber = z
+  .union([z.number(), z.string(), z.null(), z.undefined()])
+  .transform((v): number | null => {
+    if (v === "" || v === null || v === undefined) return null;
+    const n = Number(v);
+    return Number.isNaN(n) ? null : n;
+  });
 
 const planSchema = z.object({
   name: z.string().min(1, "Name is required"),
   slug: z.string().min(1, "Slug is required"),
-  onboardingFee: z.number().min(0, "Must be 0 or greater"),
-  perMinuteRate: z.number().min(0, "Must be 0 or greater"),
-  billingMinimumSec: z.number().min(1, "Must be at least 1 second"),
-  billingIncrementSec: z.number().min(1, "Must be at least 1 second"),
-  maxActiveCampaigns: z.number().nullable().optional(),
-  maxLeadsPerBatch: z.number().nullable().optional(),
+  isActive: z.boolean(),
+  displayOrder: z.coerce.number().min(0),
+
+  pricingModel: z.enum(["STANDARD", "VOLUME", "CUSTOM"]),
+  onboardingFee: z.coerce.number().min(0, "Must be 0 or greater"),
+  onboardingFeeOriginal: nullableNumber,
+  perMinuteRate: z.coerce.number().min(0, "Must be 0 or greater"),
+  billingMinimumSec: z.coerce.number().min(1, "Must be at least 1 second"),
+  billingIncrementSec: z.coerce.number().min(1, "Must be at least 1 second"),
+
+  maxActiveCampaigns: nullableNumber,
+  maxLeadsPerBatch: nullableNumber,
+  maxAgents: nullableNumber,
+  maxTeamMembers: nullableNumber,
   retryAutomation: z.boolean(),
-  industryPackLimit: z.number().nullable().optional(),
-  includedBalance: z.number().min(0, "Must be 0 or greater"),
-  bonusValidityDays: z.number().nullable().optional(),
-  displayOrder: z.number().min(0),
+  industryPackLimit: nullableNumber,
+
+  callingChannel: z.enum(["SHARED", "DEDICATED", "DEDICATED_WITH_NUMBER"]),
+  brochureUpload: z.boolean(),
+
+  dashboardTier: z.enum(["BASIC", "STANDARD", "ADVANCED", "CUSTOM"]),
+  agentCapability: z.enum([
+    "BASIC",
+    "BASIC_KNOWLEDGE",
+    "ADVANCED_KNOWLEDGE",
+    "CUSTOM",
+  ]),
+  integrations: z.enum(["NONE", "BASIC", "API_SELECTED", "CUSTOM"]),
+  supportTier: z.enum(["STANDARD", "PRIORITY", "SLA"]),
+
+  lowBalanceThreshold: z.coerce.number().min(0, "Must be 0 or greater"),
+
+  includedBalance: z.coerce.number().min(0, "Must be 0 or greater"),
+  bonusValidityDays: nullableNumber,
 });
 
 type PlanFormValues = z.infer<typeof planSchema>;
 
-const defaultFeatures: PlanFeatures = {
-  dashboardTier: "standard",
-  agentCapability: "basic",
-  integrations: "none",
-  supportTier: "standard",
+// ── Select Options ──────────────────────────────────────────────────────────
+
+const PRICING_MODEL_OPTIONS = [
+  { value: "STANDARD", label: "Standard" },
+  { value: "VOLUME", label: "Volume" },
+  { value: "CUSTOM", label: "Custom (Enterprise)" },
+];
+
+const CALLING_CHANNEL_OPTIONS = [
+  { value: "SHARED", label: "Shared" },
+  { value: "DEDICATED", label: "Dedicated" },
+  { value: "DEDICATED_WITH_NUMBER", label: "Dedicated + Number" },
+];
+
+const DASHBOARD_TIER_OPTIONS = [
+  { value: "BASIC", label: "Basic" },
+  { value: "STANDARD", label: "Standard" },
+  { value: "ADVANCED", label: "Advanced" },
+  { value: "CUSTOM", label: "Custom" },
+];
+
+const AGENT_CAPABILITY_OPTIONS = [
+  { value: "BASIC", label: "Basic" },
+  { value: "BASIC_KNOWLEDGE", label: "Basic + Knowledge" },
+  { value: "ADVANCED_KNOWLEDGE", label: "Advanced Knowledge" },
+  { value: "CUSTOM", label: "Custom" },
+];
+
+const INTEGRATION_OPTIONS = [
+  { value: "NONE", label: "None" },
+  { value: "BASIC", label: "Basic" },
+  { value: "API_SELECTED", label: "API + Selected" },
+  { value: "CUSTOM", label: "Custom" },
+];
+
+const SUPPORT_TIER_OPTIONS = [
+  { value: "STANDARD", label: "Standard" },
+  { value: "PRIORITY", label: "Priority" },
+  { value: "SLA", label: "SLA" },
+];
+
+const DEFAULT_FORM: PlanFormValues = {
+  name: "",
+  slug: "",
+  isActive: true,
+  displayOrder: 0,
+  pricingModel: "STANDARD",
+  onboardingFee: 0,
+  onboardingFeeOriginal: null,
+  perMinuteRate: 0,
+  billingMinimumSec: 30,
+  billingIncrementSec: 15,
+  maxActiveCampaigns: null,
+  maxLeadsPerBatch: null,
+  maxAgents: null,
+  maxTeamMembers: null,
+  retryAutomation: false,
+  industryPackLimit: null,
+  callingChannel: "SHARED",
+  brochureUpload: false,
+  dashboardTier: "BASIC",
+  agentCapability: "BASIC",
+  integrations: "NONE",
+  supportTier: "STANDARD",
+  lowBalanceThreshold: 10000,
+  includedBalance: 0,
+  bonusValidityDays: null,
 };
 
-function paisaToInr(paisa: number): string {
-  return `₹${(paisa / 100).toFixed(2)}`;
+function planToFormValues(plan: Plan): PlanFormValues {
+  return {
+    name: plan.name,
+    slug: plan.slug,
+    isActive: plan.isActive,
+    displayOrder: plan.displayOrder,
+    pricingModel: plan.pricingModel,
+    onboardingFee: plan.onboardingFee,
+    onboardingFeeOriginal: plan.onboardingFeeOriginal,
+    perMinuteRate: plan.perMinuteRate,
+    billingMinimumSec: plan.billingMinimumSec,
+    billingIncrementSec: plan.billingIncrementSec,
+    maxActiveCampaigns: plan.maxActiveCampaigns,
+    maxLeadsPerBatch: plan.maxLeadsPerBatch,
+    maxAgents: plan.maxAgents,
+    maxTeamMembers: plan.maxTeamMembers,
+    retryAutomation: plan.retryAutomation,
+    industryPackLimit: plan.industryPackLimit,
+    callingChannel: plan.callingChannel,
+    brochureUpload: plan.brochureUpload,
+    dashboardTier: plan.dashboardTier,
+    agentCapability: plan.agentCapability,
+    integrations: plan.integrations,
+    supportTier: plan.supportTier,
+    lowBalanceThreshold: plan.lowBalanceThreshold,
+    includedBalance: plan.includedBalance,
+    bonusValidityDays: plan.bonusValidityDays,
+  };
 }
 
-const parseNullableNumber = (v: unknown): number | null => {
-  if (v === "" || v === null || v === undefined) return null;
-  const num = Number(v);
-  return Number.isNaN(num) ? null : num;
-};
+function formToPayload(data: PlanFormValues): CreatePlanInput {
+  return {
+    name: data.name,
+    slug: data.slug,
+    isActive: data.isActive,
+    displayOrder: data.displayOrder,
+    pricingModel: data.pricingModel as PricingModel,
+    onboardingFee: data.onboardingFee,
+    onboardingFeeOriginal: data.onboardingFeeOriginal,
+    perMinuteRate: data.perMinuteRate,
+    billingMinimumSec: data.billingMinimumSec,
+    billingIncrementSec: data.billingIncrementSec,
+    maxActiveCampaigns: data.maxActiveCampaigns,
+    maxLeadsPerBatch: data.maxLeadsPerBatch,
+    maxAgents: data.maxAgents,
+    maxTeamMembers: data.maxTeamMembers,
+    retryAutomation: data.retryAutomation,
+    industryPackLimit: data.industryPackLimit,
+    callingChannel: data.callingChannel as CallingChannel,
+    brochureUpload: data.brochureUpload,
+    dashboardTier: data.dashboardTier as DashboardTier,
+    agentCapability: data.agentCapability as AgentCapability,
+    integrations: data.integrations as IntegrationTier,
+    supportTier: data.supportTier as SupportTier,
+    lowBalanceThreshold: data.lowBalanceThreshold,
+    includedBalance: data.includedBalance,
+    bonusValidityDays: data.bonusValidityDays,
+  };
+}
+
+// ── Component ───────────────────────────────────────────────────────────────
 
 export default function AdminPlansPage() {
   const qc = useQueryClient();
@@ -82,97 +240,52 @@ export default function AdminPlansPage() {
       }
       toast.success("Plan updated successfully");
       setShowForm(false);
+      setEditPlan(null);
     },
     onError: (err: unknown) => toast.error(getAxiosErrorMessage(err)),
   });
 
+  // Let React Hook Form infer types from the zodResolver
   const {
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors },
-  } = useForm<PlanFormValues>({
+  } = useForm({
     resolver: zodResolver(planSchema),
-    defaultValues: {
-      name: "",
-      slug: "",
-      onboardingFee: 0,
-      perMinuteRate: 0,
-      billingMinimumSec: 60,
-      billingIncrementSec: 30,
-      includedBalance: 0,
-      retryAutomation: false,
-      displayOrder: 0,
-      maxActiveCampaigns: null,
-      maxLeadsPerBatch: null,
-      industryPackLimit: null,
-      bonusValidityDays: null,
-    },
+    defaultValues: DEFAULT_FORM,
   });
 
   const openCreate = () => {
     setEditPlan(null);
-    reset({
-      name: "",
-      slug: "",
-      onboardingFee: 0,
-      perMinuteRate: 0,
-      billingMinimumSec: 60,
-      billingIncrementSec: 30,
-      includedBalance: 0,
-      retryAutomation: false,
-      displayOrder: 0,
-      maxActiveCampaigns: null,
-      maxLeadsPerBatch: null,
-      industryPackLimit: null,
-      bonusValidityDays: null,
-    });
+    reset(DEFAULT_FORM);
     setShowForm(true);
   };
 
   const openEdit = (plan: Plan) => {
     setEditPlan(plan);
-    reset({
-      name: plan.name,
-      slug: plan.slug,
-      onboardingFee: plan.onboardingFee,
-      perMinuteRate: plan.perMinuteRate,
-      billingMinimumSec: plan.billingMinimumSec,
-      billingIncrementSec: plan.billingIncrementSec,
-      maxActiveCampaigns: plan.maxActiveCampaigns ?? null,
-      maxLeadsPerBatch: plan.maxLeadsPerBatch ?? null,
-      retryAutomation: plan.retryAutomation,
-      industryPackLimit: plan.industryPackLimit ?? null,
-      includedBalance: plan.includedBalance,
-      bonusValidityDays: plan.bonusValidityDays ?? null,
-      displayOrder: plan.displayOrder,
-    });
+    reset(planToFormValues(plan));
     setShowForm(true);
   };
 
+  const closeForm = () => {
+    if (isSubmitting) return;
+    setShowForm(false);
+    setEditPlan(null);
+  };
+
   const onSubmit = (data: PlanFormValues) => {
-    const payload: CreatePlanInput = {
-      name: data.name,
-      slug: data.slug,
-      onboardingFee: data.onboardingFee,
-      perMinuteRate: data.perMinuteRate,
-      billingMinimumSec: data.billingMinimumSec,
-      billingIncrementSec: data.billingIncrementSec,
-      maxActiveCampaigns: data.maxActiveCampaigns ?? null,
-      maxLeadsPerBatch: data.maxLeadsPerBatch ?? null,
-      retryAutomation: data.retryAutomation,
-      industryPackLimit: data.industryPackLimit ?? null,
-      includedBalance: data.includedBalance,
-      bonusValidityDays: data.bonusValidityDays ?? null,
-      displayOrder: data.displayOrder,
-      features: defaultFeatures,
-    };
+    const payload = formToPayload(data);
 
     if (editPlan) {
       updateMutation.mutate({ id: editPlan.id, data: payload });
     } else {
       createMutation.mutate(payload, {
-        onSuccess: () => setShowForm(false),
+        onSuccess: () => {
+          setShowForm(false);
+          setEditPlan(null);
+        },
       });
     }
   };
@@ -181,13 +294,14 @@ export default function AdminPlansPage() {
 
   return (
     <div className="p-6 max-w-7xl w-full mx-auto space-y-6">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-text-primary tracking-tight">
             Plans & Pricing
           </h1>
           <p className="text-sm text-text-muted mt-1">
-            Manage subscription tiers, rates, and feature gates.
+            Manage subscription tiers, rates, limits, and feature gates.
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
@@ -203,6 +317,7 @@ export default function AdminPlansPage() {
         </div>
       </div>
 
+      {/* Table */}
       <Card className="overflow-hidden border border-surface-border rounded-xl bg-surface">
         {isLoading ? (
           <div className="p-12 flex justify-center">
@@ -220,186 +335,382 @@ export default function AdminPlansPage() {
               <thead>
                 <tr className="border-b border-surface-border bg-surface-muted text-text-secondary font-semibold">
                   <th className="px-5 py-3">Plan</th>
+                  <th className="px-5 py-3">Model</th>
                   <th className="px-5 py-3">Status</th>
                   <th className="px-5 py-3 text-right">Onboarding</th>
-                  <th className="px-5 py-3 text-right">Per Minute</th>
-                  <th className="px-5 py-3 text-right">Included Balance</th>
-                  <th className="px-5 py-3 text-right">Max Campaigns</th>
-                  <th className="px-5 py-3 text-right">Retry</th>
+                  <th className="px-5 py-3 text-right">Rate</th>
+                  <th className="px-5 py-3 text-right">Balance</th>
+                  <th className="px-5 py-3 text-right">Agents</th>
+                  <th className="px-5 py-3 text-right">Team</th>
+                  <th className="px-5 py-3 text-right">Campaigns</th>
+                  <th className="px-5 py-3 text-right">Threshold</th>
+                  <th className="px-5 py-3 text-center">Retry</th>
+                  <th className="px-5 py-3 text-center">Brochure</th>
                   <th className="px-5 py-3">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-surface-subtle font-medium text-text-primary">
-                {plans.map((plan) => (
-                  <tr
-                    key={plan.id}
-                    className="hover:bg-surface-muted/50 transition-colors"
-                  >
-                    <td className="px-5 py-4">
-                      <p className="font-bold">{plan.name}</p>
-                      <p className="text-xs text-text-placeholder font-mono">
-                        {plan.slug}
-                      </p>
-                    </td>
-                    <td className="px-5 py-4">
-                      <Badge
-                        variant={plan.isActive ? "success" : "gray"}
-                        dot={plan.isActive}
-                      >
-                        {plan.isActive ? "Active" : "Inactive"}
-                      </Badge>
-                    </td>
-                    <td className="px-5 py-4 text-right font-mono">
-                      {paisaToInr(plan.onboardingFee)}
-                    </td>
-                    <td className="px-5 py-4 text-right font-mono">
-                      {paisaToInr(plan.perMinuteRate)}/min
-                    </td>
-                    <td className="px-5 py-4 text-right font-mono">
-                      {paisaToInr(plan.includedBalance)}
-                    </td>
-                    <td className="px-5 py-4 text-right font-mono">
-                      {plan.maxActiveCampaigns ?? "∞"}
-                    </td>
-                    <td className="px-5 py-4 text-right">
-                      {plan.retryAutomation ? (
-                        <ToggleRight size={18} className="text-brand-600" />
-                      ) : (
-                        <ToggleLeft
-                          size={18}
-                          className="text-text-placeholder"
-                        />
-                      )}
-                    </td>
-                    <td className="px-5 py-4">
-                      <button
-                        onClick={() => openEdit(plan)}
-                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-error-600 hover:text-error-500 transition-colors cursor-pointer"
-                      >
-                        <Pencil size={12} /> Edit
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {[...plans]
+                  .sort((a, b) => a.displayOrder - b.displayOrder)
+                  .map((plan) => (
+                    <tr
+                      key={plan.id}
+                      className="hover:bg-surface-muted/50 transition-colors"
+                    >
+                      <td className="px-5 py-4">
+                        <p className="font-bold capitalize">{plan.name}</p>
+                        <p className="text-xs text-text-placeholder font-mono">
+                          {plan.slug}
+                        </p>
+                      </td>
+                      <td className="px-5 py-4">
+                        <Badge
+                          variant={
+                            plan.pricingModel === "CUSTOM"
+                              ? "purple"
+                              : plan.pricingModel === "VOLUME"
+                                ? "blue"
+                                : "gray"
+                          }
+                        >
+                          {plan.pricingModel}
+                        </Badge>
+                      </td>
+                      <td className="px-5 py-4">
+                        <Badge
+                          variant={plan.isActive ? "success" : "gray"}
+                          dot={plan.isActive}
+                        >
+                          {plan.isActive ? "Active" : "Inactive"}
+                        </Badge>
+                      </td>
+                      <td className="px-5 py-4 text-right font-mono">
+                        <div className="flex flex-col items-end gap-0.5">
+                          {plan.onboardingFeeOriginal != null &&
+                            plan.onboardingFeeOriginal > plan.onboardingFee && (
+                              <s className="text-[10px] text-text-placeholder">
+                                {paisaToInr(plan.onboardingFeeOriginal)}
+                              </s>
+                            )}
+                          <span>{paisaToInr(plan.onboardingFee)}</span>
+                        </div>
+                      </td>
+                      <td className="px-5 py-4 text-right font-mono">
+                        {paisaToInr(plan.perMinuteRate)}/min
+                      </td>
+                      <td className="px-5 py-4 text-right font-mono">
+                        {paisaToInr(plan.includedBalance)}
+                      </td>
+                      <td className="px-5 py-4 text-right font-mono">
+                        {plan.maxAgents ?? "∞"}
+                      </td>
+                      <td className="px-5 py-4 text-right font-mono">
+                        {plan.maxTeamMembers ?? "∞"}
+                      </td>
+                      <td className="px-5 py-4 text-right font-mono">
+                        {plan.maxActiveCampaigns ?? "∞"}
+                      </td>
+                      <td className="px-5 py-4 text-right font-mono">
+                        {paisaToInr(plan.lowBalanceThreshold)}
+                      </td>
+                      <td className="px-5 py-4 text-center">
+                        {plan.retryAutomation ? (
+                          <ToggleRight
+                            size={18}
+                            className="text-brand-600 inline-block"
+                          />
+                        ) : (
+                          <ToggleLeft
+                            size={18}
+                            className="text-text-placeholder inline-block"
+                          />
+                        )}
+                      </td>
+                      <td className="px-5 py-4 text-center">
+                        {plan.brochureUpload ? (
+                          <ToggleRight
+                            size={18}
+                            className="text-brand-600 inline-block"
+                          />
+                        ) : (
+                          <ToggleLeft
+                            size={18}
+                            className="text-text-placeholder inline-block"
+                          />
+                        )}
+                      </td>
+                      <td className="px-5 py-4">
+                        <button
+                          type="button"
+                          onClick={() => openEdit(plan)}
+                          className="inline-flex items-center gap-1.5 text-xs font-semibold text-error-600 hover:text-error-500 transition-colors cursor-pointer"
+                        >
+                          <Pencil size={12} /> Edit
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
         )}
       </Card>
 
+      {/* Create / Edit Modal */}
       <Modal
         isOpen={showForm}
-        onClose={() => setShowForm(false)}
-        title={editPlan ? "Edit Plan" : "Create Plan"}
+        onClose={closeForm}
+        title={editPlan ? `Edit Plan — ${editPlan.name}` : "Create Plan"}
         size="xl"
       >
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="Plan Name"
-              error={errors.name?.message}
-              {...register("name")}
-              placeholder="e.g. Growth"
-            />
-            <Input
-              label="Slug"
-              error={errors.slug?.message}
-              {...register("slug")}
-              placeholder="e.g. growth"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="Onboarding Fee (paisa)"
-              type="number"
-              error={errors.onboardingFee?.message}
-              {...register("onboardingFee", { valueAsNumber: true })}
-            />
-            <Input
-              label="Per Minute Rate (paisa)"
-              type="number"
-              error={errors.perMinuteRate?.message}
-              {...register("perMinuteRate", { valueAsNumber: true })}
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="Billing Min (sec)"
-              type="number"
-              error={errors.billingMinimumSec?.message}
-              {...register("billingMinimumSec", { valueAsNumber: true })}
-            />
-            <Input
-              label="Billing Increment (sec)"
-              type="number"
-              error={errors.billingIncrementSec?.message}
-              {...register("billingIncrementSec", { valueAsNumber: true })}
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="Included Balance (paisa)"
-              type="number"
-              error={errors.includedBalance?.message}
-              {...register("includedBalance", { valueAsNumber: true })}
-            />
-            <Input
-              label="Max Active Campaigns"
-              type="number"
-              {...register("maxActiveCampaigns", {
-                setValueAs: parseNullableNumber,
-              })}
-              placeholder="Unlimited"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="Max Leads/Batch"
-              type="number"
-              {...register("maxLeadsPerBatch", {
-                setValueAs: parseNullableNumber,
-              })}
-              placeholder="Unlimited"
-            />
-            <Input
-              label="Industry Pack Limit"
-              type="number"
-              {...register("industryPackLimit", {
-                setValueAs: parseNullableNumber,
-              })}
-              placeholder="Unlimited"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="Bonus Validity (days)"
-              type="number"
-              {...register("bonusValidityDays", {
-                setValueAs: parseNullableNumber,
-              })}
-              placeholder="None"
-            />
-            <Input
-              label="Display Order"
-              type="number"
-              error={errors.displayOrder?.message}
-              {...register("displayOrder", { valueAsNumber: true })}
-            />
-          </div>
-          <label className="flex items-center gap-2 text-sm font-medium text-text-secondary cursor-pointer">
-            <input
-              type="checkbox"
-              className="rounded border-surface-border"
-              {...register("retryAutomation")}
-            />
-            Enable Retry Automation
-          </label>
-          <div className="flex justify-end gap-2 pt-2">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-6 max-h-[70vh] overflow-y-auto thin-scrollbar pr-1"
+        >
+          {/* Identity */}
+          <Section title="Identity">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Input
+                label="Plan Name"
+                error={errors.name?.message}
+                {...register("name")}
+                placeholder="e.g. Growth"
+              />
+              <Input
+                label="Slug"
+                error={errors.slug?.message}
+                {...register("slug")}
+                placeholder="e.g. growth"
+              />
+              <Input
+                label="Display Order"
+                type="number"
+                error={errors.displayOrder?.message}
+                {...register("displayOrder")}
+              />
+              <Controller
+                name="pricingModel"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    label="Pricing Model"
+                    options={PRICING_MODEL_OPTIONS}
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                    error={errors.pricingModel?.message}
+                  />
+                )}
+              />
+            </div>
+            <div className="flex flex-wrap gap-4 pt-1">
+              <label className="flex items-center gap-2 text-sm font-medium text-text-secondary cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="rounded border-surface-border"
+                  {...register("isActive")}
+                />
+                Active (visible to tenants)
+              </label>
+            </div>
+          </Section>
+
+          {/* Pricing */}
+          <Section title="Pricing (paisa)">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Input
+                label="Onboarding Fee"
+                type="number"
+                error={errors.onboardingFee?.message}
+                {...register("onboardingFee")}
+              />
+              <Input
+                label="Onboarding Fee Original (MSRP)"
+                type="number"
+                error={errors.onboardingFeeOriginal?.message}
+                {...register("onboardingFeeOriginal")}
+                placeholder="Optional strikethrough"
+              />
+              <Input
+                label="Per Minute Rate"
+                type="number"
+                error={errors.perMinuteRate?.message}
+                {...register("perMinuteRate")}
+              />
+              <Input
+                label="Included Balance"
+                type="number"
+                error={errors.includedBalance?.message}
+                {...register("includedBalance")}
+              />
+              <Input
+                label="Billing Minimum (sec)"
+                type="number"
+                error={errors.billingMinimumSec?.message}
+                {...register("billingMinimumSec")}
+              />
+              <Input
+                label="Billing Increment (sec)"
+                type="number"
+                error={errors.billingIncrementSec?.message}
+                {...register("billingIncrementSec")}
+              />
+              <Input
+                label="Bonus Validity (days)"
+                type="number"
+                error={errors.bonusValidityDays?.message}
+                {...register("bonusValidityDays")}
+                placeholder="None"
+              />
+              <Input
+                label="Low Balance Threshold"
+                type="number"
+                error={errors.lowBalanceThreshold?.message}
+                {...register("lowBalanceThreshold")}
+              />
+            </div>
+          </Section>
+
+          {/* Limits */}
+          <Section title="Limits (empty = unlimited)">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Input
+                label="Max Active Campaigns"
+                type="number"
+                {...register("maxActiveCampaigns")}
+                placeholder="Unlimited"
+              />
+              <Input
+                label="Max Leads / Batch"
+                type="number"
+                {...register("maxLeadsPerBatch")}
+                placeholder="Unlimited"
+              />
+              <Input
+                label="Max Agents"
+                type="number"
+                {...register("maxAgents")}
+                placeholder="Unlimited"
+              />
+              <Input
+                label="Max Team Members (incl. admin)"
+                type="number"
+                {...register("maxTeamMembers")}
+                placeholder="Unlimited"
+              />
+              <Input
+                label="Industry Pack Limit"
+                type="number"
+                {...register("industryPackLimit")}
+                placeholder="Unlimited"
+              />
+            </div>
+          </Section>
+
+          {/* Capabilities & Tiers */}
+          <Section title="Capabilities & Tiers">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Controller
+                name="callingChannel"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    label="Calling Channel"
+                    options={CALLING_CHANNEL_OPTIONS}
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                  />
+                )}
+              />
+              <Controller
+                name="dashboardTier"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    label="Dashboard Tier"
+                    options={DASHBOARD_TIER_OPTIONS}
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                  />
+                )}
+              />
+              <Controller
+                name="agentCapability"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    label="Agent Capability"
+                    options={AGENT_CAPABILITY_OPTIONS}
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                  />
+                )}
+              />
+              <Controller
+                name="integrations"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    label="Integrations"
+                    options={INTEGRATION_OPTIONS}
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                  />
+                )}
+              />
+              <Controller
+                name="supportTier"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    label="Support Tier"
+                    options={SUPPORT_TIER_OPTIONS}
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                  />
+                )}
+              />
+            </div>
+
+            <div className="flex flex-wrap gap-5 pt-2">
+              <label className="flex items-center gap-2 text-sm font-medium text-text-secondary cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="rounded border-surface-border"
+                  {...register("retryAutomation")}
+                />
+                Retry Automation
+              </label>
+              <label className="flex items-center gap-2 text-sm font-medium text-text-secondary cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="rounded border-surface-border"
+                  {...register("brochureUpload")}
+                />
+                Brochure Upload
+              </label>
+            </div>
+          </Section>
+
+          {/* Actions */}
+          <div className="flex justify-end gap-2 pt-2 border-t border-surface-border sticky bottom-0 bg-surface pb-1">
             <Button
               variant="outline"
               size="sm"
               type="button"
-              onClick={() => setShowForm(false)}
+              onClick={closeForm}
+              disabled={isSubmitting}
             >
               Cancel
             </Button>
@@ -410,5 +721,22 @@ export default function AdminPlansPage() {
         </form>
       </Modal>
     </div>
+  );
+}
+
+function Section({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="space-y-3">
+      <h3 className="text-xs font-bold uppercase tracking-wider text-text-placeholder">
+        {title}
+      </h3>
+      {children}
+    </section>
   );
 }
