@@ -25,11 +25,7 @@ const ALL_BATCHES = "__ALL__";
 
 /**
  * Unified performance + batch management panel.
- * - Filter dropdown scopes performance stats (all batches or a single batch).
- * - Batch table remains full below stats.
- *
- * TODO: Once useCampaignPerformance accepts a batchId param, pass `selectedBatchId`
- *       to scope the API call server-side. Currently panel refetches on any change.
+ * Filter dropdown scopes performance stats (all batches or a single batch) via API.
  */
 export function CampaignPerformancePanel({
   campaign,
@@ -37,11 +33,17 @@ export function CampaignPerformancePanel({
   const [selectedBatchId, setSelectedBatchId] = useState<string>(ALL_BATCHES);
 
   const { data: batches } = useBatches(campaign.id);
-  const { data: performance, isLoading: isLoadingPerf } =
-    useCampaignPerformance(campaign.id, true);
-  // TODO: pass { batchId: selectedBatchId === ALL_BATCHES ? undefined : selectedBatchId }
 
-  // Build dropdown options: "All Batches" + one per batch
+  // Derive the active batch ID parameter
+  const activeBatchId = useMemo(() => {
+    return selectedBatchId === ALL_BATCHES ? undefined : selectedBatchId;
+  }, [selectedBatchId]);
+
+  // Fetch campaign performance with the active batch ID query filter
+  const { data: performance, isLoading: isLoadingPerf } =
+    useCampaignPerformance(campaign.id, activeBatchId, true);
+
+  // Build dropdown options: "All Batches" + one option per batch
   const batchOptions = useMemo(() => {
     const opts = [{ value: ALL_BATCHES, label: "All Batches" }];
     if (batches) {
