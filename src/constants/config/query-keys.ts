@@ -1,3 +1,5 @@
+import { DashboardFilters, DashboardTimeSeriesFilters, TopCampaignsFilters } from "@/types/dashboard";
+
 export const QUERY_KEYS = {
   AUTH: {
     all: ["auth"] as const,
@@ -63,9 +65,28 @@ export const QUERY_KEYS = {
   },
   DASHBOARD: {
     all: ["dashboard"] as const,
-    overview: () => [...QUERY_KEYS.DASHBOARD.all, "overview"] as const,
-    activity: () => [...QUERY_KEYS.DASHBOARD.all, "activity"] as const,
-    campaigns: () => [...QUERY_KEYS.DASHBOARD.all, "campaigns"] as const,
+    overview: (filters: DashboardFilters) =>
+      [...QUERY_KEYS.DASHBOARD.all, "overview", filters] as const,
+    callTrends: (filters: DashboardTimeSeriesFilters) =>
+      [...QUERY_KEYS.DASHBOARD.all, "call-trends", filters] as const,
+    spendTrends: (filters: DashboardTimeSeriesFilters) =>
+      [...QUERY_KEYS.DASHBOARD.all, "spend-trends", filters] as const,
+    leadFunnel: (filters: DashboardFilters) =>
+      [...QUERY_KEYS.DASHBOARD.all, "lead-funnel", filters] as const,
+    dispositionBreakdown: (filters: DashboardFilters) =>
+      [...QUERY_KEYS.DASHBOARD.all, "disposition-breakdown", filters] as const,
+    temperatureDistribution: (filters: DashboardFilters) =>
+      [
+        ...QUERY_KEYS.DASHBOARD.all,
+        "temperature-distribution",
+        filters,
+      ] as const,
+    campaignPerformance: (filters: DashboardFilters) =>
+      [...QUERY_KEYS.DASHBOARD.all, "campaign-performance", filters] as const,
+    topCampaigns: (filters: TopCampaignsFilters) =>
+      [...QUERY_KEYS.DASHBOARD.all, "top-campaigns", filters] as const,
+    recentActivity: () =>
+      [...QUERY_KEYS.DASHBOARD.all, "recent-activity"] as const,
   },
   // ── Admin-specific query keys ──────────────────────────────────────────────
   ADMIN_DASHBOARD: {
