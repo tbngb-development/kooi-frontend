@@ -3,12 +3,24 @@
 import { useWallet } from "@/hooks/useWallet";
 import { useMyPlan } from "@/hooks/usePlans";
 import { paisaToInr, paisaToInrShort } from "@/constants/config/wallet.config";
-import { Wallet as WalletIcon, Sparkles, AlertTriangle } from "lucide-react";
+import {
+  Wallet as WalletIcon,
+  Sparkles,
+  AlertTriangle,
+  Clock,
+} from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 
 interface WalletBalanceProps {
   className?: string;
   mini?: boolean;
+}
+
+/** Check if bonus expires within 3 days */
+function isBonusExpiringSoon(expiresAt: string | null): boolean {
+  if (!expiresAt) return false;
+  const diffMs = new Date(expiresAt).getTime() - Date.now();
+  return diffMs > 0 && diffMs <= 3 * 24 * 60 * 60 * 1000;
 }
 
 export function WalletBalance({ className, mini = false }: WalletBalanceProps) {
@@ -28,9 +40,11 @@ export function WalletBalance({ className, mini = false }: WalletBalanceProps) {
     );
   }
 
-  const lowBalanceThreshold = tenantPlan?.plan?.lowBalanceThreshold ?? null;
+  const lowBalanceThreshold =
+    tenantPlan?.effectiveTerms?.lowBalanceThreshold ?? null;
   const isLowBalance =
-    lowBalanceThreshold !== null && wallet.balance <= lowBalanceThreshold;
+    lowBalanceThreshold !== null && wallet.totalBalance <= lowBalanceThreshold;
+  const bonusExpiring = isBonusExpiringSoon(wallet.bonusExpiresAt);
 
   if (mini) {
     return (
@@ -51,7 +65,7 @@ export function WalletBalance({ className, mini = false }: WalletBalanceProps) {
               : "text-text-placeholder"
           }
         />
-        <span>{paisaToInrShort(wallet.balance)}</span>
+        <span>{paisaToInrShort(wallet.totalBalance)}</span>
       </div>
     );
   }
@@ -81,7 +95,7 @@ export function WalletBalance({ className, mini = false }: WalletBalanceProps) {
           </span>
         </div>
 
-        {/* Badge Group Side-by-Side */}
+        {/* Badge Group */}
         <div className="flex flex-wrap items-center gap-1.5">
           {isLowBalance && (
             <div className="inline-flex items-center gap-1 text-[10px] font-extrabold text-error-600 bg-error-100/50 px-2 py-0.5 rounded uppercase tracking-wide">
@@ -89,14 +103,22 @@ export function WalletBalance({ className, mini = false }: WalletBalanceProps) {
             </div>
           )}
           {wallet.bonusBalance > 0 && (
-            <div className="inline-flex items-center gap-1 text-[10px] font-extrabold text-secondary-600 bg-secondary-50 border border-secondary-100 px-2 py-0.5 rounded uppercase tracking-wide animate-pulse">
-              <Sparkles size={10} />
+            <div
+              className={cn(
+                "inline-flex items-center gap-1 text-[10px] font-extrabold px-2 py-0.5 rounded uppercase tracking-wide",
+                bonusExpiring
+                  ? "text-warning-700 bg-warning-50 border border-warning-200"
+                  : "text-secondary-600 bg-secondary-50 border border-secondary-100",
+              )}
+            >
+              {bonusExpiring ? <Clock size={10} /> : <Sparkles size={10} />}
               <span>Bonus: {paisaToInr(wallet.bonusBalance)}</span>
             </div>
           )}
         </div>
       </div>
 
+      {/* Primary balance */}
       <div className="mt-3">
         <h3
           className={cn(
@@ -104,8 +126,15 @@ export function WalletBalance({ className, mini = false }: WalletBalanceProps) {
             isLowBalance ? "text-error-700" : "text-text-primary",
           )}
         >
-          {paisaToInr(wallet.balance)}
+          {paisaToInr(wallet.totalBalance)}
         </h3>
+        {/* Cash / Bonus breakdown */}
+        <div className="flex items-center gap-3 mt-1 text-xs text-text-muted">
+          <span>Cash: {paisaToInr(wallet.cashBalance)}</span>
+          {wallet.bonusBalance > 0 && (
+            <span>Bonus: {paisaToInr(wallet.bonusBalance)}</span>
+          )}
+        </div>
       </div>
     </div>
   );

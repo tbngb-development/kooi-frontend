@@ -1,3 +1,5 @@
+// src/components/ui/Drawer.tsx
+
 "use client";
 
 import { cn } from "@/lib/utils/cn";
@@ -11,18 +13,20 @@ interface DrawerProps {
   title?: string;
   description?: string;
   children: ReactNode;
-  size?: "sm" | "md" | "lg" | "xl";
+  size?: "sm" | "md" | "lg" | "xl" | "2xl";
   /** Custom footer node; sticks to bottom of drawer */
   footer?: ReactNode;
   /** Prevent close on backdrop click (e.g. during a critical operation) */
   disableBackdropClose?: boolean;
+  className?: string;
 }
 
 const SIZE_CLASSES: Record<NonNullable<DrawerProps["size"]>, string> = {
-  sm: "max-w-md",
-  md: "max-w-md",
-  lg: "max-w-lg",
-  xl: "max-w-xl",
+  sm: "max-w-sm", // 384px
+  md: "max-w-md", // 448px
+  lg: "max-w-xl", // 576px
+  xl: "max-w-2xl", // 672px
+  "2xl": "max-w-3xl", // 768px
 };
 
 /**
@@ -38,6 +42,7 @@ export function Drawer({
   size = "md",
   footer,
   disableBackdropClose = false,
+  className,
 }: DrawerProps) {
   // Lock body scroll while open
   useEffect(() => {
@@ -72,7 +77,7 @@ export function Drawer({
     >
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-[fadeIn_0.2s_ease-out]"
+        className="absolute inset-0 bg-neutral-900/50 backdrop-blur-sm animate-[fadeIn_0.2s_ease-out]"
         onClick={disableBackdropClose ? undefined : onClose}
       />
 
@@ -82,16 +87,17 @@ export function Drawer({
           "relative w-full bg-surface shadow-2xl border-l border-surface-border",
           "flex flex-col h-full animate-[slideInRight_0.25s_ease-out]",
           SIZE_CLASSES[size],
+          className,
         )}
       >
         {/* Header */}
         {(title || description) && (
-          <div className="flex items-start justify-between gap-4 border-b border-surface-border px-5 py-4 shrink-0">
+          <div className="flex items-start justify-between gap-4 border-b border-surface-border px-6 py-4 shrink-0 bg-surface">
             <div className="min-w-0">
               {title && (
                 <h2
                   id="drawer-title"
-                  className="text-base sm:text-lg font-semibold text-text-primary truncate"
+                  className="text-base sm:text-lg font-bold text-text-primary truncate"
                 >
                   {title}
                 </h2>
@@ -103,22 +109,22 @@ export function Drawer({
             <button
               type="button"
               onClick={onClose}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-text-muted hover:bg-surface-hover hover:text-text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-text-muted hover:bg-surface-hover hover:text-text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-brand-500/20"
               aria-label="Close drawer"
             >
-              <X size={18} />
+              <X size={18} strokeWidth={2.5} />
             </button>
           </div>
         )}
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto thin-scrollbar px-5 py-4">
+        <div className="flex-1 overflow-y-auto thin-scrollbar px-6 py-5">
           {children}
         </div>
 
-        {/* Optional sticky footer */}
+        {/* Sticky footer */}
         {footer && (
-          <div className="border-t border-surface-border px-5 py-3 bg-surface-muted/40 shrink-0">
+          <div className="border-t border-surface-border px-6 py-4 bg-surface shrink-0">
             {footer}
           </div>
         )}

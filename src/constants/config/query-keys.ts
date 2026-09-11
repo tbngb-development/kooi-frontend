@@ -124,7 +124,10 @@ export const QUERY_KEYS = {
   },
   ADMIN_PLANS: {
     all: ["admin", "plans"] as const,
-    detail: (id: string) => ["admin", "plans", id] as const,
+    list: () => [...QUERY_KEYS.ADMIN_PLANS.all, "list"] as const,
+    detail: (id: string) => [...QUERY_KEYS.ADMIN_PLANS.all, id] as const,
+    versions: (planId: string) =>
+      [...QUERY_KEYS.ADMIN_PLANS.all, planId, "versions"] as const,
   },
   ADMIN_BOLNA_KEYS: {
     all: ["admin", "bolna-keys"] as const,
@@ -132,13 +135,39 @@ export const QUERY_KEYS = {
   WALLET: {
     all: ["wallet"] as const,
     balance: () => [...QUERY_KEYS.WALLET.all, "balance"] as const,
-    transactions: (page: number, limit: number) =>
-      [...QUERY_KEYS.WALLET.all, "transactions", page, limit] as const,
+    transactions: (page: number, limit: number, type?: string) =>
+      [
+        ...QUERY_KEYS.WALLET.all,
+        "transactions",
+        page,
+        limit,
+        ...(type ? [type] : []),
+      ] as const,
+  },
+  ADMIN_WALLET: {
+    all: (tenantId: string) => ["admin", "wallet", tenantId] as const,
+    balance: (tenantId: string) =>
+      [...QUERY_KEYS.ADMIN_WALLET.all(tenantId), "balance"] as const,
+    transactions: (tenantId: string, page: number, limit: number) =>
+      [
+        ...QUERY_KEYS.ADMIN_WALLET.all(tenantId),
+        "transactions",
+        page,
+        limit,
+      ] as const,
   },
   PAYMENTS: {
     all: ["payments"] as const,
     orderStatus: (orderId: string) =>
       [...QUERY_KEYS.PAYMENTS.all, "order", orderId] as const,
+  },
+  ADMIN_PAYMENTS: {
+    all: ["admin", "payments"] as const,
+    list: (params: Record<string, unknown>) =>
+      [...QUERY_KEYS.ADMIN_PAYMENTS.all, "list", params] as const,
+    /** tenantId is required by backend — query disabled when null */
+    summary: (tenantId: string | null) =>
+      [...QUERY_KEYS.ADMIN_PAYMENTS.all, "summary", tenantId] as const,
   },
   OWNER_INVITE: {
     public: (token: string) => ["owner-invite", "public", token] as const,

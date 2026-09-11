@@ -1,72 +1,74 @@
 "use client";
 
 import { useState } from "react";
-import { useQueryClient, useMutation } from "@tanstack/react-query";
-import { useAdminPlans, useCreatePlan } from "@/hooks/admin/useAdminPlans";
-import { adminPlansApi } from "@/lib/api/admin/admin-plans";
-import { getAxiosErrorMessage } from "@/lib/axios-error-message";
-import { QUERY_KEYS } from "@/constants/config/query-keys";
-import { Card } from "@/components/ui/Card";
-import { Spinner } from "@/components/ui/Spinner";
-import { Badge } from "@/components/ui/Badge";
-import { EmptyState } from "@/components/ui/EmptyState";
-import { Modal } from "@/components/ui/Modal";
-import { Input } from "@/components/ui/Input";
-import { Select } from "@/components/ui/Select";
-import { Button } from "@/components/ui/Button";
-import { RefreshButton } from "@/components/ui/RefreshButton";
+import { useQueryClient } from "@tanstack/react-query";
+import { useForm, Controller, useWatch } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   CreditCard,
   Plus,
   Pencil,
-  ToggleLeft,
-  ToggleRight,
+  Layers,
+  PhoneCall,
+  Lock,
+  MessageSquare,
+  ShieldAlert,
 } from "lucide-react";
-import { Controller, useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "sonner";
-import { paisaToInr } from "@/constants/config/wallet.config";
+
+import {
+  useAdminPlans,
+  useCreatePlan,
+  useUpdatePlanMeta,
+  useAdminPlanDetail,
+} from "@/hooks/admin/useAdminPlans";
+import { QUERY_KEYS } from "@/constants/config/query-keys";
+import { Spinner } from "@/components/ui/Spinner";
+import { Badge } from "@/components/ui/Badge";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Drawer } from "@/components/ui/Drawer";
+import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
+import { Button } from "@/components/ui/Button";
+import { RefreshButton } from "@/components/ui/RefreshButton";
+import NumberInput from "@/components/ui/NumberInput";
+import { PlanVersionManager } from "@/components/admin/PlanVersionManager";
+import { paisaToInr } from "@/lib/utils/formatMoney";
 import type {
-  AgentCapability,
-  CallingChannel,
-  CreatePlanInput,
-  DashboardTier,
-  IntegrationTier,
   Plan,
   PricingModel,
+  CallingChannel,
+  DashboardTier,
+  AgentCapability,
+  IntegrationTier,
   SupportTier,
+  CreatePlanInput,
 } from "@/types/plan";
 
-// ── Fixed Zod Schema & Types ────────────────────────────────────────────────
-
-const nullableNumber = z
-  .union([z.number(), z.string(), z.null(), z.undefined()])
-  .transform((v): number | null => {
-    if (v === "" || v === null || v === undefined) return null;
-    const n = Number(v);
-    return Number.isNaN(n) ? null : n;
-  });
+// ── Zod Validation Schema ───────────────────────────────────────────────────
 
 const planSchema = z.object({
+  // Metadata Configuration
   name: z.string().min(1, "Name is required"),
   slug: z.string().min(1, "Slug is required"),
   isActive: z.boolean(),
-  displayOrder: z.coerce.number().min(0),
+  displayOrder: z.number().min(0),
+  description: z.string().optional(),
 
+  // Initial Version Pricing Terms
   pricingModel: z.enum(["STANDARD", "VOLUME", "CUSTOM"]),
-  onboardingFee: z.coerce.number().min(0, "Must be 0 or greater"),
-  onboardingFeeOriginal: nullableNumber,
-  perMinuteRate: z.coerce.number().min(0, "Must be 0 or greater"),
-  billingMinimumSec: z.coerce.number().min(1, "Must be at least 1 second"),
-  billingIncrementSec: z.coerce.number().min(1, "Must be at least 1 second"),
+  onboardingFee: z.number().min(0, "Must be 0 or greater"),
+  onboardingFeeOriginal: z.number().nullable().optional(),
+  perMinuteRate: z.number().min(0, "Must be 0 or greater"),
+  billingMinimumSec: z.number().min(1, "Must be at least 1 second"),
+  billingIncrementSec: z.number().min(1, "Must be at least 1 second"),
 
-  maxActiveCampaigns: nullableNumber,
-  maxLeadsPerBatch: nullableNumber,
-  maxAgents: nullableNumber,
-  maxTeamMembers: nullableNumber,
+  maxActiveCampaigns: z.number().nullable().optional(),
+  maxLeadsPerBatch: z.number().nullable().optional(),
+  maxAgents: z.number().nullable().optional(),
+  maxTeamMembers: z.number().nullable().optional(),
   retryAutomation: z.boolean(),
-  industryPackLimit: nullableNumber,
+  industryPackLimit: z.number().nullable().optional(),
 
   callingChannel: z.enum(["SHARED", "DEDICATED", "DEDICATED_WITH_NUMBER"]),
   brochureUpload: z.boolean(),
@@ -81,15 +83,14 @@ const planSchema = z.object({
   integrations: z.enum(["NONE", "BASIC", "API_SELECTED", "CUSTOM"]),
   supportTier: z.enum(["STANDARD", "PRIORITY", "SLA"]),
 
-  lowBalanceThreshold: z.coerce.number().min(0, "Must be 0 or greater"),
-
-  includedBalance: z.coerce.number().min(0, "Must be 0 or greater"),
-  bonusValidityDays: nullableNumber,
+  lowBalanceThreshold: z.number().min(0, "Must be 0 or greater"),
+  includedBalance: z.number().min(0, "Must be 0 or greater"),
+  bonusValidityDays: z.number().nullable().optional(),
 });
 
 type PlanFormValues = z.infer<typeof planSchema>;
 
-// ── Select Options ──────────────────────────────────────────────────────────
+// ── Select Configuration Options ────────────────────────────────────────────
 
 const PRICING_MODEL_OPTIONS = [
   { value: "STANDARD", label: "Standard" },
@@ -135,6 +136,7 @@ const DEFAULT_FORM: PlanFormValues = {
   slug: "",
   isActive: true,
   displayOrder: 0,
+  description: "",
   pricingModel: "STANDARD",
   onboardingFee: 0,
   onboardingFeeOriginal: null,
@@ -158,150 +160,159 @@ const DEFAULT_FORM: PlanFormValues = {
   bonusValidityDays: null,
 };
 
-function planToFormValues(plan: Plan): PlanFormValues {
+function planToMetadataFormValues(plan: Plan): PlanFormValues {
+  const v = plan.currentVersion;
   return {
     name: plan.name,
     slug: plan.slug,
     isActive: plan.isActive,
     displayOrder: plan.displayOrder,
-    pricingModel: plan.pricingModel,
-    onboardingFee: plan.onboardingFee,
-    onboardingFeeOriginal: plan.onboardingFeeOriginal,
-    perMinuteRate: plan.perMinuteRate,
-    billingMinimumSec: plan.billingMinimumSec,
-    billingIncrementSec: plan.billingIncrementSec,
-    maxActiveCampaigns: plan.maxActiveCampaigns,
-    maxLeadsPerBatch: plan.maxLeadsPerBatch,
-    maxAgents: plan.maxAgents,
-    maxTeamMembers: plan.maxTeamMembers,
-    retryAutomation: plan.retryAutomation,
-    industryPackLimit: plan.industryPackLimit,
-    callingChannel: plan.callingChannel,
-    brochureUpload: plan.brochureUpload,
-    dashboardTier: plan.dashboardTier,
-    agentCapability: plan.agentCapability,
-    integrations: plan.integrations,
-    supportTier: plan.supportTier,
-    lowBalanceThreshold: plan.lowBalanceThreshold,
-    includedBalance: plan.includedBalance,
-    bonusValidityDays: plan.bonusValidityDays,
+    description: plan.description ?? "",
+    pricingModel: v?.pricingModel ?? "STANDARD",
+    onboardingFee: v?.onboardingFee ?? 0,
+    onboardingFeeOriginal: v?.onboardingFeeOriginal ?? null,
+    perMinuteRate: v?.perMinuteRate ?? 0,
+    billingMinimumSec: v?.billingMinimumSec ?? 30,
+    billingIncrementSec: v?.billingIncrementSec ?? 15,
+    maxActiveCampaigns: v?.maxActiveCampaigns ?? null,
+    maxLeadsPerBatch: v?.maxLeadsPerBatch ?? null,
+    maxAgents: v?.maxAgents ?? null,
+    maxTeamMembers: v?.maxTeamMembers ?? null,
+    retryAutomation: v?.retryAutomation ?? false,
+    industryPackLimit: v?.industryPackLimit ?? null,
+    callingChannel: v?.callingChannel ?? "SHARED",
+    brochureUpload: v?.brochureUpload ?? false,
+    dashboardTier: v?.dashboardTier ?? "BASIC",
+    agentCapability: v?.agentCapability ?? "BASIC",
+    integrations: v?.integrations ?? "NONE",
+    supportTier: v?.supportTier ?? "STANDARD",
+    lowBalanceThreshold: v?.lowBalanceThreshold ?? 10000,
+    includedBalance: v?.includedBalance ?? 0,
+    bonusValidityDays: v?.bonusValidityDays ?? null,
   };
 }
 
-function formToPayload(data: PlanFormValues): CreatePlanInput {
-  return {
-    name: data.name,
-    slug: data.slug,
-    isActive: data.isActive,
-    displayOrder: data.displayOrder,
-    pricingModel: data.pricingModel as PricingModel,
-    onboardingFee: data.onboardingFee,
-    onboardingFeeOriginal: data.onboardingFeeOriginal,
-    perMinuteRate: data.perMinuteRate,
-    billingMinimumSec: data.billingMinimumSec,
-    billingIncrementSec: data.billingIncrementSec,
-    maxActiveCampaigns: data.maxActiveCampaigns,
-    maxLeadsPerBatch: data.maxLeadsPerBatch,
-    maxAgents: data.maxAgents,
-    maxTeamMembers: data.maxTeamMembers,
-    retryAutomation: data.retryAutomation,
-    industryPackLimit: data.industryPackLimit,
-    callingChannel: data.callingChannel as CallingChannel,
-    brochureUpload: data.brochureUpload,
-    dashboardTier: data.dashboardTier as DashboardTier,
-    agentCapability: data.agentCapability as AgentCapability,
-    integrations: data.integrations as IntegrationTier,
-    supportTier: data.supportTier as SupportTier,
-    lowBalanceThreshold: data.lowBalanceThreshold,
-    includedBalance: data.includedBalance,
-    bonusValidityDays: data.bonusValidityDays,
-  };
-}
-
-// ── Component ───────────────────────────────────────────────────────────────
+// ── Admin Plans Component ───────────────────────────────────────────────────
 
 export default function AdminPlansPage() {
   const qc = useQueryClient();
   const { data: plans, isLoading, isFetching } = useAdminPlans();
+
   const createMutation = useCreatePlan();
+  const updateMetaMutation = useUpdatePlanMeta();
 
   const [editPlan, setEditPlan] = useState<Plan | null>(null);
-  const [showForm, setShowForm] = useState(false);
+  const [showFormDrawer, setShowFormDrawer] = useState(false);
 
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: CreatePlanInput }) =>
-      adminPlansApi.update(id, data),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: QUERY_KEYS.ADMIN_PLANS.all });
-      if (editPlan) {
-        qc.invalidateQueries({
-          queryKey: QUERY_KEYS.ADMIN_PLANS.detail(editPlan.id),
-        });
-      }
-      toast.success("Plan updated successfully");
-      setShowForm(false);
-      setEditPlan(null);
-    },
-    onError: (err: unknown) => toast.error(getAxiosErrorMessage(err)),
-  });
+  // Active version sliding manager states
+  const [activeManagerPlanId, setActiveManagerPlanId] = useState<string | null>(
+    null,
+  );
+  const { data: detailPlan, refetch: refetchDetail } =
+    useAdminPlanDetail(activeManagerPlanId);
 
-  // Let React Hook Form infer types from the zodResolver
   const {
     register,
     handleSubmit,
     reset,
     control,
     formState: { errors },
-  } = useForm({
+  } = useForm<PlanFormValues>({
     resolver: zodResolver(planSchema),
     defaultValues: DEFAULT_FORM,
   });
 
+  // ✅ FIX: Live reactive values instead of _formValues (internal API)
+  const watchedValues = useWatch({ control });
+
   const openCreate = () => {
     setEditPlan(null);
     reset(DEFAULT_FORM);
-    setShowForm(true);
+    setShowFormDrawer(true);
   };
 
   const openEdit = (plan: Plan) => {
     setEditPlan(plan);
-    reset(planToFormValues(plan));
-    setShowForm(true);
+    reset(planToMetadataFormValues(plan));
+    setShowFormDrawer(true);
   };
 
   const closeForm = () => {
     if (isSubmitting) return;
-    setShowForm(false);
+    setShowFormDrawer(false);
     setEditPlan(null);
   };
 
   const onSubmit = (data: PlanFormValues) => {
-    const payload = formToPayload(data);
-
     if (editPlan) {
-      updateMutation.mutate({ id: editPlan.id, data: payload });
+      updateMetaMutation.mutate(
+        {
+          id: editPlan.id,
+          data: {
+            name: data.name,
+            displayOrder: data.displayOrder,
+            isActive: data.isActive,
+            description: data.description || undefined,
+          },
+        },
+        {
+          onSuccess: () => {
+            setShowFormDrawer(false);
+            setEditPlan(null);
+          },
+        },
+      );
     } else {
+      const payload: CreatePlanInput = {
+        name: data.name,
+        slug: data.slug,
+        displayOrder: data.displayOrder,
+        description: data.description || undefined,
+        publishImmediately: true,
+        pricingModel: data.pricingModel as PricingModel,
+        onboardingFee: data.onboardingFee,
+        onboardingFeeOriginal: data.onboardingFeeOriginal,
+        perMinuteRate: data.perMinuteRate,
+        billingMinimumSec: data.billingMinimumSec,
+        billingIncrementSec: data.billingIncrementSec,
+        maxActiveCampaigns: data.maxActiveCampaigns,
+        maxLeadsPerBatch: data.maxLeadsPerBatch,
+        maxAgents: data.maxAgents,
+        maxTeamMembers: data.maxTeamMembers,
+        retryAutomation: data.retryAutomation,
+        industryPackLimit: data.industryPackLimit,
+        callingChannel: data.callingChannel as CallingChannel,
+        brochureUpload: data.brochureUpload,
+        dashboardTier: data.dashboardTier as DashboardTier,
+        agentCapability: data.agentCapability as AgentCapability,
+        integrations: data.integrations as IntegrationTier,
+        supportTier: data.supportTier as SupportTier,
+        lowBalanceThreshold: data.lowBalanceThreshold,
+        includedBalance: data.includedBalance,
+        bonusValidityDays: data.bonusValidityDays,
+      };
+
       createMutation.mutate(payload, {
         onSuccess: () => {
-          setShowForm(false);
-          setEditPlan(null);
+          setShowFormDrawer(false);
         },
       });
     }
   };
 
-  const isSubmitting = createMutation.isPending || updateMutation.isPending;
+  const isSubmitting = createMutation.isPending || updateMetaMutation.isPending;
 
   return (
     <div className="p-6 max-w-7xl w-full mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      {/* Dynamic Main Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-surface-border">
         <div>
-          <h1 className="text-2xl font-bold text-text-primary tracking-tight">
-            Plans & Pricing
+          <h1 className="text-2xl font-bold text-text-primary tracking-tight flex items-center gap-2">
+            Plans & Commercial Suites
           </h1>
-          <p className="text-sm text-text-muted mt-1">
-            Manage subscription tiers, rates, limits, and feature gates.
+          <p className="text-sm text-text-muted mt-1 font-medium">
+            Manage global workspace configurations, per-minute pricing tables,
+            limits, and live releases.
           </p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
@@ -311,418 +322,702 @@ export default function AdminPlansPage() {
             }
             isRefreshing={isFetching}
           />
-          <Button onClick={openCreate} className="gap-1.5 h-9 text-sm">
-            <Plus size={14} /> New Plan
+          <Button onClick={openCreate} className="gap-1.5 shadow-sm h-9">
+            <Plus size={16} strokeWidth={2.5} /> Deploy New Suite
           </Button>
         </div>
       </div>
 
-      {/* Table */}
-      <Card className="overflow-hidden border border-surface-border rounded-xl bg-surface">
-        {isLoading ? (
-          <div className="p-12 flex justify-center">
-            <Spinner className="text-error-600" />
-          </div>
-        ) : !plans || plans.length === 0 ? (
-          <EmptyState
-            icon={<CreditCard size={24} />}
-            title="No plans configured"
-            description="Create your first subscription plan."
-          />
-        ) : (
-          <div className="overflow-x-auto thin-scrollbar">
-            <table className="w-full border-collapse text-left text-sm">
-              <thead>
-                <tr className="border-b border-surface-border bg-surface-muted text-text-secondary font-semibold">
-                  <th className="px-5 py-3">Plan</th>
-                  <th className="px-5 py-3">Model</th>
-                  <th className="px-5 py-3">Status</th>
-                  <th className="px-5 py-3 text-right">Onboarding</th>
-                  <th className="px-5 py-3 text-right">Rate</th>
-                  <th className="px-5 py-3 text-right">Balance</th>
-                  <th className="px-5 py-3 text-right">Agents</th>
-                  <th className="px-5 py-3 text-right">Team</th>
-                  <th className="px-5 py-3 text-right">Campaigns</th>
-                  <th className="px-5 py-3 text-right">Threshold</th>
-                  <th className="px-5 py-3 text-center">Retry</th>
-                  <th className="px-5 py-3 text-center">Brochure</th>
-                  <th className="px-5 py-3">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-surface-subtle font-medium text-text-primary">
-                {[...plans]
-                  .sort((a, b) => a.displayOrder - b.displayOrder)
-                  .map((plan) => (
-                    <tr
-                      key={plan.id}
-                      className="hover:bg-surface-muted/50 transition-colors"
+      {/* Catalog Grid View */}
+      {isLoading ? (
+        <div className="py-24 flex justify-center items-center">
+          <Spinner className="text-brand-600 h-10 w-10 animate-spin" />
+        </div>
+      ) : !plans || plans.length === 0 ? (
+        <EmptyState
+          icon={<CreditCard size={28} className="text-text-placeholder" />}
+          title="No subscription packages found"
+          description="Build out and activate your first billing tier to get started."
+        />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {[...plans]
+            .sort((a, b) => a.displayOrder - b.displayOrder)
+            .map((plan) => {
+              const v = plan.currentVersion;
+              return (
+                <div
+                  key={plan.id}
+                  className="bg-surface rounded-2xl border border-surface-border shadow-sm flex flex-col hover:shadow-md hover:border-neutral-300 transition-all duration-normal ease-out relative overflow-hidden"
+                >
+                  {/* Active/Inactive badge */}
+                  <div className="absolute top-6 right-4 z-10">
+                    <Badge
+                      variant={plan.isActive ? "success" : "gray"}
+                      dot={plan.isActive}
                     >
-                      <td className="px-5 py-4">
-                        <p className="font-bold capitalize">{plan.name}</p>
-                        <p className="text-xs text-text-placeholder font-mono">
-                          {plan.slug}
-                        </p>
-                      </td>
-                      <td className="px-5 py-4">
-                        <Badge
-                          variant={
-                            plan.pricingModel === "CUSTOM"
-                              ? "purple"
-                              : plan.pricingModel === "VOLUME"
-                                ? "blue"
-                                : "gray"
-                          }
-                        >
-                          {plan.pricingModel}
-                        </Badge>
-                      </td>
-                      <td className="px-5 py-4">
-                        <Badge
-                          variant={plan.isActive ? "success" : "gray"}
-                          dot={plan.isActive}
-                        >
-                          {plan.isActive ? "Active" : "Inactive"}
-                        </Badge>
-                      </td>
-                      <td className="px-5 py-4 text-right font-mono">
-                        <div className="flex flex-col items-end gap-0.5">
-                          {plan.onboardingFeeOriginal != null &&
-                            plan.onboardingFeeOriginal > plan.onboardingFee && (
-                              <s className="text-[10px] text-text-placeholder">
-                                {paisaToInr(plan.onboardingFeeOriginal)}
-                              </s>
-                            )}
-                          <span>{paisaToInr(plan.onboardingFee)}</span>
-                        </div>
-                      </td>
-                      <td className="px-5 py-4 text-right font-mono">
-                        {paisaToInr(plan.perMinuteRate)}/min
-                      </td>
-                      <td className="px-5 py-4 text-right font-mono">
-                        {paisaToInr(plan.includedBalance)}
-                      </td>
-                      <td className="px-5 py-4 text-right font-mono">
-                        {plan.maxAgents ?? "∞"}
-                      </td>
-                      <td className="px-5 py-4 text-right font-mono">
-                        {plan.maxTeamMembers ?? "∞"}
-                      </td>
-                      <td className="px-5 py-4 text-right font-mono">
-                        {plan.maxActiveCampaigns ?? "∞"}
-                      </td>
-                      <td className="px-5 py-4 text-right font-mono">
-                        {paisaToInr(plan.lowBalanceThreshold)}
-                      </td>
-                      <td className="px-5 py-4 text-center">
-                        {plan.retryAutomation ? (
-                          <ToggleRight
-                            size={18}
-                            className="text-brand-600 inline-block"
-                          />
-                        ) : (
-                          <ToggleLeft
-                            size={18}
-                            className="text-text-placeholder inline-block"
-                          />
-                        )}
-                      </td>
-                      <td className="px-5 py-4 text-center">
-                        {plan.brochureUpload ? (
-                          <ToggleRight
-                            size={18}
-                            className="text-brand-600 inline-block"
-                          />
-                        ) : (
-                          <ToggleLeft
-                            size={18}
-                            className="text-text-placeholder inline-block"
-                          />
-                        )}
-                      </td>
-                      <td className="px-5 py-4">
-                        <button
-                          type="button"
-                          onClick={() => openEdit(plan)}
-                          className="inline-flex items-center gap-1.5 text-xs font-semibold text-error-600 hover:text-error-500 transition-colors cursor-pointer"
-                        >
-                          <Pencil size={12} /> Edit
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </Card>
+                      {plan.isActive ? "Active" : "Disabled"}
+                    </Badge>
+                  </div>
 
-      {/* Create / Edit Modal */}
-      <Modal
-        isOpen={showForm}
+                  {/* Header identity */}
+                  <div className="p-6 pb-4 border-b border-surface-subtle bg-surface-subtle/40">
+                    <h3 className="text-lg font-extrabold text-text-primary capitalize mt-1.5">
+                      {plan.name}
+                    </h3>
+                    <code className="text-xs font-mono text-text-placeholder mt-0.5 block leading-tight">
+                      {plan.slug}
+                    </code>
+                    {plan.description && (
+                      <p className="text-sm text-text-secondary line-clamp-2 mt-2 font-medium">
+                        {plan.description}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Pricing Suite details */}
+                  <div className="p-6 flex-1 space-y-4">
+                    {v ? (
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="flex flex-col">
+                          <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider">
+                            Subscription Cost
+                          </span>
+                          <div className="flex flex-col mt-0.5">
+                            {v.onboardingFeeOriginal != null &&
+                              v.onboardingFeeOriginal > v.onboardingFee && (
+                                <s className="text-xs text-text-placeholder font-mono">
+                                  {paisaToInr(v.onboardingFeeOriginal)}
+                                </s>
+                              )}
+                            <span className="text-base font-extrabold text-text-primary font-mono leading-none">
+                              {paisaToInr(v.onboardingFee)}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col">
+                          <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider">
+                            Minute Rate
+                          </span>
+                          <span className="text-base font-extrabold text-brand-700 font-mono mt-0.5 leading-none">
+                            {paisaToInr(v.perMinuteRate)}/min
+                          </span>
+                        </div>
+
+                        <div className="flex flex-col">
+                          <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider">
+                            Included wallet
+                          </span>
+                          <span className="text-sm font-semibold text-text-primary font-mono mt-0.5">
+                            {paisaToInr(v.includedBalance)}
+                          </span>
+                        </div>
+
+                        <div className="flex flex-col">
+                          <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider">
+                            Pricing Model
+                          </span>
+                          <div className="mt-0.5">
+                            <Badge
+                              variant={
+                                v.pricingModel === "CUSTOM"
+                                  ? "purple"
+                                  : v.pricingModel === "VOLUME"
+                                    ? "blue"
+                                    : "gray"
+                              }
+                            >
+                              {v.pricingModel}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1.5 py-4 text-sm text-text-placeholder italic font-medium">
+                        No active commercial versions set.
+                      </div>
+                    )}
+
+                    {/* Feature constraints */}
+                    {v && (
+                      <div className="pt-4 border-t border-surface-subtle space-y-2.5">
+                        <div className="flex items-center justify-between text-xs text-text-secondary">
+                          <span className="flex items-center gap-1.5 font-medium">
+                            <Lock size={13} className="text-text-placeholder" />{" "}
+                            Campaigns
+                          </span>
+                          <span className="font-mono font-bold text-text-primary">
+                            {v.maxActiveCampaigns ?? "∞"} Limit
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs text-text-secondary">
+                          <span className="flex items-center gap-1.5 font-medium">
+                            <PhoneCall
+                              size={13}
+                              className="text-text-placeholder"
+                            />{" "}
+                            Agents Limit
+                          </span>
+                          <span className="font-mono font-bold text-text-primary">
+                            {v.maxAgents ?? "∞"} Limit
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs text-text-secondary">
+                          <span className="flex items-center gap-1.5 font-medium">
+                            <ShieldAlert
+                              size={13}
+                              className="text-text-placeholder"
+                            />{" "}
+                            Retry Automation
+                          </span>
+                          <span className="font-semibold text-text-primary">
+                            {v.retryAutomation ? "Active" : "Disabled"}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs text-text-secondary">
+                          <span className="flex items-center gap-1.5 font-medium">
+                            <MessageSquare
+                              size={13}
+                              className="text-text-placeholder"
+                            />{" "}
+                            Document upload
+                          </span>
+                          <span className="font-semibold text-text-primary">
+                            {v.brochureUpload ? "Active" : "Disabled"}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Card action footer */}
+                  <div className="p-4 bg-surface-muted border-t border-surface-subtle flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => openEdit(plan)}
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 text-xs font-bold rounded-xl bg-surface border border-surface-border text-text-secondary hover:bg-surface-hover hover:border-neutral-300 transition-all cursor-pointer shadow-xs"
+                    >
+                      <Pencil size={12} /> Metadata
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveManagerPlanId(plan.id)}
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 text-xs font-bold rounded-xl bg-surface border border-surface-border text-secondary-700 hover:bg-secondary-50 hover:border-secondary-200 transition-all cursor-pointer shadow-xs"
+                    >
+                      <Layers size={12} /> Configure Release
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+        </div>
+      )}
+
+      {/* Metadata Configuration Slide Drawer */}
+      <Drawer
+        isOpen={showFormDrawer}
         onClose={closeForm}
-        title={editPlan ? `Edit Plan — ${editPlan.name}` : "Create Plan"}
-        size="xl"
+        title={
+          editPlan
+            ? `Configure Metadata — ${editPlan.name}`
+            : "Deploy Plan Package"
+        }
+        size="lg"
       >
-        <form
-          onSubmit={handleSubmit(onSubmit)}
-          className="space-y-6 max-h-[70vh] overflow-y-auto thin-scrollbar pr-1"
-        >
-          {/* Identity */}
-          <Section title="Identity">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {/* Metadata Section */}
+          <Section title="Plan Metadata Specifications">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <Input
-                label="Plan Name"
+                label="Plan Display Name"
                 error={errors.name?.message}
                 {...register("name")}
                 placeholder="e.g. Growth"
               />
               <Input
-                label="Slug"
+                label="Slug ID (Unique reference)"
                 error={errors.slug?.message}
                 {...register("slug")}
+                disabled={!!editPlan}
                 placeholder="e.g. growth"
               />
+              <div className="flex flex-col gap-1.5">
+                <label className="text-base font-medium text-text-secondary">
+                  Catalogue Display Order
+                </label>
+                <Controller
+                  name="displayOrder"
+                  control={control}
+                  render={({ field }) => (
+                    <NumberInput
+                      value={field.value}
+                      onChange={(val) =>
+                        field.onChange(val === "" ? 0 : Number(val))
+                      }
+                      min={0}
+                    />
+                  )}
+                />
+              </div>
               <Input
-                label="Display Order"
-                type="number"
-                error={errors.displayOrder?.message}
-                {...register("displayOrder")}
-              />
-              <Controller
-                name="pricingModel"
-                control={control}
-                render={({ field }) => (
-                  <Select
-                    label="Pricing Model"
-                    options={PRICING_MODEL_OPTIONS}
-                    value={field.value}
-                    onChange={field.onChange}
-                    onBlur={field.onBlur}
-                    name={field.name}
-                    error={errors.pricingModel?.message}
-                  />
-                )}
+                label="Plan Summary Description"
+                error={errors.description?.message}
+                {...register("description")}
+                placeholder="Write plan descriptions..."
               />
             </div>
             <div className="flex flex-wrap gap-4 pt-1">
-              <label className="flex items-center gap-2 text-sm font-medium text-text-secondary cursor-pointer">
+              <label className="flex items-center gap-2 text-base font-semibold text-text-secondary cursor-pointer select-none">
                 <input
                   type="checkbox"
-                  className="rounded border-surface-border"
+                  className="rounded border-surface-border text-brand-600 focus:ring-brand-500 h-4.5 w-4.5"
                   {...register("isActive")}
                 />
-                Active (visible to tenants)
+                Activate & Publish within catalog
               </label>
             </div>
           </Section>
 
-          {/* Pricing */}
-          <Section title="Pricing (paisa)">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Input
-                label="Onboarding Fee"
-                type="number"
-                error={errors.onboardingFee?.message}
-                {...register("onboardingFee")}
-              />
-              <Input
-                label="Onboarding Fee Original (MSRP)"
-                type="number"
-                error={errors.onboardingFeeOriginal?.message}
-                {...register("onboardingFeeOriginal")}
-                placeholder="Optional strikethrough"
-              />
-              <Input
-                label="Per Minute Rate"
-                type="number"
-                error={errors.perMinuteRate?.message}
-                {...register("perMinuteRate")}
-              />
-              <Input
-                label="Included Balance"
-                type="number"
-                error={errors.includedBalance?.message}
-                {...register("includedBalance")}
-              />
-              <Input
-                label="Billing Minimum (sec)"
-                type="number"
-                error={errors.billingMinimumSec?.message}
-                {...register("billingMinimumSec")}
-              />
-              <Input
-                label="Billing Increment (sec)"
-                type="number"
-                error={errors.billingIncrementSec?.message}
-                {...register("billingIncrementSec")}
-              />
-              <Input
-                label="Bonus Validity (days)"
-                type="number"
-                error={errors.bonusValidityDays?.message}
-                {...register("bonusValidityDays")}
-                placeholder="None"
-              />
-              <Input
-                label="Low Balance Threshold"
-                type="number"
-                error={errors.lowBalanceThreshold?.message}
-                {...register("lowBalanceThreshold")}
-              />
-            </div>
-          </Section>
+          {/* Pricing terms - only during creation */}
+          {!editPlan && (
+            <>
+              <Section title="Draft Version Pricing Rules (Paisa)">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <Controller
+                    name="pricingModel"
+                    control={control}
+                    render={({ field }) => (
+                      <Select
+                        label="Pricing Scheme"
+                        options={PRICING_MODEL_OPTIONS}
+                        value={field.value}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        name={field.name}
+                        error={errors.pricingModel?.message}
+                      />
+                    )}
+                  />
 
-          {/* Limits */}
-          <Section title="Limits (empty = unlimited)">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Input
-                label="Max Active Campaigns"
-                type="number"
-                {...register("maxActiveCampaigns")}
-                placeholder="Unlimited"
-              />
-              <Input
-                label="Max Leads / Batch"
-                type="number"
-                {...register("maxLeadsPerBatch")}
-                placeholder="Unlimited"
-              />
-              <Input
-                label="Max Agents"
-                type="number"
-                {...register("maxAgents")}
-                placeholder="Unlimited"
-              />
-              <Input
-                label="Max Team Members (incl. admin)"
-                type="number"
-                {...register("maxTeamMembers")}
-                placeholder="Unlimited"
-              />
-              <Input
-                label="Industry Pack Limit"
-                type="number"
-                {...register("industryPackLimit")}
-                placeholder="Unlimited"
-              />
-            </div>
-          </Section>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-base font-medium text-text-secondary">
+                      Onboarding Fee (Paisa)
+                    </label>
+                    <Controller
+                      name="onboardingFee"
+                      control={control}
+                      render={({ field }) => (
+                        <NumberInput
+                          value={field.value}
+                          onChange={(val) =>
+                            field.onChange(val === "" ? 0 : Number(val))
+                          }
+                          step="10000"
+                          min={0}
+                        />
+                      )}
+                    />
+                    <span className="text-xs font-mono font-semibold text-brand-700 mt-1">
+                      {paisaToInr(watchedValues.onboardingFee ?? 0)}
+                    </span>
+                  </div>
 
-          {/* Capabilities & Tiers */}
-          <Section title="Capabilities & Tiers">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Controller
-                name="callingChannel"
-                control={control}
-                render={({ field }) => (
-                  <Select
-                    label="Calling Channel"
-                    options={CALLING_CHANNEL_OPTIONS}
-                    value={field.value}
-                    onChange={field.onChange}
-                    onBlur={field.onBlur}
-                    name={field.name}
-                  />
-                )}
-              />
-              <Controller
-                name="dashboardTier"
-                control={control}
-                render={({ field }) => (
-                  <Select
-                    label="Dashboard Tier"
-                    options={DASHBOARD_TIER_OPTIONS}
-                    value={field.value}
-                    onChange={field.onChange}
-                    onBlur={field.onBlur}
-                    name={field.name}
-                  />
-                )}
-              />
-              <Controller
-                name="agentCapability"
-                control={control}
-                render={({ field }) => (
-                  <Select
-                    label="Agent Capability"
-                    options={AGENT_CAPABILITY_OPTIONS}
-                    value={field.value}
-                    onChange={field.onChange}
-                    onBlur={field.onBlur}
-                    name={field.name}
-                  />
-                )}
-              />
-              <Controller
-                name="integrations"
-                control={control}
-                render={({ field }) => (
-                  <Select
-                    label="Integrations"
-                    options={INTEGRATION_OPTIONS}
-                    value={field.value}
-                    onChange={field.onChange}
-                    onBlur={field.onBlur}
-                    name={field.name}
-                  />
-                )}
-              />
-              <Controller
-                name="supportTier"
-                control={control}
-                render={({ field }) => (
-                  <Select
-                    label="Support Tier"
-                    options={SUPPORT_TIER_OPTIONS}
-                    value={field.value}
-                    onChange={field.onChange}
-                    onBlur={field.onBlur}
-                    name={field.name}
-                  />
-                )}
-              />
-            </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-base font-medium text-text-secondary">
+                      Onboarding MSRP original (Paisa)
+                    </label>
+                    <Controller
+                      name="onboardingFeeOriginal"
+                      control={control}
+                      render={({ field }) => (
+                        <NumberInput
+                          value={field.value ?? ""}
+                          onChange={(val) =>
+                            field.onChange(val === "" ? null : Number(val))
+                          }
+                          step="10000"
+                          min={0}
+                        />
+                      )}
+                    />
+                    <span className="text-xs font-mono font-semibold text-brand-700 mt-1">
+                      {watchedValues.onboardingFeeOriginal
+                        ? paisaToInr(watchedValues.onboardingFeeOriginal)
+                        : "No MSRP set"}
+                    </span>
+                  </div>
 
-            <div className="flex flex-wrap gap-5 pt-2">
-              <label className="flex items-center gap-2 text-sm font-medium text-text-secondary cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="rounded border-surface-border"
-                  {...register("retryAutomation")}
-                />
-                Retry Automation
-              </label>
-              <label className="flex items-center gap-2 text-sm font-medium text-text-secondary cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="rounded border-surface-border"
-                  {...register("brochureUpload")}
-                />
-                Brochure Upload
-              </label>
-            </div>
-          </Section>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-base font-medium text-text-secondary">
+                      AI Voice minute Rate (Paisa)
+                    </label>
+                    <Controller
+                      name="perMinuteRate"
+                      control={control}
+                      render={({ field }) => (
+                        <NumberInput
+                          value={field.value}
+                          onChange={(val) =>
+                            field.onChange(val === "" ? 0 : Number(val))
+                          }
+                          step="50"
+                          min={0}
+                        />
+                      )}
+                    />
+                    <span className="text-xs font-mono font-semibold text-brand-700 mt-1">
+                      {paisaToInr(watchedValues.perMinuteRate ?? 0)}/min
+                    </span>
+                  </div>
 
-          {/* Actions */}
-          <div className="flex justify-end gap-2 pt-2 border-t border-surface-border sticky bottom-0 bg-surface pb-1">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-base font-medium text-text-secondary">
+                      Included Wallet Balance (Paisa)
+                    </label>
+                    <Controller
+                      name="includedBalance"
+                      control={control}
+                      render={({ field }) => (
+                        <NumberInput
+                          value={field.value}
+                          onChange={(val) =>
+                            field.onChange(val === "" ? 0 : Number(val))
+                          }
+                          step="10000"
+                          min={0}
+                        />
+                      )}
+                    />
+                    <span className="text-xs font-mono font-semibold text-brand-700 mt-1">
+                      {paisaToInr(watchedValues.includedBalance ?? 0)}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-base font-medium text-text-secondary">
+                      Billing Minimum (Seconds)
+                    </label>
+                    <Controller
+                      name="billingMinimumSec"
+                      control={control}
+                      render={({ field }) => (
+                        <NumberInput
+                          value={field.value}
+                          onChange={(val) =>
+                            field.onChange(val === "" ? 30 : Number(val))
+                          }
+                          min={1}
+                        />
+                      )}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-base font-medium text-text-secondary">
+                      Billing Increment Cadence (Seconds)
+                    </label>
+                    <Controller
+                      name="billingIncrementSec"
+                      control={control}
+                      render={({ field }) => (
+                        <NumberInput
+                          value={field.value}
+                          onChange={(val) =>
+                            field.onChange(val === "" ? 15 : Number(val))
+                          }
+                          min={1}
+                        />
+                      )}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-base font-medium text-text-secondary">
+                      Low Balance Threshold (Paisa)
+                    </label>
+                    <Controller
+                      name="lowBalanceThreshold"
+                      control={control}
+                      render={({ field }) => (
+                        <NumberInput
+                          value={field.value}
+                          onChange={(val) =>
+                            field.onChange(val === "" ? 10000 : Number(val))
+                          }
+                          step="5000"
+                          min={0}
+                        />
+                      )}
+                    />
+                    <span className="text-xs font-mono font-semibold text-brand-700 mt-1">
+                      {paisaToInr(watchedValues.lowBalanceThreshold ?? 0)}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-base font-medium text-text-secondary">
+                      Bonus Validity Days
+                    </label>
+                    <Controller
+                      name="bonusValidityDays"
+                      control={control}
+                      render={({ field }) => (
+                        <NumberInput
+                          value={field.value ?? ""}
+                          onChange={(val) =>
+                            field.onChange(val === "" ? null : Number(val))
+                          }
+                          placeholder="Unlimited"
+                          min={0}
+                        />
+                      )}
+                    />
+                  </div>
+                </div>
+              </Section>
+
+              {/* Gating Limits */}
+              <Section title="Workspace Gating Limits">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-base font-medium text-text-secondary">
+                      Max Campaigns
+                    </label>
+                    <Controller
+                      name="maxActiveCampaigns"
+                      control={control}
+                      render={({ field }) => (
+                        <NumberInput
+                          value={field.value ?? ""}
+                          onChange={(val) =>
+                            field.onChange(val === "" ? null : Number(val))
+                          }
+                          placeholder="Unlimited"
+                        />
+                      )}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-base font-medium text-text-secondary">
+                      Max Batch upload
+                    </label>
+                    <Controller
+                      name="maxLeadsPerBatch"
+                      control={control}
+                      render={({ field }) => (
+                        <NumberInput
+                          value={field.value ?? ""}
+                          onChange={(val) =>
+                            field.onChange(val === "" ? null : Number(val))
+                          }
+                          placeholder="Unlimited"
+                        />
+                      )}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-base font-medium text-text-secondary">
+                      Max Assistants
+                    </label>
+                    <Controller
+                      name="maxAgents"
+                      control={control}
+                      render={({ field }) => (
+                        <NumberInput
+                          value={field.value ?? ""}
+                          onChange={(val) =>
+                            field.onChange(val === "" ? null : Number(val))
+                          }
+                          placeholder="Unlimited"
+                        />
+                      )}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-base font-medium text-text-secondary">
+                      Max Workspace Members
+                    </label>
+                    <Controller
+                      name="maxTeamMembers"
+                      control={control}
+                      render={({ field }) => (
+                        <NumberInput
+                          value={field.value ?? ""}
+                          onChange={(val) =>
+                            field.onChange(val === "" ? null : Number(val))
+                          }
+                          placeholder="Unlimited"
+                        />
+                      )}
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-base font-medium text-text-secondary">
+                      Industry Pack Limit
+                    </label>
+                    <Controller
+                      name="industryPackLimit"
+                      control={control}
+                      render={({ field }) => (
+                        <NumberInput
+                          value={field.value ?? ""}
+                          onChange={(val) =>
+                            field.onChange(val === "" ? null : Number(val))
+                          }
+                          placeholder="Unlimited"
+                        />
+                      )}
+                    />
+                  </div>
+                </div>
+              </Section>
+
+              {/* Feature Gating */}
+              <Section title="Workspace Capability Gating">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Controller
+                    name="callingChannel"
+                    control={control}
+                    render={({ field }) => (
+                      <Select
+                        label="Channel Route Mode"
+                        options={CALLING_CHANNEL_OPTIONS}
+                        value={field.value}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        name={field.name}
+                      />
+                    )}
+                  />
+                  <Controller
+                    name="dashboardTier"
+                    control={control}
+                    render={({ field }) => (
+                      <Select
+                        label="Dashboard Interface Mode"
+                        options={DASHBOARD_TIER_OPTIONS}
+                        value={field.value}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        name={field.name}
+                      />
+                    )}
+                  />
+                  <Controller
+                    name="agentCapability"
+                    control={control}
+                    render={({ field }) => (
+                      <Select
+                        label="Voice Core Capability Engine"
+                        options={AGENT_CAPABILITY_OPTIONS}
+                        value={field.value}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        name={field.name}
+                      />
+                    )}
+                  />
+                  <Controller
+                    name="integrations"
+                    control={control}
+                    render={({ field }) => (
+                      <Select
+                        label="CRM Integrations Scope"
+                        options={INTEGRATION_OPTIONS}
+                        value={field.value}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        name={field.name}
+                      />
+                    )}
+                  />
+                  <Controller
+                    name="supportTier"
+                    control={control}
+                    render={({ field }) => (
+                      <Select
+                        label="Support Escalation Tier"
+                        options={SUPPORT_TIER_OPTIONS}
+                        value={field.value}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        name={field.name}
+                      />
+                    )}
+                  />
+                </div>
+
+                <div className="flex flex-col gap-3 pt-2">
+                  <label className="flex items-center gap-2.5 text-base font-semibold text-text-secondary cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      className="rounded border-surface-border text-brand-600 focus:ring-brand-500 h-4.5 w-4.5"
+                      {...register("retryAutomation")}
+                    />
+                    Outbound Retry Automation Rules
+                  </label>
+                  <label className="flex items-center gap-2.5 text-base font-semibold text-text-secondary cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      className="rounded border-surface-border text-brand-600 focus:ring-brand-500 h-4.5 w-4.5"
+                      {...register("brochureUpload")}
+                    />
+                    AI Vector PDF Brochure Synthesis
+                  </label>
+                </div>
+              </Section>
+            </>
+          )}
+
+          {/* Sticky drawer footer */}
+          <div className="flex justify-end gap-3 pt-4 border-t border-surface-border bg-surface sticky bottom-0 z-10 pb-2">
             <Button
               variant="outline"
-              size="sm"
+              size="md"
               type="button"
               onClick={closeForm}
               disabled={isSubmitting}
             >
               Cancel
             </Button>
-            <Button size="sm" type="submit" loading={isSubmitting}>
-              {editPlan ? "Save Changes" : "Create Plan"}
+            <Button size="md" type="submit" loading={isSubmitting}>
+              {editPlan ? "Apply Changes" : "Deploy Plan Package"}
             </Button>
           </div>
         </form>
-      </Modal>
+      </Drawer>
+
+      {/* Plan Versioning Slide Drawer */}
+      <Drawer
+        isOpen={!!activeManagerPlanId}
+        onClose={() => setActiveManagerPlanId(null)}
+        title={
+          detailPlan
+            ? `Release Timelines — ${detailPlan.name}`
+            : "Version Timelines"
+        }
+        size="lg"
+      >
+        {detailPlan ? (
+          <div className="py-1">
+            <PlanVersionManager plan={detailPlan} onRefresh={refetchDetail} />
+          </div>
+        ) : (
+          <div className="py-24 flex justify-center items-center">
+            <Spinner className="text-secondary-600 h-8 w-8 animate-spin" />
+          </div>
+        )}
+      </Drawer>
     </div>
   );
 }
+
+// ── Section Helper Component ────────────────────────────────────────────────
 
 function Section({
   title,
@@ -732,11 +1027,13 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="space-y-3">
-      <h3 className="text-xs font-bold uppercase tracking-wider text-text-placeholder">
+    <section className="space-y-4 pt-4 first:pt-0">
+      <h3 className="text-xs font-bold uppercase tracking-wider text-text-muted border-l-4 border-brand-500 pl-3 leading-none">
         {title}
       </h3>
-      {children}
+      <div className="bg-surface p-5 rounded-xl border border-surface-border/80 shadow-xs space-y-4">
+        {children}
+      </div>
     </section>
   );
 }

@@ -1,316 +1,560 @@
 "use client";
 
-import { CallStatusBadge } from "@/components/call-history/CallStatusBadge";
-import { TranscriptViewer } from "@/components/call-history/TranscriptViewer";
-import { Card } from "@/components/ui/Card";
-import { PageSpinner } from "@/components/ui/Spinner";
-import { useCall } from "@/hooks/useCalls";
-import { formatDateTime } from "@/lib/utils/formatDate";
-import { formatDuration } from "@/lib/utils/formatDuration";
-import type { CallAnalysis, Disposition, LeadTemperature } from "@/types/call";
+import { useCallback, useEffect, useState, useMemo } from "react";
+import {
+  useParams,
+  usePathname,
+  useSearchParams,
+  useRouter,
+} from "next/navigation";
+import Link from "next/link";
 import {
   ChevronLeft,
-  Clock,
-  MessageSquare,
-  Mic,
+  Flame,
   Phone,
-  User,
+  PhoneCall,
+  PhoneIncoming,
+  Search,
+  CheckCircle2,
+  X,
+  MapPin,
   Thermometer,
-  Target,
-  AlertCircle,
+  Filter,
+  Activity,
+  Snowflake,
+  Sprout,
 } from "lucide-react";
-import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
 
-// ─── Disposition label map ───────────────────────────────────────────────────
+import { useCalls, useCallStats } from "@/hooks/useCalls";
+import { useCampaign } from "@/hooks/useCampaigns";
+import { useDebounce } from "@/hooks/useDebounce";
+import { CallsTable } from "@/components/call-history/CallsTable";
+import { FilterBar, FilterSelect, SortSelect } from "@/components/ui/FilterBar";
+import { Input } from "@/components/ui/Input";
+import { Card } from "@/components/ui/Card";
+import { PageSpinner } from "@/components/ui/Spinner";
 
-const dispositionLabel: Record<Disposition, string> = {
-  INTERESTED_SEND_DETAILS: "Send Details",
-  QUALIFIED_CONSULTANT_FOLLOWUP: "Consultant Follow-up",
-  SITE_VISIT_INTEREST: "Site Visit Interest",
-  INTERESTED_GENERAL: "General Interest",
-  FOLLOWUP_REQUESTED: "Follow-up Requested",
-  NOT_INTERESTED: "Not Interested",
-  DO_NOT_CALL: "Do Not Call",
-  WRONG_NUMBER: "Wrong Number",
-  ALREADY_PURCHASED: "Already Purchased",
-  BROKER: "Broker / Channel Partner",
-  LANGUAGE_CALLBACK_REQUIRED: "Language Callback Required",
-  CALL_ENDED_BY_CUSTOMER: "Ended by Customer",
-  CALL_ENDED_ABUSIVE: "Abusive Call",
-  NO_RESPONSE: "No Response",
-  CALL_DROPPED: "Call Dropped",
+// ─── Options ─────────────────────────────────────────────────────────────────
+
+const STATUS_OPTIONS = [
+  { label: "Completed", value: "COMPLETED" },
+  { label: "No Answer", value: "NO_ANSWER" },
+  { label: "Busy", value: "BUSY" },
+  { label: "Failed", value: "FAILED" },
+];
+
+const DISPOSITION_OPTIONS = [
+  { label: "Consultant Callback", value: "QUALIFIED_CONSULTANT_FOLLOWUP" },
+  { label: "Follow-up Requested", value: "FOLLOWUP_REQUESTED" },
+  { label: "Language Callback", value: "LANGUAGE_CALLBACK_REQUIRED" },
+  { label: "Site Visit Interest", value: "SITE_VISIT_INTEREST" },
+  { label: "Send Details", value: "INTERESTED_SEND_DETAILS" },
+  { label: "General Interest", value: "INTERESTED_GENERAL" },
+  { label: "Not Interested", value: "NOT_INTERESTED" },
+  { label: "Do Not Call", value: "DO_NOT_CALL" },
+  { label: "Wrong Number", value: "WRONG_NUMBER" },
+  { label: "No Response", value: "NO_RESPONSE" },
+];
+
+const TEMP_OPTIONS = [
+  { label: "Hot", value: "HOT" },
+  { label: "Warm", value: "WARM" },
+  { label: "Nurture", value: "NURTURE" },
+  { label: "Cold", value: "COLD" },
+];
+
+const LOCATION_MATCH_OPTIONS = [
+  { label: "Match", value: "MATCH" },
+  { label: "Mismatch", value: "MISMATCH" },
+  { label: "Not Asked", value: "NOT_ASKED" },
+  { label: "Not Mentioned", value: "NOT_MENTIONED" },
+];
+
+const LOCATION_MATCH_LABELS: Record<string, string> = {
+  MATCH: "Location Match",
+  MISMATCH: "Location Mismatch",
+  NOT_ASKED: "Location Not Asked",
+  NOT_MENTIONED: "Location Not Mentioned",
 };
 
-const temperatureStyle: Record<LeadTemperature, string> = {
-  HOT: "bg-error-100 text-error-700",
-  WARM: "bg-warning-100 text-warning-700",
-  NURTURE: "bg-info-100 text-info-700",
-  COLD: "bg-surface-subtle text-text-muted",
-  NOT_APPLICABLE: "bg-surface-subtle text-text-muted",
+// Dynamic maps for chip rendering (fixes WARM missing bug)
+const STATUS_LABELS = Object.fromEntries(
+  STATUS_OPTIONS.map((o) => [o.value, o.label]),
+);
+const DISPOSITION_LABELS = Object.fromEntries(
+  DISPOSITION_OPTIONS.map((o) => [o.value, o.label]),
+);
+const TEMP_LABELS = Object.fromEntries(
+  TEMP_OPTIONS.map((o) => [o.value, o.label]),
+);
+
+// Temperature chip styles pulled from your CSS variables
+const TEMP_CHIP_STYLES: Record<string, string> = {
+  HOT: "bg-hot-bg text-hot-text border-hot-border",
+  WARM: "bg-warm-bg text-warm-text border-warm-border",
+  NURTURE: "bg-info-50 text-info-700 border-info-200",
+  COLD: "bg-cold-bg text-cold-text border-cold-border",
 };
 
-// ─── Call Analysis Section ───────────────────────────────────────────────────
+const TEMP_ICONS: Record<string, React.ReactNode> = {
+  HOT: <Flame size={12} />,
+  WARM: <Thermometer size={12} />,
+  NURTURE: <Sprout size={12} />,
+  COLD: <Snowflake size={12} />,
+};
 
-function AnalysisRow({
-  label,
-  value,
-}: {
-  label: string;
-  value: string | null | undefined;
-}) {
+const SORT_OPTIONS = [
+  { label: "Date", value: "startedAt" },
+  { label: "Duration", value: "duration" },
+];
+
+export default function CampaignCallsPage() {
+  const params = useParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const campaignId = String(params.id);
+
+  // ─── URL State Reads ───
+  const page = Number(searchParams.get("page") ?? "1");
+  const urlSearch = searchParams.get("search") ?? "";
+  const status = searchParams.get("status") ?? "";
+  const disposition = searchParams.get("disposition") ?? "";
+  const leadTemperature = searchParams.get("leadTemperature") ?? "";
+  const locationMatch = searchParams.get("locationMatch") ?? "";
+  const sortBy =
+    (searchParams.get("sortBy") as
+      | "startedAt"
+      | "duration"
+      | "cost"
+      | "createdAt") ?? "startedAt";
+  const sortOrder = (searchParams.get("sortOrder") as "asc" | "desc") ?? "desc";
+
+  const [searchInput, setSearchInput] = useState(urlSearch);
+  const debouncedSearch = useDebounce(searchInput, 400);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSearchInput(urlSearch);
+  }, [urlSearch]);
+
+  // ─── URL Update Helper ───
+  const updateFilter = useCallback(
+    (key: string, value: string | number | null) => {
+      const current = new URLSearchParams(Array.from(searchParams.entries()));
+
+      if (value === null || value === undefined || value === "") {
+        current.delete(key);
+      } else if (key === "page" && value === 1) {
+        current.delete(key);
+      } else {
+        current.set(key, String(value));
+      }
+
+      if (key !== "page") current.delete("page");
+
+      const query = current.toString();
+      router.replace(query ? `${pathname}?${query}` : pathname, {
+        scroll: false,
+      });
+    },
+    [searchParams, pathname, router],
+  );
+
+  const handleQuickFilter = useCallback(
+    (key: string, value: string) => {
+      const current = new URLSearchParams(Array.from(searchParams.entries()));
+      const isActive = current.get(key) === value;
+
+      if (isActive) {
+        current.delete(key);
+      } else {
+        current.delete("leadTemperature");
+        current.delete("disposition");
+        current.set(key, value);
+      }
+
+      current.delete("page");
+
+      const query = current.toString();
+      router.replace(query ? `${pathname}?${query}` : pathname, {
+        scroll: false,
+      });
+    },
+    [searchParams, pathname, router],
+  );
+
+  useEffect(() => {
+    if (debouncedSearch !== urlSearch) {
+      updateFilter("search", debouncedSearch);
+    }
+  }, [debouncedSearch, urlSearch, updateFilter]);
+
+  const handleReset = () => {
+    setSearchInput("");
+    router.replace(pathname, { scroll: false });
+  };
+
+  // ─── Data Queries ───
+  const { data: campaign } = useCampaign(campaignId);
+  const { data: callStats, isLoading: statsLoading } = useCallStats({
+    campaignId,
+  });
+
+  const { data, isLoading } = useCalls({
+    campaignId,
+    page,
+    limit: 15,
+    search: urlSearch,
+    status,
+    disposition,
+    leadTemperature,
+    locationMatch,
+    sortBy,
+    sortOrder,
+  });
+
+  const hasActiveFilters = Boolean(
+    urlSearch ||
+    status ||
+    disposition ||
+    leadTemperature ||
+    locationMatch ||
+    page > 1,
+  );
+
+  const callbacksCount =
+    callStats?.dispositionBreakdown?.["QUALIFIED_CONSULTANT_FOLLOWUP"] ?? 0;
+  const followupsCount =
+    callStats?.dispositionBreakdown?.["FOLLOWUP_REQUESTED"] ?? 0;
+
+  // ─── Dynamic Active Filter Chips ───
+  // This fixes the WARM (and every other missing) chip bug — chips now render for ANY active filter.
+  const activeChips = useMemo(() => {
+    const chips: {
+      key: string;
+      icon: React.ReactNode;
+      label: string;
+      colorClass: string;
+      onClear: () => void;
+    }[] = [];
+
+    if (urlSearch) {
+      chips.push({
+        key: "search",
+        icon: <Search size={12} />,
+        label: `"${urlSearch}"`,
+        colorClass: "bg-neutral-100 text-neutral-700 border-neutral-200",
+        onClear: () => {
+          setSearchInput("");
+          updateFilter("search", null);
+        },
+      });
+    }
+
+    if (status && STATUS_LABELS[status]) {
+      chips.push({
+        key: "status",
+        icon: <Activity size={12} />,
+        label: STATUS_LABELS[status],
+        colorClass: "bg-accent-50 text-accent-700 border-accent-200",
+        onClear: () => updateFilter("status", null),
+      });
+    }
+
+    if (disposition && DISPOSITION_LABELS[disposition]) {
+      chips.push({
+        key: "disposition",
+        icon: <PhoneCall size={12} />,
+        label: DISPOSITION_LABELS[disposition],
+        colorClass: "bg-info-50 text-info-700 border-info-200",
+        onClear: () => updateFilter("disposition", null),
+      });
+    }
+
+    if (leadTemperature && TEMP_LABELS[leadTemperature]) {
+      chips.push({
+        key: "leadTemperature",
+        icon: TEMP_ICONS[leadTemperature] ?? <Thermometer size={12} />,
+        label: `${TEMP_LABELS[leadTemperature]} Leads`,
+        colorClass:
+          TEMP_CHIP_STYLES[leadTemperature] ??
+          "bg-surface-subtle text-text-muted border-surface-border",
+        onClear: () => updateFilter("leadTemperature", null),
+      });
+    }
+
+    if (locationMatch) {
+      chips.push({
+        key: "locationMatch",
+        icon: <MapPin size={12} />,
+        label: LOCATION_MATCH_LABELS[locationMatch] ?? locationMatch,
+        colorClass: "bg-secondary-50 text-secondary-700 border-secondary-200",
+        onClear: () => updateFilter("locationMatch", null),
+      });
+    }
+
+    return chips;
+  }, [
+    urlSearch,
+    status,
+    disposition,
+    leadTemperature,
+    locationMatch,
+    updateFilter,
+  ]);
+
   return (
-    <div className="flex items-start justify-between gap-4 py-2 border-b border-surface-border last:border-0">
-      <span className="text-base text-text-muted shrink-0 w-40">{label}</span>
-      <span className="text-base text-text-primary text-right">
-        {value &&
-        value !== "NOT_SHARED" &&
-        value !== "NOT_ASKED" &&
-        value !== "NONE"
-          ? value
-          : "—"}
-      </span>
+    <div className="flex flex-col gap-6 max-w-7xl mx-auto px-4 md:px-0">
+      {/* ─── Header ─── */}
+      <div className="flex flex-col gap-2">
+        <Link
+          href={`/campaigns/${campaignId}`}
+          className="group inline-flex items-center gap-1.5 text-sm font-medium text-text-muted hover:text-text-primary transition-colors w-fit"
+        >
+          <ChevronLeft
+            size={16}
+            className="transition-transform group-hover:-translate-x-0.5"
+          />
+          Back to Campaign
+        </Link>
+        <div className="flex items-center gap-3 flex-wrap">
+          <h2 className="text-2xl font-bold text-text-primary">
+            Calls for {campaign?.name ?? "Campaign"}
+          </h2>
+          {callStats?.total != null && !statsLoading && (
+            <span className="inline-flex items-center rounded-full bg-brand-50 px-2.5 py-0.5 text-sm font-semibold text-brand-700 border border-brand-100">
+              {callStats.total.toLocaleString()} total
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* ─── Stats Cards ─── */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        <MiniStatCard
+          icon={<Phone size={16} />}
+          label="Total Calls"
+          value={callStats?.total ?? campaign?.calledLeads ?? 0}
+          color="text-info-600"
+          iconBg="bg-info-50"
+          loading={statsLoading}
+        />
+        <MiniStatCard
+          icon={<CheckCircle2 size={16} />}
+          label="Qualified"
+          value={callStats?.qualifiedCount ?? 0}
+          subtitle={callStats?.qualificationRate}
+          color="text-success-600"
+          iconBg="bg-success-50"
+          loading={statsLoading}
+        />
+        <MiniStatCard
+          icon={<Flame size={16} />}
+          label="Hot Leads"
+          value={callStats?.temperatureBreakdown?.HOT ?? 0}
+          color="text-hot-text"
+          iconBg="bg-hot-bg"
+          loading={statsLoading}
+          onClick={() => handleQuickFilter("leadTemperature", "HOT")}
+          active={leadTemperature === "HOT"}
+        />
+        <MiniStatCard
+          icon={<PhoneCall size={16} />}
+          label="Callbacks"
+          value={callbacksCount}
+          color="text-accent-600"
+          iconBg="bg-accent-50"
+          loading={statsLoading}
+          onClick={() =>
+            handleQuickFilter("disposition", "QUALIFIED_CONSULTANT_FOLLOWUP")
+          }
+          active={disposition === "QUALIFIED_CONSULTANT_FOLLOWUP"}
+        />
+        <MiniStatCard
+          icon={<PhoneIncoming size={16} />}
+          label="Follow-ups"
+          value={followupsCount}
+          color="text-secondary-600"
+          iconBg="bg-secondary-50"
+          loading={statsLoading}
+          onClick={() => handleQuickFilter("disposition", "FOLLOWUP_REQUESTED")}
+          active={disposition === "FOLLOWUP_REQUESTED"}
+        />
+      </div>
+
+      {/* ─── Filter Bar ─── */}
+      <FilterBar hasActiveFilters={hasActiveFilters} onReset={handleReset}>
+        <div className="w-full md:w-72">
+          <Input
+            placeholder="Search name or phone..."
+            leftIcon={<Search size={16} />}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+          />
+        </div>
+        <FilterSelect
+          label="Status"
+          value={status}
+          onChange={(val) => updateFilter("status", val)}
+          options={STATUS_OPTIONS}
+        />
+        <FilterSelect
+          label="Disposition"
+          value={disposition}
+          onChange={(val) => updateFilter("disposition", val)}
+          options={DISPOSITION_OPTIONS}
+        />
+        <FilterSelect
+          label="Temperature"
+          value={leadTemperature}
+          onChange={(val) => updateFilter("leadTemperature", val)}
+          options={TEMP_OPTIONS}
+        />
+        <FilterSelect
+          label="Location"
+          value={locationMatch}
+          onChange={(val) => updateFilter("locationMatch", val)}
+          options={LOCATION_MATCH_OPTIONS}
+        />
+        <div className="ml-auto hidden md:block" />
+        <SortSelect
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          onSortByChange={(val) => updateFilter("sortBy", val)}
+          onSortOrderChange={(val) => updateFilter("sortOrder", val)}
+          options={SORT_OPTIONS}
+        />
+      </FilterBar>
+
+      {/* ─── ✅ FIXED: Active Filter Chips (Now Dynamic) ─── */}
+      {activeChips.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-text-muted uppercase tracking-wider mr-1">
+            <Filter size={12} />
+            Applied:
+          </span>
+          {activeChips.map((chip) => (
+            <FilterBadge
+              key={chip.key}
+              icon={chip.icon}
+              label={chip.label}
+              onClear={chip.onClear}
+              color={chip.colorClass}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* ─── Calls Table ─── */}
+      {isLoading ? (
+        <PageSpinner />
+      ) : (
+        <CallsTable
+          calls={data?.calls ?? []}
+          pagination={data?.pagination}
+          onPageChange={(p) => updateFilter("page", p)}
+          showAttempts={true}
+        />
+      )}
     </div>
   );
 }
 
-function CallAnalysisSection({ analysis }: { analysis: CallAnalysis }) {
+// ─── Mini Stat Card ──────────────────────────────────────────────────────────
+
+function MiniStatCard({
+  icon,
+  label,
+  value,
+  color,
+  iconBg,
+  loading,
+  subtitle,
+  onClick,
+  active,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string | number;
+  color: string;
+  iconBg: string;
+  loading?: boolean;
+  subtitle?: string;
+  onClick?: () => void;
+  active?: boolean;
+}) {
+  const clickable = Boolean(onClick);
+
   return (
-    <Card>
-      <div className="flex items-center gap-2 mb-4">
-        <Target size={15} className="text-brand-600" />
-        <h3 className="text-base font-semibold text-text-primary">
-          Call Analysis
-        </h3>
-      </div>
-
-      {/* Outcome row */}
-      <div className="flex items-center gap-3 mb-4 flex-wrap">
-        {analysis.disposition && (
-          <span className="inline-flex items-center rounded-md bg-brand-50 px-2.5 py-1 text-base font-medium text-brand-700 border border-brand-100">
-            {dispositionLabel[analysis.disposition]}
-          </span>
-        )}
-        {analysis.leadTemperature && (
-          <span
-            className={`inline-flex items-center rounded-full px-2.5 py-1 text-base font-medium ${temperatureStyle[analysis.leadTemperature]}`}
-          >
-            <Thermometer size={10} className="mr-1" />
-            {analysis.leadTemperature}
-          </span>
-        )}
-        {analysis.doNotCall === "YES" && (
-          <span className="inline-flex items-center gap-1 rounded-full bg-error-100 px-2.5 py-1 text-base font-medium text-error-700">
-            <AlertCircle size={10} />
-            Do Not Call
-          </span>
-        )}
-      </div>
-
-      {/* Qualification details */}
-      <div className="mb-4">
-        <p className="text-base font-medium text-text-muted uppercase tracking-wide mb-2">
-          Lead Qualification
-        </p>
-        <AnalysisRow
-          label="Configuration"
-          value={analysis.preferredConfiguration}
-        />
-        <AnalysisRow label="Budget Range" value={analysis.budgetRange} />
-        <AnalysisRow
-          label="Purchase Timeline"
-          value={analysis.purchaseTimeline}
-        />
-        <AnalysisRow
-          label="Purchase Purpose"
-          value={analysis.purchasePurpose}
-        />
-        <AnalysisRow label="Location Match" value={analysis.locationMatch} />
-        {analysis.customerLocationPref && (
-          <AnalysisRow
-            label="Customer Location Pref"
-            value={analysis.customerLocationPref}
-          />
-        )}
-      </div>
-
-      {/* Next action */}
-      <div className="mb-4">
-        <p className="text-base font-medium text-text-muted uppercase tracking-wide mb-2">
-          Next Action
-        </p>
-        <AnalysisRow label="Next Action" value={analysis.preferredNextAction} />
-        <AnalysisRow
-          label="Contact Channel"
-          value={analysis.preferredContactChannel}
-        />
-        <AnalysisRow
-          label="Follow-up Schedule"
-          value={analysis.followupSchedule}
-        />
-      </div>
-
-      {/* Compliance */}
-      <div>
-        <p className="text-base font-medium text-text-muted uppercase tracking-wide mb-2">
-          Compliance
-        </p>
-        <AnalysisRow
-          label="Language Support"
-          value={analysis.languageSupportRequired}
-        />
+    <Card
+      className={[
+        "p-4 transition-all duration-normal ease-out border",
+        clickable
+          ? "cursor-pointer hover:border-brand-300 hover:shadow-md hover:-translate-y-0.5"
+          : "border-surface-border",
+        active
+          ? "border-brand-500 bg-brand-50/30 ring-2 ring-brand-500/20 shadow-sm"
+          : "",
+      ].join(" ")}
+      onClick={onClick}
+    >
+      <div className="flex items-center gap-3">
+        <div
+          className={`flex h-10 w-10 items-center justify-center rounded-xl shrink-0 ${iconBg} ${color} border border-current/10`}
+        >
+          {icon}
+        </div>
+        <div className="min-w-0 flex-1">
+          {loading ? (
+            <div className="h-6 w-14 rounded bg-surface-subtle animate-pulse-soft" />
+          ) : (
+            <p className={`text-2xl font-bold leading-none ${color}`}>
+              {typeof value === "number" ? value.toLocaleString() : value}
+            </p>
+          )}
+          <p className="text-xs text-text-muted mt-1.5 font-semibold truncate uppercase tracking-wider">
+            {label}
+            {subtitle ? (
+              <span className="text-text-placeholder normal-case font-medium">
+                {" "}
+                · {subtitle}
+              </span>
+            ) : null}
+          </p>
+        </div>
       </div>
     </Card>
   );
 }
 
-// ─── Page ────────────────────────────────────────────────────────────────────
+// ─── Filter Chip Badge ───────────────────────────────────────────────────────
 
-export default function CampaignCallDetailPage() {
-  const params = useParams();
-  const router = useRouter();
-  const id = String(params.callId);
-  const campaignId = String(params.id); // parent [id] segment
-
-  const { data: call, isLoading: callLoading } = useCall(id);
-
-  if (callLoading) return <PageSpinner />;
-  if (!call)
-    return <p className="text-text-muted text-base">Call not found.</p>;
-
-  const analysis = call.callAnalysis ?? null;
-
-  // ─── Back handler: preserve filters/pagination via history ───
-  const handleBack = () => {
-    if (typeof window !== "undefined" && window.history.length > 2) {
-      router.back();
-    } else {
-      router.push(`/campaigns/${campaignId}/calls`);
-    }
-  };
-
+function FilterBadge({
+  icon,
+  label,
+  onClear,
+  color,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  onClear: () => void;
+  color: string;
+}) {
   return (
-    <div className="flex flex-col gap-5 max-w-6xl">
-      {/* Header */}
-      <div>
-        <button
-          type="button"
-          onClick={handleBack}
-          className="inline-flex items-center gap-1.5 text-base text-text-muted hover:text-text-primary mb-3 transition-colors cursor-pointer"
-        >
-          <ChevronLeft size={14} />
-          Back to Calls
-        </button>
-
-        <div className="flex items-center gap-3">
-          <h2 className="text-xl font-bold text-text-primary">
-            Call with {call.lead?.name ?? "Unknown"}
-          </h2>
-          <CallStatusBadge status={call.status} />
-        </div>
-        <p className="text-base text-text-muted mt-1">
-          Campaign:{" "}
-          <Link
-            href={`/campaigns/${call.campaignId}`}
-            className="text-brand-600 hover:underline"
-          >
-            {call.campaign?.name ?? "Unknown"}
-          </Link>
-        </p>
-      </div>
-
-      {/* Call info grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <Card padding="sm" className="flex items-center gap-2.5">
-          <User size={15} className="text-text-muted shrink-0" />
-          <div>
-            <p className="text-base text-text-muted">Lead</p>
-            <p className="text-base font-medium text-text-primary">
-              {call.lead?.phone ?? "—"}
-            </p>
-          </div>
-        </Card>
-        <Card padding="sm" className="flex items-center gap-2.5">
-          <Phone size={15} className="text-text-muted shrink-0" />
-          <div>
-            <p className="text-base text-text-muted">Phone</p>
-            <p className="text-base font-medium text-text-primary font-mono">
-              {call.lead?.phone ?? "—"}
-            </p>
-          </div>
-        </Card>
-        <Card padding="sm" className="flex items-center gap-2.5">
-          <Clock size={15} className="text-text-muted shrink-0" />
-          <div>
-            <p className="text-base text-text-muted">Duration</p>
-            <p className="text-base font-medium text-text-primary">
-              {formatDuration(call.duration)}
-            </p>
-          </div>
-        </Card>
-        <Card padding="sm" className="flex items-center gap-2.5">
-          <Thermometer size={15} className="text-text-muted shrink-0" />
-          <div>
-            <p className="text-base text-text-muted">Temperature</p>
-            <p className="text-base font-medium text-text-primary">
-              {analysis?.leadTemperature ?? "—"}
-            </p>
-          </div>
-        </Card>
-      </div>
-
-      {/* Timestamps */}
-      <Card padding="sm">
-        <div className="flex items-center gap-6 text-base text-text-muted">
-          {call.startedAt && (
-            <span>Started: {formatDateTime(call.startedAt)}</span>
-          )}
-          {call.endedAt && <span>Ended: {formatDateTime(call.endedAt)}</span>}
-        </div>
-      </Card>
-
-      {/* Recording */}
-      {call.recording && (
-        <Card>
-          <div className="flex items-center gap-2 mb-3">
-            <Mic size={15} className="text-brand-600" />
-            <h3 className="text-base font-semibold text-text-primary">
-              Recording
-            </h3>
-          </div>
-          <audio controls src={call.recording} className="w-full h-10" />
-        </Card>
-      )}
-
-      {/* AI Summary */}
-      {call.summary && (
-        <Card>
-          <h3 className="text-base font-semibold text-text-primary mb-3">
-            AI Summary
-          </h3>
-          <p className="text-base text-text-secondary leading-relaxed">
-            {call.summary}
-          </p>
-        </Card>
-      )}
-
-      {/* Analysis */}
-      {analysis && <CallAnalysisSection analysis={analysis} />}
-
-      {/* Transcript */}
-      <Card>
-        <div className="flex items-center gap-2 mb-4">
-          <MessageSquare size={15} className="text-brand-600" />
-          <h3 className="text-base font-semibold text-text-primary">
-            Transcript
-          </h3>
-        </div>
-        {!call.transcript ? (
-          <PageSpinner />
-        ) : (
-          <TranscriptViewer rawTranscript={call.transcript} />
-        )}
-      </Card>
-    </div>
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold shadow-xs ${color}`}
+    >
+      {icon}
+      <span>{label}</span>
+      <button
+        type="button"
+        onClick={onClear}
+        className="ml-0.5 rounded-full p-0.5 hover:bg-black/10 transition-colors focus-ring"
+        aria-label={`Clear ${label}`}
+      >
+        <X size={12} />
+      </button>
+    </span>
   );
 }

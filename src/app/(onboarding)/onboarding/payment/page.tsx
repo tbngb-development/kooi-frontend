@@ -23,7 +23,6 @@ export default function OnboardingPaymentPage() {
 
   useEffect(() => {
     if (tenantPlan && tenantPlan.status === "ACTIVE") {
-      // Sync success state to both stores
       setPaymentRequired(false);
       markPaymentDone();
       router.replace(APP_ROUTES.DASHBOARD);
@@ -38,7 +37,7 @@ export default function OnboardingPaymentPage() {
     );
   }
 
-  const plan = tenantPlan?.plan;
+  const terms = tenantPlan?.effectiveTerms;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-surface-muted p-4 sm:p-6 lg:p-8">
@@ -56,22 +55,25 @@ export default function OnboardingPaymentPage() {
           </p>
         </div>
 
-        {plan && (
+        {terms && (
           <Card className="p-4 bg-surface-muted border-surface-border divide-y divide-surface-subtle space-y-3">
             <div className="flex justify-between items-center pb-2">
               <span className="text-xs font-bold uppercase tracking-wide text-text-placeholder">
                 Selected Tier
               </span>
-              <span className="text-sm font-bold text-text-primary">
-                {plan.name}
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm font-bold text-text-primary">
+                  {terms.planName}
+                </span>
+                {terms.isCustomPriced && <Badge variant="purple">Custom</Badge>}
+              </div>
             </div>
             <div className="flex justify-between items-center py-2.5">
               <span className="text-xs font-bold uppercase tracking-wide text-text-placeholder">
                 Onboarding Fee
               </span>
               <span className="text-sm font-bold font-mono text-text-primary">
-                {paisaToInr(plan.onboardingFee)}
+                {paisaToInr(terms.onboardingFee)}
               </span>
             </div>
             <div className="flex justify-between items-center py-2.5">
@@ -79,7 +81,7 @@ export default function OnboardingPaymentPage() {
                 Per Minute Rate
               </span>
               <span className="text-sm font-bold font-mono text-text-primary">
-                {paisaToInr(plan.perMinuteRate)}/min
+                {paisaToInr(terms.perMinuteRate)}/min
               </span>
             </div>
             <div className="flex justify-between items-center pt-2">
@@ -87,7 +89,7 @@ export default function OnboardingPaymentPage() {
                 Included Balance Credit
               </span>
               <span className="text-sm font-bold font-mono text-brand-600">
-                {paisaToInr(plan.includedBalance)}
+                {paisaToInr(terms.includedBalance)}
               </span>
             </div>
           </Card>

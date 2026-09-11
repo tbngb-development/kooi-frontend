@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuthStore } from "@/store/authStore";
-import { useTenantStore } from "@/store/tenantStore";
+import { useTenantStore, type ActivePlanDetails } from "@/store/tenantStore";
 import { useMyPlan } from "@/hooks/usePlans";
 import { APP_ROUTES } from "@/constants/routes/app.routes";
 import { Sidebar } from "@/components/layout/Sidebar";
@@ -58,7 +58,16 @@ export default function DashboardLayout({
     }
 
     if (tenantPlan) {
-      setTenantContext(activeTenantId, tenantPlan.plan, tenantPlan.status);
+      const activePlanDetails: ActivePlanDetails = {
+        id: tenantPlan.effectiveTerms.planId,
+        name: tenantPlan.effectiveTerms.planName,
+        slug: tenantPlan.effectiveTerms.planSlug,
+        onboardingFee: tenantPlan.effectiveTerms.onboardingFee,
+        perMinuteRate: tenantPlan.effectiveTerms.perMinuteRate,
+        includedBalance: tenantPlan.effectiveTerms.includedBalance,
+      };
+
+      setTenantContext(activeTenantId, activePlanDetails, tenantPlan.status);
 
       if (
         tenantPlan.status === "PENDING_PAYMENT" ||

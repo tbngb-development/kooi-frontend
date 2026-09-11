@@ -96,7 +96,6 @@ export interface TranscriptMessage {
   duration?: number;
   secondsFromStart?: number;
 }
-
 export interface Call {
   id: string;
   bolnaCallId: string | null;
@@ -106,9 +105,24 @@ export interface Call {
   batchId: string | null;
   status: CallStatus;
   duration: number | null;
+  /** Bolna's USD cost (unchanged) */
   cost: number | null;
+  /** Platform charge — now integer paisa (was Float ₹) */
   platformCost: number | null;
   billableSeconds: number | null;
+
+  // ── V1 Billing Snapshot ────────────────────────────────────────────
+  /** Which plan version was active when the call was billed */
+  planVersionId: string | null;
+  /** Per-minute rate actually charged (integer paisa) */
+  appliedRate: number | null;
+  /** Billing minimum used (seconds) */
+  appliedMinSec: number | null;
+  /** Billing increment used (seconds) */
+  appliedIncrementSec: number | null;
+  /** Total platform charge (integer paisa, mirrors platformCost) */
+  chargedAmount: number | null;
+
   recording: string | null;
   transcript: string | null;
   transcriptMessages: TranscriptMessage[] | null;

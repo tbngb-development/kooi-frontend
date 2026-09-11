@@ -87,13 +87,16 @@ export function CampaignDetailsStep({
           />
 
           {assistantOptions.length === 0 ? (
-            <div className="rounded-lg bg-amber-50 border border-amber-100 p-4">
-              <p className="text-sm text-amber-700">
-                No assistants found.{" "}
-                <Link href="/assistants/new" className="underline font-bold">
-                  Register an assistant first
-                </Link>
-                .
+            <div className="rounded-lg bg-amber-50 border border-amber-200/70 p-4">
+              <p className="text-sm text-amber-800 leading-relaxed">
+                No AI assistants assigned to your workspace. Please{" "}
+                <a
+                  href="mailto:support@kooi.io"
+                  className="font-semibold underline hover:text-amber-950 transition-colors"
+                >
+                  contact your administrator
+                </a>{" "}
+                to provision and assign an assistant to your account.
               </p>
             </div>
           ) : (

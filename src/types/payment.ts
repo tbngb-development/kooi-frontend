@@ -1,8 +1,19 @@
-export type RechargePurpose = "ONBOARDING" | "WALLET_TOPUP";
+// src/types/payment.ts
+
+// ── Shared ───────────────────────────────────────────────────────────────────
+
+export type RechargePurpose = "ONBOARDING" | "WALLET_TOPUP" | "PLAN_UPGRADE";
+
+export type RechargeStatus = "INITIATED" | "SUCCESS" | "FAILED" | "REFUNDED";
+
+// ── Tenant: Create Order ─────────────────────────────────────────────────────
 
 export interface CreateOrderInput {
   purpose: RechargePurpose;
+  /** Required for WALLET_TOPUP only; omitted for ONBOARDING/PLAN_UPGRADE */
   amountPaisa?: number;
+  /** Required for PLAN_UPGRADE only; omitted for ONBOARDING/WALLET_TOPUP */
+  newPlanId?: string;
 }
 
 export interface CreateOrderResponse {
@@ -11,8 +22,12 @@ export interface CreateOrderResponse {
   currency: "INR";
   keyId: string;
   rechargeId: string;
-  purpose: RechargePurpose;
+  // Present only for PLAN_UPGRADE:
+  newPlanVersionId?: string;
+  feeDifference?: number;
 }
+
+// ── Tenant: Verify ───────────────────────────────────────────────────────────
 
 export interface VerifyPaymentInput {
   razorpayOrderId: string;
@@ -21,35 +36,32 @@ export interface VerifyPaymentInput {
 }
 
 export interface VerifyPaymentResponse {
-  success: true;
   alreadyProcessed: boolean;
   rechargeId: string;
+  /** Tells the frontend which flow was completed */
+  purpose: "ONBOARDING" | "WALLET_TOPUP";
+}
+
+// ── Tenant: Order Status ─────────────────────────────────────────────────────
+
+export interface OrderStatusResponse {
+  rechargeId: string;
+  status: RechargeStatus;
+  amount: number;
   purpose: RechargePurpose;
 }
 
-export interface RazorpayPaymentInfo {
-  id: string;
-  status: string;
-  amount: number;
-  currency: string;
-  method: string | null;
-  captured: boolean;
-  createdAt: number;
-}
-
-export interface OrderStatusResponse {
-  orderId: string;
-  payments: RazorpayPaymentInfo[];
-}
+// ── Admin: Payment List ──────────────────────────────────────────────────────
 
 export interface AdminPayment {
   id: string;
   tenantId: string;
   tenantName: string;
-  amount: number; // in paisa
-  status: "SUCCESS" | "FAILED" | "PENDING";
-  purpose: string;
+  amount: number;
+  purpose: RechargePurpose;
+  status: "SUCCESS" | "FAILED" | "INITIATED";
   createdAt: string;
+  completedAt: string | null;
 }
 
 export interface AdminPaymentsPage {
@@ -59,9 +71,11 @@ export interface AdminPaymentsPage {
   limit: number;
 }
 
+// ── Admin: Summary (per-tenant, tenantId required by backend) ────────────────
+
 export interface AdminPaymentSummary {
-  totalRevenue: number; // in paisa
-  mrrApprox: number; // in paisa
-  successCount: number;
-  failedCount: number;
+  totalRecharges: number;
+  totalAmountPaisa: number;
+  successfulRecharges: number;
+  failedRecharges: number;
 }

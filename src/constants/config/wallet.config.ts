@@ -1,19 +1,18 @@
+export { API_PREFIX, API_PREFIXES } from "./api-prefix";
+
 export const RECHARGE_SLABS_PAISA = [
   100_000, 500_000, 1_000_000, 2_500_000, 10_000_000,
-] as const;
+] as const; 
 
 export const RAZORPAY_CHECKOUT_JS =
   "https://checkout.razorpay.com/v1/checkout.js";
 
 export const RAZORPAY_THEME_COLOR = "#15803d";
 
-export function paisaToInr(paisa: number): string {
-  return `₹${(paisa / 100).toLocaleString("en-IN", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
-}
+// Re-export from canonical location — existing imports keep working.
+export { formatPaisa as paisaToInr } from "@/lib/utils/formatMoney";
 
+/** Short format: ₹1.5L, ₹50K, ₹999 */
 export function paisaToInrShort(paisa: number): string {
   const rupees = paisa / 100;
   if (rupees >= 100_000) return `₹${(rupees / 100_000).toFixed(1)}L`;
