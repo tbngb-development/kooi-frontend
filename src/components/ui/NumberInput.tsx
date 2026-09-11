@@ -1,18 +1,18 @@
 "use client";
 
-import { Minus, Plus } from "lucide-react";
 import { useRef } from "react";
-import clsx from "clsx";
+import { Minus, Plus } from "lucide-react";
+import { cn } from "@/lib/utils/cn";
 
 interface NumberInputProps {
   value: number | string;
   onChange: (v: string) => void;
   placeholder?: string;
-  step?: string;
+  step?: string; // Step amount for + / - buttons
   min?: number;
   max?: number;
   disabled?: boolean;
-  readOnly?: boolean;
+  className?: string;
 }
 
 export default function NumberInput({
@@ -20,14 +20,13 @@ export default function NumberInput({
   onChange,
   placeholder,
   step,
-  min,
+  min = 0,
   max,
-  disabled = false,
-  readOnly = false,
+  disabled,
+  className,
 }: NumberInputProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const stepValue = parseFloat(step ?? "1") || 1;
-  const isLocked = disabled || readOnly;
 
   const clampValue = (val: number): number => {
     if (min !== undefined && val < min) return min;
@@ -40,8 +39,9 @@ export default function NumberInput({
     return decimals > 0 ? val.toFixed(decimals) : String(val);
   };
 
+  // + / - buttons use the `step` prop value
   const handleStep = (direction: "increment" | "decrement") => {
-    if (isLocked) return;
+    if (disabled) return;
 
     const current = parseFloat(String(value)) || 0;
     const raw =
@@ -53,8 +53,6 @@ export default function NumberInput({
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (isLocked) return;
-
     const raw = e.target.value;
 
     if (raw === "" || raw === "-") {
@@ -69,12 +67,10 @@ export default function NumberInput({
   };
 
   const handleBlur = () => {
-    if (isLocked) return;
-
     const num = parseFloat(String(value));
 
     if (isNaN(num)) {
-      onChange(min !== undefined ? formatValue(min) : "");
+      onChange(formatValue(min ?? 0));
       return;
     }
 
@@ -85,51 +81,43 @@ export default function NumberInput({
   };
 
   const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-    if (!isLocked) {
-      e.target.select();
-    }
+    e.target.select();
   };
 
-  const parsedValue = parseFloat(String(value));
-  const currentValue = isNaN(parsedValue) ? 0 : parsedValue;
-
+  const currentValue = parseFloat(String(value)) || 0;
   const isMinReached = min !== undefined && currentValue <= min;
   const isMaxReached = max !== undefined && currentValue >= max;
 
   return (
     <div
-      className={clsx(
-        "w-[250px] rounded-xl border overflow-hidden transition-all",
-        "flex items-center",
+      className={cn(
+        "flex items-center w-full max-w-xs rounded-lg border bg-surface transition-all overflow-hidden",
         disabled
-          ? "border-surface-border bg-surface-subtle opacity-60 cursor-not-allowed"
-          : readOnly
-            ? "border-surface-border bg-surface-subtle"
-            : "border-surface-border bg-white focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-50",
+          ? "border-surface-border opacity-50 cursor-not-allowed"
+          : "border-surface-border focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/20 focus-within:ring-offset-1",
+        className,
       )}
     >
-      {!readOnly && (
-        <>
-          <button
-            type="button"
-            tabIndex={-1}
-            onClick={() => handleStep("decrement")}
-            disabled={disabled || isMinReached}
-            className={clsx(
-              "flex h-10 w-10 shrink-0 items-center justify-center transition-colors select-none",
-              disabled || isMinReached
-                ? "cursor-not-allowed text-text-muted/30"
-                : "cursor-pointer text-text-muted hover:bg-surface-subtle hover:text-text-primary active:bg-surface-border",
-            )}
-            aria-label="Decrease value"
-          >
-            <Minus size={14} />
-          </button>
+      {/* Minus button */}
+      <button
+        type="button"
+        tabIndex={-1}
+        onClick={() => handleStep("decrement")}
+        disabled={disabled || isMinReached}
+        className={cn(
+          "flex items-center justify-center w-10 h-9 shrink-0 transition-colors select-none",
+          disabled || isMinReached
+            ? "text-text-placeholder/40 bg-surface-disabled cursor-not-allowed"
+            : "text-text-secondary hover:text-text-primary hover:bg-surface-subtle active:bg-surface-active cursor-pointer",
+        )}
+        aria-label="Decrease value"
+      >
+        <Minus size={14} strokeWidth={2.5} />
+      </button>
 
-          <div className="h-5 w-px shrink-0 bg-surface-border" />
-        </>
-      )}
+      <div className="w-px h-5 bg-surface-border shrink-0" />
 
+      {/* Input element - step="any" allows typing any number freely */}
       <input
         ref={inputRef}
         type="number"
@@ -138,46 +126,39 @@ export default function NumberInput({
         onBlur={handleBlur}
         onFocus={handleFocus}
         placeholder={placeholder}
-        step={step ?? "any"}
+        step="any" // ✅ Set to "any" so browser native validation doesn't block custom numbers
         min={min}
         max={max}
         disabled={disabled}
-        readOnly={readOnly}
-        aria-readonly={readOnly}
-        className={clsx(
-          "min-w-0 flex-1 py-2.5 text-base text-center outline-none",
-          readOnly
-            ? "px-4 bg-surface-subtle cursor-default"
-            : "px-3 bg-transparent",
-          "text-text-primary placeholder:text-gray-400",
-          "disabled:cursor-not-allowed",
-          "[appearance:textfield]",
-          "[&::-webkit-outer-spin-button]:appearance-none",
-          "[&::-webkit-inner-spin-button]:appearance-none",
-        )}
+        className="
+          flex-1 min-w-0 px-3 py-1.5 text-sm font-semibold text-center
+          text-text-primary placeholder:text-text-placeholder
+          bg-transparent outline-none border-0 ring-0
+          disabled:cursor-not-allowed
+          [appearance:textfield]
+          [&::-webkit-outer-spin-button]:appearance-none
+          [&::-webkit-inner-spin-button]:appearance-none
+        "
       />
 
-      {!readOnly && (
-        <>
-          <div className="h-5 w-px shrink-0 bg-surface-border" />
+      <div className="w-px h-5 bg-surface-border shrink-0" />
 
-          <button
-            type="button"
-            tabIndex={-1}
-            onClick={() => handleStep("increment")}
-            disabled={disabled || isMaxReached}
-            className={clsx(
-              "flex h-10 w-10 shrink-0 items-center justify-center transition-colors select-none",
-              disabled || isMaxReached
-                ? "cursor-not-allowed text-text-muted/30"
-                : "cursor-pointer text-text-muted hover:bg-surface-subtle hover:text-text-primary active:bg-surface-border",
-            )}
-            aria-label="Increase value"
-          >
-            <Plus size={14} />
-          </button>
-        </>
-      )}
+      {/* Plus button */}
+      <button
+        type="button"
+        tabIndex={-1}
+        onClick={() => handleStep("increment")}
+        disabled={disabled || isMaxReached}
+        className={cn(
+          "flex items-center justify-center w-10 h-9 shrink-0 transition-colors select-none",
+          disabled || isMaxReached
+            ? "text-text-placeholder/40 bg-surface-disabled cursor-not-allowed"
+            : "text-text-secondary hover:text-text-primary hover:bg-surface-subtle active:bg-surface-active cursor-pointer",
+        )}
+        aria-label="Increase value"
+      >
+        <Plus size={14} strokeWidth={2.5} />
+      </button>
     </div>
   );
 }

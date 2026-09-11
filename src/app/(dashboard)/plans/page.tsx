@@ -5,14 +5,17 @@ import { SwitchPlanConfirmModal } from "@/components/plans/SwitchPlanConfirmModa
 import { UniversalPlanFeatures } from "@/components/plans/UniversalPlanFeatures";
 import { Spinner } from "@/components/ui/Spinner";
 import { APP_ROUTES } from "@/constants/routes/app.routes";
-import { useAvailablePlans, useMyPlan, useSelectPlan } from "@/hooks/usePlans";
+import { QUERY_KEYS } from "@/constants/config/query-keys";
+import { useAvailablePlans, useMyPlan } from "@/hooks/usePlans";
 import { useAuthStore } from "@/store/authStore";
-import type { Plan } from "@/types/plan";
+import type { Plan, PlanChangeDirection } from "@/types/plan";
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
 export default function PlansPage() {
   const router = useRouter();
+  const qc = useQueryClient();
   const { user, memberships, activeTenantId } = useAuthStore();
 
   const activeRole = memberships.find(
@@ -22,7 +25,6 @@ export default function PlansPage() {
 
   const { data: plans, isLoading: isPlansLoading } = useAvailablePlans();
   const { data: tenantPlan, isLoading: isMyPlanLoading } = useMyPlan();
-  const { mutate: selectPlan, isPending: isSwitching } = useSelectPlan();
 
   const [pendingSwitch, setPendingSwitch] = useState<Plan | null>(null);
 
@@ -31,16 +33,22 @@ export default function PlansPage() {
     [plans],
   );
 
-  const currentPlan = tenantPlan?.plan ?? null;
+  const currentPlanId = tenantPlan?.planId ?? null;
+  const currentPlan = sortedPlans.find((p) => p.id === currentPlanId) ?? null;
+  const currentFee =
+    tenantPlan?.effectiveTerms?.onboardingFee ??
+    currentPlan?.currentVersion?.onboardingFee ??
+    0;
 
-  const handleConfirmSwitch = () => {
-    if (!pendingSwitch) return;
-    selectPlan(pendingSwitch.id, {
-      onSuccess: () => {
-        setPendingSwitch(null);
-        router.push(APP_ROUTES.SETTINGS);
-      },
-    });
+  /**
+   * Called only when the full switch sequence successfully completes
+   * (e.g. either immediately waived, or Razorpay payment is verified).
+   */
+  const handleSwitchComplete = () => {
+    setPendingSwitch(null);
+    qc.invalidateQueries({ queryKey: QUERY_KEYS.PLANS.mine() });
+    qc.invalidateQueries({ queryKey: QUERY_KEYS.WALLET.all });
+    router.push(APP_ROUTES.SETTINGS);
   };
 
   if (isPlansLoading || isMyPlanLoading) {
@@ -67,19 +75,18 @@ export default function PlansPage() {
           All Available Plans
         </h2>
 
-        {/* ✨ Updated Grid: 1 col (mobile), 2 cols (tablet), 4 cols (desktop) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {sortedPlans.map((plan, idx) => {
-            const cta = resolveCTAForDashboard({ plan, currentPlan, isOwner });
+            const cta = resolveCTA({ plan, currentPlanId, isOwner });
             return (
               <PlanCard
                 key={plan.id}
                 plan={plan}
                 ctaType={cta}
                 isFeatured={idx === 1}
-                isWorking={isSwitching}
+                isWorking={false}
                 onAction={
-                  cta === "upgrade" || cta === "downgrade"
+                  cta === "upgrade" || cta === "downgrade" || cta === "select"
                     ? () => setPendingSwitch(plan)
                     : undefined
                 }
@@ -89,41 +96,50 @@ export default function PlansPage() {
         </div>
       </div>
 
-      {/* ✨ New Footer feature block */}
       <UniversalPlanFeatures />
 
       {pendingSwitch && currentPlan && (
         <SwitchPlanConfirmModal
           isOpen={!!pendingSwitch}
-          onClose={() => !isSwitching && setPendingSwitch(null)}
-          onConfirm={handleConfirmSwitch}
+          onClose={() => setPendingSwitch(null)}
+          onComplete={handleSwitchComplete}
           currentPlan={currentPlan}
           targetPlan={pendingSwitch}
-          direction={
-            pendingSwitch.perMinuteRate < currentPlan.perMinuteRate
-              ? "upgrade"
-              : "downgrade"
-          }
-          isSwitching={isSwitching}
+          direction={resolveDirection(pendingSwitch, currentFee)}
+          feeDifference={Math.max(
+            0,
+            (pendingSwitch.currentVersion?.onboardingFee ?? 0) - currentFee,
+          )}
         />
       )}
     </div>
   );
 }
 
-function resolveCTAForDashboard({
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function resolveDirection(
+  targetPlan: Plan,
+  currentFee: number,
+): PlanChangeDirection {
+  const targetFee = targetPlan.currentVersion?.onboardingFee ?? 0;
+  if (targetFee > currentFee) return "UPGRADE";
+  if (targetFee < currentFee) return "DOWNGRADE";
+  return "LATERAL";
+}
+
+function resolveCTA({
   plan,
-  currentPlan,
+  currentPlanId,
   isOwner,
 }: {
   plan: Plan;
-  currentPlan: Plan | null;
+  currentPlanId: string | null;
   isOwner: boolean;
 }): PlanCardCTA {
-  if (!currentPlan) return isOwner ? "select" : "view-only";
-  if (plan.id === currentPlan.id) return "current";
+  if (!currentPlanId) return isOwner ? "select" : "view-only";
+  if (plan.id === currentPlanId) return "current";
   if (!isOwner) return "view-only";
-  return plan.perMinuteRate < currentPlan.perMinuteRate
-    ? "upgrade"
-    : "downgrade";
+  if (plan.currentVersion?.pricingModel === "CUSTOM") return "view-only";
+  return "upgrade";
 }

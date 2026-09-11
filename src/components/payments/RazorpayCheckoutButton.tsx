@@ -21,7 +21,7 @@ interface RazorpayCheckoutButtonProps {
   purpose: RechargePurpose;
   amountPaisa?: number;
   label: string;
-  onSuccess?: () => void;
+  onSuccess?: (purpose: RechargePurpose) => void;
   className?: string;
 }
 
@@ -93,19 +93,26 @@ export function RazorpayCheckoutButton({
         handler: async (response) => {
           setIsSubmitting(true);
           try {
-            await paymentsApi.verify({
+            const result = await paymentsApi.verify({
               razorpayOrderId: response.razorpay_order_id,
               razorpayPaymentId: response.razorpay_payment_id,
               razorpaySignature: response.razorpay_signature,
             });
-            toast.success("Recharge payment verified successfully!");
 
-            // Invalidate wallet and user workspace parameters to trigger active updates
+            // Purpose-aware success messaging
+            if (result.purpose === "ONBOARDING") {
+              toast.success("Plan activated successfully!");
+            } else {
+              toast.success("Recharge payment verified successfully!");
+            }
+
+            // Invalidate relevant caches
             qc.invalidateQueries({ queryKey: QUERY_KEYS.WALLET.all });
+            qc.invalidateQueries({ queryKey: QUERY_KEYS.PLANS.mine() });
             qc.invalidateQueries({ queryKey: QUERY_KEYS.WORKSPACE.current });
 
-            onSuccess?.();
-          } catch (err: unknown) {
+            onSuccess?.(result.purpose);
+          } catch {
             toast.error(
               "Payment confirmation failed. System is investigating order.",
             );

@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Button } from "@/components/ui/Button";
 import { RefreshButton } from "@/components/ui/RefreshButton";
+import { paisaToInr } from "@/lib/utils/formatMoney";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -93,10 +94,15 @@ export default function AdminInvitesPage() {
   };
 
   const planOptions =
-    plans?.map((p) => ({
-      value: p.id,
-      label: `${p.name} (₹${(p.perMinuteRate / 100).toFixed(2)}/min)`,
-    })) ?? [];
+    plans?.map((p) => {
+      const rateLabel = p.currentVersion
+        ? ` (${paisaToInr(p.currentVersion.perMinuteRate)}/min)`
+        : "";
+      return {
+        value: p.id,
+        label: `${p.name}${rateLabel}`,
+      };
+    }) ?? [];
 
   return (
     <div className="p-6 max-w-7xl w-full mx-auto space-y-6">

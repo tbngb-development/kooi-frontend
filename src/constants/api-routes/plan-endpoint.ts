@@ -5,4 +5,5 @@ export const PLAN_ENDPOINTS = {
   MINE: `${API_PREFIXES.TENANT}/plans/mine`,
   SELECT: (planId: string) =>
     `${API_PREFIXES.TENANT}/plans/${planId}/select` as const,
+  CHANGE: `${API_PREFIXES.TENANT}/plans/change`,
 } as const;

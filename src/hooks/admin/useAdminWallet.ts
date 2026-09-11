@@ -1,51 +1,50 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminWalletApi } from "@/lib/api/admin/admin-wallet";
+import { QUERY_KEYS } from "@/constants/config/query-keys";
 import { getAxiosErrorMessage } from "@/lib/axios-error-message";
-import type { AdjustWalletInput } from "@/types/wallet";
+import { toast } from "sonner";
+import type { AdjustWalletInput, WalletTxType } from "@/types/wallet";
 
-export const ADMIN_WALLET_KEYS = {
-  wallet: (tenantId: string) => ["admin", "wallet", tenantId] as const,
-  transactions: (tenantId: string, page: number, limit: number) =>
-    ["admin", "wallet", tenantId, "transactions", page, limit] as const,
-};
-
-export function useAdminWallet(tenantId: string) {
+export function useAdminWallet(tenantId: string | null) {
   return useQuery({
-    queryKey: ADMIN_WALLET_KEYS.wallet(tenantId),
-    queryFn: () => adminWalletApi.get(tenantId),
+    queryKey: QUERY_KEYS.ADMIN_WALLET.balance(tenantId ?? ""),
+    queryFn: () => adminWalletApi.get(tenantId!),
     enabled: !!tenantId,
   });
 }
 
 export function useAdminWalletTransactions(
-  tenantId: string,
+  tenantId: string | null,
   page = 1,
   limit = 20,
+  type?: WalletTxType,
 ) {
   return useQuery({
-    queryKey: ADMIN_WALLET_KEYS.transactions(tenantId, page, limit),
-    queryFn: () => adminWalletApi.listTransactions(tenantId, page, limit),
+    queryKey: [
+      ...QUERY_KEYS.ADMIN_WALLET.all(tenantId ?? ""),
+      "transactions",
+      page,
+      limit,
+      ...(type ? [type] : []),
+    ],
+    queryFn: () =>
+      adminWalletApi.listTransactions(tenantId!, page, limit, type),
     enabled: !!tenantId,
     placeholderData: (prev) => prev,
   });
 }
 
-export function useAdjustWallet() {
+export function useAdminAdjustWallet() {
   const qc = useQueryClient();
-
   return useMutation({
     mutationFn: (input: AdjustWalletInput) => adminWalletApi.adjust(input),
-    onSuccess: (_, variables) => {
+    onSuccess: (_, input) => {
       qc.invalidateQueries({
-        queryKey: ADMIN_WALLET_KEYS.wallet(variables.tenantId),
+        queryKey: QUERY_KEYS.ADMIN_WALLET.all(input.tenantId),
       });
-      qc.invalidateQueries({
-        queryKey: ["admin", "wallet", variables.tenantId, "transactions"],
-      });
-      toast.success("Wallet balance adjusted successfully");
+      toast.success("Wallet adjusted");
     },
     onError: (err: unknown) => toast.error(getAxiosErrorMessage(err)),
   });

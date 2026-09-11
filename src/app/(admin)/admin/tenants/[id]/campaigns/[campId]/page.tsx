@@ -5,7 +5,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useTenant } from "@/hooks/admin/useAdminTenants";
 import {
   useAdminCampaign,
-  useAdminCampaignStats,
   useAdminCampaignPerformance,
 } from "@/hooks/admin/useAdminCampaigns";
 import { useAdminBatches } from "@/hooks/admin/useAdminBatches";
@@ -111,7 +110,7 @@ export default function AdminCampaignDetailPage({ params }: PageProps) {
         },
         {
           label: "Cost/Lead",
-          value: paisaToInr(performance.totalCost),
+          value: `₹${performance.totalCost}`,
           color: "text-secondary-600",
         },
       ]

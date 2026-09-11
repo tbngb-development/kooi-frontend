@@ -10,6 +10,12 @@ import type {
 } from "@/types/payment";
 
 export const paymentsApi = {
+  /**
+   * POST /v1/payments/create-order
+   *
+   * For ONBOARDING: omit `amountPaisa` — backend reads from effectiveTerms.
+   * For WALLET_TOPUP: `amountPaisa` is required (min 100 = ₹1).
+   */
   createOrder: async (
     input: CreateOrderInput,
   ): Promise<CreateOrderResponse> => {
@@ -23,6 +29,10 @@ export const paymentsApi = {
     return res.data.data;
   },
 
+  /**
+   * POST /v1/payments/verify
+   * Response includes `purpose` so the frontend knows which flow to complete.
+   */
   verify: async (input: VerifyPaymentInput): Promise<VerifyPaymentResponse> => {
     const res = await apiClient.post<ApiResponse<VerifyPaymentResponse>>(
       PAYMENT_ENDPOINTS.VERIFY,
@@ -34,6 +44,10 @@ export const paymentsApi = {
     return res.data.data;
   },
 
+  /**
+   * GET /v1/payments/order-status/:orderId
+   * Poll every 5s while status is INITIATED.
+   */
   getOrderStatus: async (orderId: string): Promise<OrderStatusResponse> => {
     const res = await apiClient.get<ApiResponse<OrderStatusResponse>>(
       PAYMENT_ENDPOINTS.ORDER_STATUS(orderId),

@@ -9,6 +9,7 @@ export const adminUsersApi = {
     limit?: number;
     search?: string;
   }): Promise<AdminUsersPage> => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const res = await apiClient.get<ApiResponse<any>>(
       ADMIN_USER_ENDPOINTS.BASE,
       { params },

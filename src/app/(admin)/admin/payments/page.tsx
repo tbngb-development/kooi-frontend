@@ -2,7 +2,7 @@
 
 import {
   useAdminPayments,
-  useAdminPaymentsSummary,
+  useAdminPaymentSummary,
 } from "@/hooks/admin/useAdminPayments";
 import { usePagination } from "@/hooks/usePagination";
 import { Card } from "@/components/ui/Card";
@@ -11,58 +11,91 @@ import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Pagination } from "@/components/ui/Pagination";
 import { RefreshButton } from "@/components/ui/RefreshButton";
-import { paisaToInr } from "@/constants/config/wallet.config";
+import { paisaToInr } from "@/lib/utils/formatMoney";
+import { useState } from "react";
 import {
   Banknote,
   CreditCard,
   Sparkles,
   AlertCircle,
-  TrendingUp,
+  Search,
 } from "lucide-react";
 
 export default function AdminGlobalPaymentsPage() {
   const { page, limit, setPage } = usePagination({ initialLimit: 20 });
+  const [tenantFilter, setTenantFilter] = useState("");
+  const [activeTenantId, setActiveTenantId] = useState<string | undefined>(
+    undefined,
+  );
+
+  // Summary query is enabled ONLY when filtering for a specific tenant
   const {
     data: summary,
     isLoading: isSummaryLoading,
     isFetching: isSummaryFetching,
     refetch: refetchSummary,
-  } = useAdminPaymentsSummary();
+  } = useAdminPaymentSummary(activeTenantId ?? null);
 
   const {
     data: payPage,
     isLoading: isTableLoading,
     isFetching: isTableFetching,
     refetch: refetchTable,
-  } = useAdminPayments({ page, limit });
+  } = useAdminPayments({
+    page,
+    limit,
+    tenantId: activeTenantId,
+  });
 
   const handleRefresh = () => {
-    refetchSummary();
+    if (activeTenantId) {
+      refetchSummary();
+    }
     refetchTable();
   };
 
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setActiveTenantId(tenantFilter.trim() || undefined);
+    setPage(1);
+  };
+
+  // Client-side fallback metrics for the current visible items
+  const ledgerItems = payPage?.items ?? [];
+  const localTotalRevenue = ledgerItems
+    .filter((p) => p.status === "SUCCESS")
+    .reduce((sum, p) => sum + p.amount, 0);
+  const localSuccessCount = ledgerItems.filter(
+    (p) => p.status === "SUCCESS",
+  ).length;
+  const localFailedCount = ledgerItems.filter(
+    (p) => p.status === "FAILED",
+  ).length;
+
   const mCards = [
     {
-      title: "Total Platform Revenue",
-      value: summary ? paisaToInr(summary.totalRevenue || 0) : "—",
+      title: activeTenantId ? "Tenant Total Revenue" : "Revenue (Page Total)",
+      value: activeTenantId
+        ? summary
+          ? paisaToInr(summary.totalAmountPaisa)
+          : "—"
+        : paisaToInr(localTotalRevenue),
       icon: Banknote,
       color: "text-brand-600 bg-brand-50 border-brand-100",
     },
     {
-      title: "30-Day MRR Approx",
-      value: summary ? paisaToInr(summary.mrrApprox || 0) : "—",
-      icon: TrendingUp,
-      color: "text-secondary-600 bg-secondary-50 border-secondary-100",
-    },
-    {
-      title: "Completed recharges",
-      value: summary?.successCount ?? 0,
+      title: activeTenantId ? "Successful Payments" : "Success (Page Total)",
+      value: activeTenantId
+        ? (summary?.successfulRecharges ?? 0)
+        : localSuccessCount,
       icon: Sparkles,
       color: "text-success-600 bg-success-50 border-success-100",
     },
     {
-      title: "Failed payments",
-      value: summary?.failedCount ?? 0,
+      title: activeTenantId ? "Failed Payments" : "Failed (Page Total)",
+      value: activeTenantId
+        ? (summary?.failedRecharges ?? 0)
+        : localFailedCount,
       icon: AlertCircle,
       color: "text-error-600 bg-error-50 border-error-100",
     },
@@ -73,13 +106,13 @@ export default function AdminGlobalPaymentsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-text-primary tracking-tight">
-            Payments & Revenue
+            Payments & Revenue Ledger
           </h1>
           <p className="text-sm text-text-muted mt-1">
             Platform-wide monetization control and subscription ledger analysis.
           </p>
         </div>
-        <div className="flex items-center shrink-0">
+        <div className="flex items-center shrink-0 gap-3">
           <RefreshButton
             onRefresh={handleRefresh}
             isRefreshing={isSummaryFetching || isTableFetching}
@@ -87,8 +120,44 @@ export default function AdminGlobalPaymentsPage() {
         </div>
       </div>
 
+      {/* Tenant search filter */}
+      <form onSubmit={handleSearchSubmit} className="flex gap-2 max-w-md">
+        <div className="relative flex-1">
+          <Search
+            size={16}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-text-placeholder"
+          />
+          <input
+            type="text"
+            placeholder="Filter by Tenant ID (UUID)..."
+            value={tenantFilter}
+            onChange={(e) => setTenantFilter(e.target.value)}
+            className="w-full pl-9 pr-3 h-10 text-sm rounded-lg border border-surface-border bg-surface text-text-primary focus:outline-none focus:ring-1 focus:ring-brand-500 focus:border-brand-500 transition-all"
+          />
+        </div>
+        <button
+          type="submit"
+          className="h-10 px-4 rounded-lg bg-text-primary text-text-inverse text-sm font-semibold hover:bg-neutral-800 transition-colors"
+        >
+          Search
+        </button>
+        {activeTenantId && (
+          <button
+            type="button"
+            onClick={() => {
+              setTenantFilter("");
+              setActiveTenantId(undefined);
+              setPage(1);
+            }}
+            className="h-10 px-3 rounded-lg border border-surface-border text-xs font-semibold hover:bg-surface-subtle transition-colors"
+          >
+            Clear
+          </button>
+        )}
+      </form>
+
       {/* Metrics Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {mCards.map((card, idx) => {
           const Icon = card.icon;
           return (
@@ -102,8 +171,8 @@ export default function AdminGlobalPaymentsPage() {
                 <p className="text-[10px] font-bold uppercase tracking-wider text-text-placeholder">
                   {card.title}
                 </p>
-                <h3 className="text-lg font-bold text-text-primary tracking-tight mt-0.5">
-                  {isSummaryLoading ? (
+                <h3 className="text-lg font-bold text-text-primary tracking-tight mt-0.5 font-mono">
+                  {isSummaryLoading && activeTenantId ? (
                     <span className="inline-block w-20 h-5 bg-surface-subtle animate-pulse rounded" />
                   ) : (
                     card.value
@@ -135,6 +204,7 @@ export default function AdminGlobalPaymentsPage() {
                   <th className="px-5 py-3">Payment ID</th>
                   <th className="px-5 py-3">Tenant Workspace</th>
                   <th className="px-5 py-3">Billing Slabs</th>
+                  <th className="px-5 py-3">Purpose</th>
                   <th className="px-5 py-3">Status</th>
                   <th className="px-5 py-3 text-right">Settled Date</th>
                 </tr>
@@ -148,11 +218,20 @@ export default function AdminGlobalPaymentsPage() {
                     <td className="px-5 py-4 font-mono text-xs text-text-placeholder">
                       {pay.id}
                     </td>
-                    <td className="px-5 py-4 font-semibold text-text-secondary">
+                    <td className="px-5 py-4 font-semibold text-text-secondary max-w-[200px] truncate">
                       {pay.tenantName ?? "Workspace"}
                     </td>
-                    <td className="px-5 py-4 font-bold text-brand-700">
-                      {paisaToInr(pay.amount || 0)}
+                    <td className="px-5 py-4 font-bold text-brand-700 font-mono">
+                      {paisaToInr(pay.amount)}
+                    </td>
+                    <td className="px-5 py-4">
+                      <Badge
+                        variant={
+                          pay.purpose === "ONBOARDING" ? "purple" : "blue"
+                        }
+                      >
+                        {pay.purpose === "ONBOARDING" ? "Onboarding" : "Topup"}
+                      </Badge>
                     </td>
                     <td className="px-5 py-4">
                       <Badge

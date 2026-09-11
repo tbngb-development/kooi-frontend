@@ -5,7 +5,7 @@ import { useTenant } from "@/hooks/admin/useAdminTenants";
 import {
   useAdminWallet,
   useAdminWalletTransactions,
-  useAdjustWallet,
+  useAdminAdjustWallet,
 } from "@/hooks/admin/useAdminWallet";
 import { usePagination } from "@/hooks/usePagination";
 import { AdminTenantNav } from "@/components/admin/AdminTenantNav";
@@ -19,7 +19,7 @@ import { Modal } from "@/components/ui/Modal";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Pagination } from "@/components/ui/Pagination";
-import { paisaToInr } from "@/constants/config/wallet.config";
+import { paisaToInr } from "@/lib/utils/formatMoney";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -29,12 +29,14 @@ import {
   ArrowDownLeft,
   Plus,
   History,
+  Coins,
 } from "lucide-react";
 import type { WalletTxType, WalletTransaction } from "@/types/wallet";
 
 const adjustSchema = z.object({
   amountRupees: z.number().positive("Amount must be greater than zero"),
-  type: z.enum(["CREDIT", "DEBIT", "BONUS"] as const),
+  type: z.enum(["CREDIT", "DEBIT", "BONUS", "REFUND", "ADJUSTMENT"] as const),
+  targetBalance: z.enum(["CASH", "BONUS"] as const),
   description: z.string().min(3, "Reason requires at least 3 characters"),
 });
 
@@ -42,12 +44,13 @@ type AdjustFormValues = z.infer<typeof adjustSchema>;
 
 const typeVariants: Record<
   WalletTxType,
-  "success" | "error" | "purple" | "gray" | "blue"
+  "success" | "error" | "purple" | "gray" | "blue" | "orange"
 > = {
   CREDIT: "success",
   DEBIT: "error",
   REFUND: "blue",
   BONUS: "purple",
+  BONUS_EXPIRY: "orange",
   ADJUSTMENT: "gray",
 };
 
@@ -71,7 +74,7 @@ export default function TenantWalletPage({
     refetch: refetchTx,
   } = useAdminWalletTransactions(tenantId, page, limit);
 
-  const adjustMutation = useAdjustWallet();
+  const adjustMutation = useAdminAdjustWallet();
   const [showAdjust, setShowAdjust] = useState(false);
 
   const {
@@ -81,7 +84,12 @@ export default function TenantWalletPage({
     formState: { errors },
   } = useForm<AdjustFormValues>({
     resolver: zodResolver(adjustSchema),
-    defaultValues: { amountRupees: 100, type: "CREDIT", description: "" },
+    defaultValues: {
+      amountRupees: 100,
+      type: "CREDIT",
+      targetBalance: "CASH",
+      description: "",
+    },
   });
 
   const onAdjust = (values: AdjustFormValues) => {
@@ -90,6 +98,7 @@ export default function TenantWalletPage({
         tenantId,
         amount: Math.round(values.amountRupees * 100), // In paisa
         type: values.type,
+        targetBalance: values.targetBalance,
         description: values.description,
       },
       {
@@ -144,14 +153,28 @@ export default function TenantWalletPage({
         />
 
         {/* Balance Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <Card className="p-5 flex items-start justify-between border border-surface-border">
+            <div className="space-y-1">
+              <span className="text-xs font-bold uppercase tracking-wider text-text-placeholder">
+                Total Usable Balance
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-bold font-mono tracking-tight text-text-primary">
+                {paisaToInr(wallet.totalBalance)}
+              </h2>
+            </div>
+            <div className="h-10 w-10 border border-brand-100 bg-brand-50 rounded-lg flex items-center justify-center text-brand-600 shrink-0">
+              <Coins size={18} />
+            </div>
+          </Card>
+
           <Card className="p-5 flex items-start justify-between border border-surface-border">
             <div className="space-y-1">
               <span className="text-xs font-bold uppercase tracking-wider text-text-placeholder">
                 Principal Cash Balance
               </span>
-              <h2 className="text-3xl font-bold font-mono tracking-tight text-text-primary">
-                {paisaToInr(wallet.balance)}
+              <h2 className="text-2xl sm:text-3xl font-bold font-mono tracking-tight text-success-700">
+                {paisaToInr(wallet.cashBalance)}
               </h2>
             </div>
             <div className="h-10 w-10 border border-success-100 bg-success-50 rounded-lg flex items-center justify-center text-success-600 shrink-0">
@@ -164,7 +187,7 @@ export default function TenantWalletPage({
               <span className="text-xs font-bold uppercase tracking-wider text-text-placeholder">
                 Promotional Bonus Balance
               </span>
-              <h2 className="text-3xl font-bold font-mono tracking-tight text-secondary-700">
+              <h2 className="text-2xl sm:text-3xl font-bold font-mono tracking-tight text-secondary-700">
                 {paisaToInr(wallet.bonusBalance)}
               </h2>
             </div>
@@ -201,7 +224,7 @@ export default function TenantWalletPage({
                     <th className="px-5 py-3">Tx ID</th>
                     <th className="px-5 py-3">Type</th>
                     <th className="px-5 py-3">Amount</th>
-                    <th className="px-5 py-3">Closing Balance</th>
+                    <th className="px-5 py-3">Cash Balance After</th>
                     <th className="px-5 py-3">Reason</th>
                     <th className="px-5 py-3 text-right">Timestamp</th>
                   </tr>
@@ -222,16 +245,16 @@ export default function TenantWalletPage({
                       </td>
                       <td
                         className={`px-5 py-4 font-mono font-bold ${
-                          tx.type === "DEBIT"
+                          tx.cashDelta < 0 || tx.bonusDelta < 0
                             ? "text-error-600"
                             : "text-success-600"
                         }`}
                       >
-                        {tx.type === "DEBIT" ? "-" : "+"}
+                        {tx.cashDelta < 0 || tx.bonusDelta < 0 ? "-" : "+"}
                         {paisaToInr(tx.amount)}
                       </td>
                       <td className="px-5 py-4 font-mono text-text-secondary text-xs">
-                        {paisaToInr(tx.balanceAfter)}
+                        {paisaToInr(tx.cashBalanceAfter)}
                       </td>
                       <td className="px-5 py-4 text-text-secondary max-w-xs truncate">
                         {tx.description}
@@ -281,8 +304,19 @@ export default function TenantWalletPage({
               { value: "CREDIT", label: "CREDIT (Add cash to balance)" },
               { value: "DEBIT", label: "DEBIT (Deduct from balance)" },
               { value: "BONUS", label: "BONUS (Promotional credits)" },
+              { value: "REFUND", label: "REFUND (Reimbursement)" },
+              { value: "ADJUSTMENT", label: "ADJUSTMENT (Manual Correction)" },
             ]}
             {...register("type")}
+          />
+          <Select
+            label="Target Balance Bucket"
+            error={errors.targetBalance?.message}
+            options={[
+              { value: "CASH", label: "CASH (Real funds)" },
+              { value: "BONUS", label: "BONUS (Promotional bucket)" },
+            ]}
+            {...register("targetBalance")}
           />
           <Input
             label="Adjustment Reason / Description"

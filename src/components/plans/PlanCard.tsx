@@ -36,7 +36,8 @@ interface PlanCardProps {
   onAction?: () => void;
 }
 
-// ── Helpers for API Enum -> Display Text ──
+// ── Enum → Display Helpers ───────────────────────────────────────────────────
+
 function formatCallingChannel(channel: CallingChannel): string {
   switch (channel) {
     case "DEDICATED_WITH_NUMBER":
@@ -80,6 +81,8 @@ function formatTeamMembers(max: number | null): string {
   return `Admin + ${max - 1}`;
 }
 
+// ── Component ────────────────────────────────────────────────────────────────
+
 export function PlanCard({
   plan,
   ctaType,
@@ -87,29 +90,57 @@ export function PlanCard({
   isWorking = false,
   onAction,
 }: PlanCardProps) {
+  const v = plan.currentVersion;
   const isCurrent = ctaType === "current" || ctaType === "proceed";
-  const isCustom = plan.pricingModel === "CUSTOM";
+  const isCustom = v?.pricingModel === "CUSTOM";
   const highlighted = isCurrent || isFeatured;
+
+  // Guard: no published version yet
+  if (!v) {
+    return (
+      <div className="relative flex w-full">
+        <Card className="flex flex-col w-full p-4 sm:p-5 rounded-2xl border-2 border-surface-border bg-surface shadow-sm">
+          <div className="pb-4 text-center">
+            <h3 className="text-xl font-extrabold text-text-primary capitalize tracking-tight">
+              {plan.name}
+            </h3>
+            <p className="text-sm text-text-muted mt-2">
+              Pricing not yet available
+            </p>
+          </div>
+          <div className="mt-auto pt-1">
+            <Button
+              variant="outline"
+              disabled
+              className="w-full h-11 text-sm font-bold"
+            >
+              Coming Soon
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   // Rate text
   const formattedRate =
-    plan.pricingModel === "VOLUME"
-      ? `Volume (${paisaToInr(plan.perMinuteRate)}/min)`
+    v.pricingModel === "VOLUME"
+      ? `Volume (${paisaToInr(v.perMinuteRate)}/min)`
       : isCustom
         ? "Custom Pricing"
-        : `${paisaToInr(plan.perMinuteRate)}/min`;
+        : `${paisaToInr(v.perMinuteRate)}/min`;
 
   // Included balance & validity
   const formattedBalance = isCustom
     ? "Custom"
-    : plan.bonusValidityDays
-      ? `${paisaToInr(plan.includedBalance)} - ${plan.bonusValidityDays} days validity`
-      : paisaToInr(plan.includedBalance);
+    : v.bonusValidityDays
+      ? `${paisaToInr(v.includedBalance)} - ${v.bonusValidityDays} days validity`
+      : paisaToInr(v.includedBalance);
 
   // Strikethrough pricing logic
   const hasOriginalPrice =
-    plan.onboardingFeeOriginal !== null &&
-    plan.onboardingFeeOriginal > plan.onboardingFee;
+    v.onboardingFeeOriginal !== null &&
+    v.onboardingFeeOriginal > v.onboardingFee;
 
   return (
     <div className="relative flex w-full">
@@ -147,14 +178,11 @@ export function PlanCard({
                 <div className="flex items-baseline justify-center gap-1.5 flex-wrap">
                   {hasOriginalPrice && (
                     <s className="text-sm text-text-placeholder font-medium line-through">
-                      {paisaToInr(plan.onboardingFeeOriginal!).replace(
-                        ".00",
-                        "",
-                      )}
+                      {paisaToInr(v.onboardingFeeOriginal!).replace(".00", "")}
                     </s>
                   )}
                   <p className="text-2xl font-extrabold font-mono tracking-tight text-text-primary">
-                    {paisaToInr(plan.onboardingFee).replace(".00", "")}
+                    {paisaToInr(v.onboardingFee).replace(".00", "")}
                   </p>
                 </div>
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">
@@ -171,26 +199,23 @@ export function PlanCard({
 
           <FeatureRow
             label="Active campaigns"
-            value={plan.maxActiveCampaigns ?? "Custom / Unlimited"}
+            value={v.maxActiveCampaigns ?? "Unlimited"}
           />
-          <FeatureRow
-            label="Max. Agents"
-            value={plan.maxAgents ?? "Unlimited"}
-          />
+          <FeatureRow label="Max. Agents" value={v.maxAgents ?? "Unlimited"} />
           <FeatureRow
             label="Dashboard"
-            value={formatDashboardTier(plan.dashboardTier)}
+            value={formatDashboardTier(v.dashboardTier)}
           />
           <FeatureRow label="Included Balance" value={formattedBalance} />
           <FeatureRow
             label="Calling channel"
-            value={formatCallingChannel(plan.callingChannel)}
+            value={formatCallingChannel(v.callingChannel)}
           />
 
           {/* Brochure Feature Boolean */}
           <div className="flex items-center justify-between text-[13px] leading-tight">
             <span className="text-text-muted">Brochure Upload</span>
-            {plan.brochureUpload ? (
+            {v.brochureUpload ? (
               <Check size={15} className="text-brand-600" />
             ) : (
               <X size={15} className="text-text-placeholder" />
@@ -199,19 +224,19 @@ export function PlanCard({
 
           <FeatureRow
             label="Team Size"
-            value={formatTeamMembers(plan.maxTeamMembers)}
+            value={formatTeamMembers(v.maxTeamMembers)}
           />
           <FeatureRow
             label="Credit Limit"
-            value={paisaToInr(plan.lowBalanceThreshold).replace(".00", "")}
+            value={paisaToInr(v.lowBalanceThreshold).replace(".00", "")}
           />
           <FeatureRow
             label="Retry automation"
-            value={plan.retryAutomation ? "Available" : "Not Available"}
+            value={v.retryAutomation ? "Available" : "Not Available"}
           />
           <FeatureRow
             label="Support"
-            value={formatSupportTier(plan.supportTier)}
+            value={formatSupportTier(v.supportTier)}
           />
         </div>
 
@@ -230,6 +255,8 @@ export function PlanCard({
     </div>
   );
 }
+
+// ── Sub-components ───────────────────────────────────────────────────────────
 
 function FeatureRow({
   label,
@@ -265,7 +292,6 @@ function PlanCardCTAButton({
 }) {
   const base = "w-full h-11 text-sm font-bold";
 
-  // Enterprise / Custom CTA Override
   if (isCustom) {
     return (
       <Button

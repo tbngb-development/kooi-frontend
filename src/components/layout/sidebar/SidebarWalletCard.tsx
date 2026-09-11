@@ -11,11 +11,6 @@ interface SidebarWalletCardProps {
   className?: string;
 }
 
-/**
- * Compact, space-efficient wallet card for the sidebar.
- * Reduced vertical footprint with inline balance display.
- * Reads lowBalanceThreshold from the active tenant plan (API v2).
- */
 export function SidebarWalletCard({
   onRechargeClick,
   className,
@@ -38,9 +33,10 @@ export function SidebarWalletCard({
 
   if (!wallet) return null;
 
-  const lowBalanceThreshold = tenantPlan?.plan?.lowBalanceThreshold ?? null;
+  const lowBalanceThreshold =
+    tenantPlan?.effectiveTerms?.lowBalanceThreshold ?? null;
   const isLowBalance =
-    lowBalanceThreshold !== null && wallet.balance <= lowBalanceThreshold;
+    lowBalanceThreshold !== null && wallet.totalBalance <= lowBalanceThreshold;
 
   return (
     <button
@@ -67,7 +63,7 @@ export function SidebarWalletCard({
               Balance
             </p>
             <p className="font-mono text-base font-bold text-white leading-tight mt-0.5 truncate">
-              {paisaToInr(wallet.balance)}
+              {paisaToInr(wallet.totalBalance)}
             </p>
           </div>
         </div>

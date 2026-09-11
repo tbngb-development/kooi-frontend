@@ -2,7 +2,6 @@ import apiClient from "@/lib/axios";
 import { ADMIN_LEAD_ENDPOINTS } from "@/constants/api-routes/admin/lead-endpoint";
 import type { ApiResponse, Pagination } from "@/types/api";
 import type { Lead, LeadDetail, LeadStats } from "@/types/lead";
-import { reschedulePrefetchTask } from "next/dist/client/components/segment-cache/scheduler";
 
 export interface AdminLeadQueryParams {
   tenantId: string;
