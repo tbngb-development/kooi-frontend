@@ -2,13 +2,11 @@
 
 import { Card, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Select } from "@/components/ui/Select";
-import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { dashboardApi } from "@/lib/api/dashboard";
 import { useDashboardCallTrends } from "@/hooks/useDashboard";
 import type { DashboardFilters, Granularity } from "@/types/dashboard";
-import { Download, Phone } from "lucide-react";
+import { Phone } from "lucide-react";
 import { useState } from "react";
 import {
   Bar,
@@ -42,14 +40,6 @@ export function CallTrendsChart({ filters }: Props) {
     granularity,
   });
 
-  const handleExport = () => {
-    const url = dashboardApi.buildExportCallTrendsUrl({
-      ...filters,
-      granularity,
-    });
-    window.open(url, "_blank");
-  };
-
   return (
     <Card padding="md">
       <CardHeader>
@@ -68,14 +58,6 @@ export function CallTrendsChart({ filters }: Props) {
               aria-label="Granularity"
             />
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            leftIcon={<Download size={14} />}
-            onClick={handleExport}
-          >
-            CSV
-          </Button>
         </div>
       </CardHeader>
 
