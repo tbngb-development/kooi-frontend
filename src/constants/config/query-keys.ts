@@ -1,3 +1,14 @@
+import {
+  AdminDateRange,
+  AdminTimeSeriesFilters,
+  AdminTopTenantsFilters,
+} from "@/types/admin-dashboard";
+import {
+  DashboardFilters,
+  DashboardTimeSeriesFilters,
+  TopCampaignsFilters,
+} from "@/types/dashboard";
+
 export const QUERY_KEYS = {
   AUTH: {
     all: ["auth"] as const,
@@ -63,17 +74,56 @@ export const QUERY_KEYS = {
   },
   DASHBOARD: {
     all: ["dashboard"] as const,
-    overview: () => [...QUERY_KEYS.DASHBOARD.all, "overview"] as const,
-    activity: () => [...QUERY_KEYS.DASHBOARD.all, "activity"] as const,
-    campaigns: () => [...QUERY_KEYS.DASHBOARD.all, "campaigns"] as const,
+    overview: (filters: DashboardFilters) =>
+      [...QUERY_KEYS.DASHBOARD.all, "overview", filters] as const,
+    callTrends: (filters: DashboardTimeSeriesFilters) =>
+      [...QUERY_KEYS.DASHBOARD.all, "call-trends", filters] as const,
+    spendTrends: (filters: DashboardTimeSeriesFilters) =>
+      [...QUERY_KEYS.DASHBOARD.all, "spend-trends", filters] as const,
+    leadFunnel: (filters: DashboardFilters) =>
+      [...QUERY_KEYS.DASHBOARD.all, "lead-funnel", filters] as const,
+    dispositionBreakdown: (filters: DashboardFilters) =>
+      [...QUERY_KEYS.DASHBOARD.all, "disposition-breakdown", filters] as const,
+    temperatureDistribution: (filters: DashboardFilters) =>
+      [
+        ...QUERY_KEYS.DASHBOARD.all,
+        "temperature-distribution",
+        filters,
+      ] as const,
+    campaignPerformance: (filters: DashboardFilters) =>
+      [...QUERY_KEYS.DASHBOARD.all, "campaign-performance", filters] as const,
+    topCampaigns: (filters: TopCampaignsFilters) =>
+      [...QUERY_KEYS.DASHBOARD.all, "top-campaigns", filters] as const,
+    recentActivity: () =>
+      [...QUERY_KEYS.DASHBOARD.all, "recent-activity"] as const,
   },
   // ── Admin-specific query keys ──────────────────────────────────────────────
   ADMIN_DASHBOARD: {
     all: ["admin", "dashboard"] as const,
-    overview: () => [...QUERY_KEYS.ADMIN_DASHBOARD.all, "overview"] as const,
-    tenantsHealth: () =>
-      [...QUERY_KEYS.ADMIN_DASHBOARD.all, "tenants-health"] as const,
-    activity: () => [...QUERY_KEYS.ADMIN_DASHBOARD.all, "activity"] as const,
+    overview: (filters: AdminDateRange) =>
+      [...QUERY_KEYS.ADMIN_DASHBOARD.all, "overview", filters] as const,
+    revenueTrends: (filters: AdminTimeSeriesFilters) =>
+      [...QUERY_KEYS.ADMIN_DASHBOARD.all, "revenue-trends", filters] as const,
+    callVolumeTrends: (filters: AdminTimeSeriesFilters) =>
+      [
+        ...QUERY_KEYS.ADMIN_DASHBOARD.all,
+        "call-volume-trends",
+        filters,
+      ] as const,
+    tenantDistribution: () =>
+      [...QUERY_KEYS.ADMIN_DASHBOARD.all, "tenant-distribution"] as const,
+    topTenants: (filters: AdminTopTenantsFilters) =>
+      [...QUERY_KEYS.ADMIN_DASHBOARD.all, "top-tenants", filters] as const,
+    tenantEngagement: (filters: AdminDateRange) =>
+      [
+        ...QUERY_KEYS.ADMIN_DASHBOARD.all,
+        "tenant-engagement",
+        filters,
+      ] as const,
+    atRiskTenants: () =>
+      [...QUERY_KEYS.ADMIN_DASHBOARD.all, "at-risk-tenants"] as const,
+    activity: (limit: number) =>
+      [...QUERY_KEYS.ADMIN_DASHBOARD.all, "activity", limit] as const,
   },
   ADMIN_CAMPAIGNS: {
     all: (tenantId: string) => ["admin", "campaigns", tenantId] as const,

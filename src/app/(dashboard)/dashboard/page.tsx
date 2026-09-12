@@ -1,102 +1,83 @@
 "use client";
 
-import { StatsCard } from "@/components/dashboard/StatsCard";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
-import { CampaignPerformance } from "@/components/dashboard/CampaignPerformance";
-import { PageSpinner } from "@/components/ui/Spinner";
-import { EmptyState } from "@/components/ui/EmptyState";
+import { CallTrendsChart } from "@/components/dashboard/CallTrendsChart";
+import { DashboardFilters } from "@/components/dashboard/DashboardFilters";
+import { DispositionBreakdown } from "@/components/dashboard/DispositionBreakdown";
+import { LeadFunnel } from "@/components/dashboard/LeadFunnel";
+import { OverviewCards } from "@/components/dashboard/OverviewCards";
+import { SpendTrendsChart } from "@/components/dashboard/SpendTrendsChart";
+import { TemperatureDistribution } from "@/components/dashboard/TemperatureDistribution";
+import { TopCampaigns } from "@/components/dashboard/TopCampaigns";
+import { PageSpinner, Spinner } from "@/components/ui/Spinner";
 import {
   useDashboardOverview,
-  useDashboardActivity,
-  useDashboardCampaigns,
+  useDashboardRecentActivity,
 } from "@/hooks/useDashboard";
-import { BarChart3, Phone, Target, Users } from "lucide-react";
+import { useDashboardFilters } from "@/hooks/useDashboardFilters";
 
 export default function DashboardPage() {
-  const { data: overview, isLoading: overviewLoading } = useDashboardOverview();
-  const { data: activity, isLoading: activityLoading } = useDashboardActivity();
-  const { data: campaigns, isLoading: campaignsLoading } =
-    useDashboardCampaigns();
+  const { filters, setFilters, reset, apiFilters } = useDashboardFilters();
 
-  if (overviewLoading) return <PageSpinner />;
-
-  // ── Parse string rate from backend for comparison ─────────────────────────
-  const qualificationRate = parseFloat(
-    overview?.leads.qualificationRate ?? "0",
-  );
+  const { data: overview, isLoading: overviewLoading } =
+    useDashboardOverview(apiFilters);
+  const { data: activity, isLoading: activityLoading } =
+    useDashboardRecentActivity();
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatsCard
-          title="Total Campaigns"
-          value={overview?.campaigns.total ?? 0}
-          subtitle={`${overview?.campaigns.active ?? 0} active`}
-          icon={<Target size={18} />}
-          iconColor="bg-brand-100 text-brand-600"
-        />
-
-        <StatsCard
-          title="Total Leads"
-          value={overview?.leads.total ?? 0}
-          subtitle={`${overview?.leads.qualified ?? 0} qualified`}
-          icon={<Users size={18} />}
-          iconColor="bg-info-100 text-info-600"
-        />
-
-        <StatsCard
-          title="Total Calls"
-          value={overview?.calls.total ?? 0}
-          subtitle={`${overview?.calls.completed ?? 0} completed`}
-          icon={<Phone size={18} />}
-          iconColor="bg-secondary-50 text-secondary-600"
-        />
-
-        <StatsCard
-          title="Qualification Rate"
-          value={overview?.leads.qualificationRate ?? "0%"}
-          subtitle="Percentage of qualified leads"
-          icon={<BarChart3 size={18} />}
-          iconColor="bg-success-100 text-success-600"
-          trend={{
-            value: qualificationRate >= 50 ? "Above target" : "Below target",
-            positive: qualificationRate >= 50,
-          }}
-        />
+    <div className="flex flex-col gap-6 max-w-400 mx-auto pb-8">
+      {/* ─── Header (full width, always on top) ─────────────────── */}
+      <div>
+        <h1 className="text-2xl font-bold text-text-primary tracking-tight flex items-center gap-2">
+          Dashboard Overview
+        </h1>
+        <p className="text-sm font-medium text-text-muted mt-1">
+          Real-time insights across campaigns, call telemetry, and wallet
+          expenditure.
+        </p>
       </div>
 
-      {/* Main content */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
-        {/* Campaign performance */}
-        <div className="xl:col-span-2">
-          {campaignsLoading ? (
-            <PageSpinner />
-          ) : campaigns && campaigns.length > 0 ? (
-            <CampaignPerformance campaigns={campaigns} />
-          ) : (
-            <EmptyState
-              title="No campaigns yet"
-              description="Create your first campaign to see performance data here."
-              icon={<Target size={22} />}
-            />
-          )}
+      {/* ─── Overview KPIs ──────────────────────────────────────── */}
+      {overviewLoading || !overview ? (
+        <div className="py-12">
+          <PageSpinner />
         </div>
+      ) : (
+        <OverviewCards data={overview} />
+      )}
 
-        {/* Qualified leads feed */}
-        <div>
+      {/* ─── Filters (full width bar below header) ──────────────── */}
+      <DashboardFilters value={filters} onChange={setFilters} onReset={reset} />
+
+      {/* ─── Trends ─────────────────────────────────────────────── */}
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+        <CallTrendsChart filters={apiFilters} />
+        <SpendTrendsChart filters={apiFilters} />
+      </div>
+
+      {/* ─── Funnel + Outcomes + Temperature ────────────────────── */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <LeadFunnel filters={apiFilters} />
+        <DispositionBreakdown filters={apiFilters} />
+        <TemperatureDistribution filters={apiFilters} />
+      </div>
+
+      {/* ─── Top Campaigns + Activity ───────────────────────────── */}
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+        <div className="xl:col-span-2">
+          <TopCampaigns filters={apiFilters} />
+        </div>
+        <div className="flex flex-col h-full">
           {activityLoading ? (
-            <PageSpinner />
+            <div className="flex h-64 items-center justify-center bg-surface border border-surface-border rounded-xl">
+              <Spinner className="text-brand-600" />
+            </div>
           ) : activity ? (
             <ActivityFeed data={activity} />
-          ) : (
-            <EmptyState
-              title="No recent activity"
-              description="Qualified leads from campaigns will appear here."
-            />
-          )}
+          ) : null}
         </div>
       </div>
+
     </div>
   );
 }

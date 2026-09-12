@@ -1,5 +1,20 @@
 "use client";
 
+import { useState } from "react";
+import Link from "next/link";
+import {
+  History,
+  AlertTriangle,
+  Clock,
+  PhoneCall,
+  Gift,
+  Wrench,
+  RotateCcw,
+  CreditCard,
+  Wallet,
+  ArrowRight,
+} from "lucide-react";
+
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -11,21 +26,9 @@ import { APP_ROUTES } from "@/constants/routes/app.routes";
 import { useMyPlan } from "@/hooks/usePlans";
 import { useWallet, useWalletTransactions } from "@/hooks/useWallet";
 import { useAuthStore } from "@/store/authStore";
-import type { WalletTransaction, WalletTxType } from "@/types/wallet";
-import {
-  ArrowUpCircle,
-  History,
-  AlertTriangle,
-  Clock,
-  PhoneCall,
-  Gift,
-  Wrench,
-  RotateCcw,
-  CreditCard,
-} from "lucide-react";
-import Link from "next/link";
-import { useState } from "react";
+import { formatDateOnly, formatTimeOnly } from "@/lib/utils/formatDate";
 import { cn } from "@/lib/utils/cn";
+import type { WalletTransaction, WalletTxType } from "@/types/wallet";
 
 // ── Transaction type → visual mapping ────────────────────────────────────────
 
@@ -47,7 +50,7 @@ const TX_LABELS: Record<WalletTxType, string> = {
   BONUS: "Plan Bonus",
   BONUS_EXPIRY: "Bonus Expired",
   REFUND: "Refund",
-  ADJUSTMENT: "Admin Adjustment",
+  ADJUSTMENT: "Adjustment",
 };
 
 const TX_ICONS: Record<string, typeof CreditCard> = {
@@ -63,8 +66,9 @@ const TX_ICONS: Record<string, typeof CreditCard> = {
 
 export default function BillingTab() {
   const [page, setPage] = useState(1);
+
   const { data: wallet, isLoading: isWalletLoading } = useWallet();
-  const { data: tenantPlan } = useMyPlan();
+  const { data: tenantPlan, isLoading: isPlanLoading } = useMyPlan();
   const { data: txPage, isLoading: isTxLoading } = useWalletTransactions(
     page,
     10,
@@ -76,10 +80,10 @@ export default function BillingTab() {
   )?.role;
   const canManagePlan = activeRole === "OWNER" || !!user?.isPlatformAdmin;
 
-  if (isWalletLoading) {
+  if (isWalletLoading || isPlanLoading) {
     return (
-      <div className="p-12 flex justify-center">
-        <Spinner className="text-brand-600" />
+      <div className="py-16 flex justify-center">
+        <Spinner className="text-brand-600 h-8 w-8" />
       </div>
     );
   }
@@ -88,102 +92,168 @@ export default function BillingTab() {
 
   return (
     <div className="space-y-6">
-      {/* Current Active Plan Card */}
-      {tenantPlan && terms && (
-        <Card className="p-5">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      {/* ─── Top Overview Cards ─── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        {/* Active Plan Card */}
+        {tenantPlan && terms && (
+          <Card className="p-5 flex flex-col justify-between shadow-xs border-surface-border">
             <div>
-              <p className="text-xs font-bold text-text-placeholder uppercase tracking-wider">
-                Current Active Plan
-              </p>
-              <div className="flex items-center gap-2 mt-1">
-                <h4 className="text-xl font-bold text-text-primary capitalize">
+              <div className="flex items-center justify-between gap-4 mb-3">
+                <h3 className="text-xs font-bold text-text-muted uppercase tracking-wider flex items-center gap-1.5">
+                  <CreditCard size={14} /> Active Subscription
+                </h3>
+                <Badge
+                  variant={
+                    tenantPlan.status === "ACTIVE" ? "success" : "warning"
+                  }
+                  dot
+                >
+                  {tenantPlan.status}
+                </Badge>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <h4 className="text-2xl font-extrabold text-text-primary capitalize truncate">
                   {terms.planName}
                 </h4>
                 {terms.isCustomPriced && (
-                  <Badge variant="purple">Custom Pricing</Badge>
+                  <Badge variant="purple" className="shrink-0">
+                    Custom
+                  </Badge>
                 )}
               </div>
-              <p className="text-sm text-text-muted mt-0.5">
-                Rate:{" "}
-                {terms.pricingModel === "CUSTOM"
-                  ? "Custom"
-                  : `${paisaToInr(terms.perMinuteRate)} / min`}
-              </p>
-              <div className="mt-2 flex items-center gap-1.5 text-xs text-text-muted">
-                <AlertTriangle size={12} className="text-amber-500" />
-                <span>
-                  Low balance alert configured at{" "}
-                  <strong className="text-text-primary font-mono">
+
+              <div className="mt-4 space-y-2">
+                <div className="flex justify-between items-center text-sm font-medium">
+                  <span className="text-text-secondary">AI Calling Rate</span>
+                  <span className="font-mono text-text-primary font-bold">
+                    {terms.pricingModel === "CUSTOM"
+                      ? "Custom"
+                      : `${paisaToInr(terms.perMinuteRate)} / min`}
+                  </span>
+                </div>
+
+                {/* User-Centric Min-Balance Alert */}
+                <div className="flex justify-between items-center text-sm font-medium">
+                  <span className="text-text-secondary flex items-center gap-1.5">
+                    <AlertTriangle size={14} className="text-amber-500" />
+                    Minimum balance alert
+                  </span>
+                  <span className="font-mono text-text-primary font-bold">
                     {paisaToInr(terms.lowBalanceThreshold)}
-                  </strong>
-                </span>
+                  </span>
+                </div>
               </div>
-              {/* Bonus expiry */}
-              {tenantPlan.bonusExpiresAt && (
+            </div>
+
+            {canManagePlan && (
+              <div className="mt-5 pt-4 border-t border-surface-subtle">
+                <Link href={APP_ROUTES.PLANS} className="block w-full">
+                  <Button
+                    variant="outline"
+                    className="w-full font-bold"
+                    rightIcon={<ArrowRight size={14} />}
+                  >
+                    View Plans
+                  </Button>
+                </Link>
+              </div>
+            )}
+          </Card>
+        )}
+
+        {/* Wallet Balance Card */}
+        {wallet && (
+          <Card className="p-5 flex flex-col justify-between shadow-xs border-surface-border bg-brand-50/20">
+            <div>
+              <h3 className="text-xs font-bold text-brand-700 uppercase tracking-wider flex items-center gap-1.5 mb-3">
+                <Wallet size={14} /> Workspace Wallet
+              </h3>
+
+              <div className="mt-1">
+                <p className="text-sm font-bold text-text-secondary mb-1">
+                  Available Balance
+                </p>
+                <p className="text-4xl font-extrabold text-text-primary font-mono tabular-nums tracking-tight">
+                  {paisaToInr(wallet.totalBalance)}
+                </p>
+              </div>
+
+              <div className="mt-5 grid grid-cols-2 gap-4">
+                <div className="bg-surface border border-surface-border rounded-lg p-3">
+                  <p className="text-xs font-bold text-text-muted uppercase tracking-wider">
+                    Cash Funds
+                  </p>
+                  <p className="text-lg font-bold font-mono text-text-primary mt-1">
+                    {paisaToInr(wallet.cashBalance)}
+                  </p>
+                </div>
+                <div className="bg-surface border border-surface-border rounded-lg p-3">
+                  <p className="text-xs font-bold text-text-muted uppercase tracking-wider">
+                    Bonus Pool
+                  </p>
+                  <p className="text-lg font-bold font-mono text-brand-600 mt-1">
+                    {paisaToInr(wallet.bonusBalance)}
+                  </p>
+                </div>
+              </div>
+
+              {tenantPlan?.bonusExpiresAt && (
                 <BonusExpiryBadge expiresAt={tenantPlan.bonusExpiresAt} />
               )}
             </div>
+          </Card>
+        )}
+      </div>
 
-            <div className="flex flex-col items-start sm:items-end gap-2">
-              <Badge variant="success" dot>
-                {tenantPlan.status}
-              </Badge>
-              {wallet && (
-                <span className="text-xs text-text-muted font-mono">
-                  Balance: {paisaToInr(wallet.totalBalance)}
-                </span>
-              )}
-              {canManagePlan && (
-                <Link href={APP_ROUTES.PLANS}>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    leftIcon={<ArrowUpCircle size={14} />}
-                    className="mt-1"
-                  >
-                    Upgrade
-                  </Button>
-                </Link>
-              )}
-            </div>
-          </div>
-        </Card>
-      )}
-
-      {/* Transaction History Ledger */}
-      <section className="space-y-3">
-        <h3 className="text-sm font-bold text-text-primary flex items-center gap-1.5">
-          <History size={15} />
-          Transaction History
+      {/* ─── Transaction History Ledger ─── */}
+      <section className="space-y-4 pt-4">
+        <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
+          <History size={18} className="text-brand-600" />
+          Transactions History
         </h3>
 
-        <Card padding="none" className="overflow-hidden">
+        <Card
+          padding="none"
+          className="overflow-hidden shadow-xs border-surface-border"
+        >
           {isTxLoading ? (
-            <div className="p-12 flex justify-center">
-              <Spinner className="text-brand-600" />
+            <div className="p-16 flex justify-center">
+              <Spinner className="text-brand-600 h-8 w-8" />
             </div>
           ) : !txPage || txPage.items.length === 0 ? (
             <EmptyState
-              icon={<History size={24} />}
+              icon={<History size={28} className="text-text-placeholder" />}
               title="No transactions recorded"
-              description="Your ledger is currently empty."
+              description="Your billing and usage ledger is currently empty."
             />
           ) : (
             <>
               <div className="overflow-x-auto thin-scrollbar">
-                <table className="w-full border-collapse text-left text-sm">
+                <table className="w-full border-collapse text-left">
                   <thead>
-                    <tr className="border-b border-surface-border bg-surface-muted text-text-secondary font-semibold">
-                      <th className="px-5 py-3">Type</th>
-                      <th className="px-5 py-3">Description</th>
-                      <th className="px-5 py-3 text-right">Amount</th>
-                      <th className="px-5 py-3 text-right">Cash After</th>
-                      <th className="px-5 py-3 text-right">Bonus After</th>
-                      <th className="px-5 py-3">Date</th>
+                    <tr className="border-b border-surface-border bg-surface-subtle">
+                      <th className="px-6 py-4 text-xs font-bold text-text-muted uppercase tracking-wider whitespace-nowrap">
+                        Type
+                      </th>
+                      <th className="px-5 py-4 text-xs font-bold text-text-muted uppercase tracking-wider whitespace-nowrap">
+                        Description
+                      </th>
+                      <th className="px-5 py-4 text-xs font-bold text-text-muted uppercase tracking-wider text-right whitespace-nowrap">
+                        Amount
+                      </th>
+                      <th className="px-5 py-4 text-xs font-bold text-text-muted uppercase tracking-wider text-right whitespace-nowrap">
+                        Cash Bal
+                      </th>
+                      <th className="px-5 py-4 text-xs font-bold text-text-muted uppercase tracking-wider text-right whitespace-nowrap">
+                        Bonus Bal
+                      </th>
+                      <th className="px-6 py-4 text-xs font-bold text-text-muted uppercase tracking-wider whitespace-nowrap">
+                        Date & Time
+                      </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-surface-subtle font-medium text-text-primary">
+                  <tbody className="divide-y divide-surface-border">
                     {txPage.items.map((tx: WalletTransaction) => {
                       const badgeVariant = TX_VARIANTS[tx.type] ?? "gray";
                       const label = TX_LABELS[tx.type] ?? tx.type;
@@ -194,25 +264,37 @@ export default function BillingTab() {
                       return (
                         <tr
                           key={tx.id}
-                          className="hover:bg-surface-muted/50 transition-colors"
+                          className="hover:bg-surface-hover/60 transition-colors duration-normal ease-out"
                         >
-                          <td className="px-5 py-3.5">
-                            <div className="flex items-center gap-1.5">
+                          {/* Type */}
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center gap-2">
                               {SourceIcon && (
                                 <SourceIcon
-                                  size={13}
+                                  size={14}
                                   className="text-text-placeholder"
                                 />
                               )}
-                              <Badge variant={badgeVariant}>{label}</Badge>
+                              <Badge
+                                variant={badgeVariant}
+                                className="uppercase tracking-wider text-[10px]"
+                              >
+                                {label}
+                              </Badge>
                             </div>
                           </td>
-                          <td className="px-5 py-3.5 text-xs text-text-secondary max-w-[200px] truncate">
-                            {tx.description}
+
+                          {/* Description */}
+                          <td className="px-5 py-4 whitespace-nowrap">
+                            <span className="text-base font-medium text-text-secondary block max-w-[250px] truncate">
+                              {tx.description}
+                            </span>
                           </td>
+
+                          {/* Amount */}
                           <td
                             className={cn(
-                              "px-5 py-3.5 text-right font-mono font-bold",
+                              "px-5 py-4 text-right whitespace-nowrap text-base font-bold font-mono",
                               tx.cashDelta < 0 || tx.bonusDelta < 0
                                 ? "text-error-600"
                                 : "text-success-600",
@@ -221,16 +303,33 @@ export default function BillingTab() {
                             {tx.cashDelta < 0 || tx.bonusDelta < 0 ? "-" : "+"}
                             {paisaToInr(tx.amount)}
                           </td>
-                          <td className="px-5 py-3.5 text-right font-mono text-xs text-text-muted">
-                            {paisaToInr(tx.cashBalanceAfter)}
+
+                          {/* Cash After */}
+                          <td className="px-5 py-4 text-right whitespace-nowrap">
+                            <span className="text-sm font-mono font-medium text-text-muted">
+                              {paisaToInr(tx.cashBalanceAfter)}
+                            </span>
                           </td>
-                          <td className="px-5 py-3.5 text-right font-mono text-xs text-text-muted">
-                            {tx.bonusBalanceAfter > 0
-                              ? paisaToInr(tx.bonusBalanceAfter)
-                              : "—"}
+
+                          {/* Bonus After */}
+                          <td className="px-5 py-4 text-right whitespace-nowrap">
+                            <span className="text-sm font-mono font-medium text-text-muted">
+                              {tx.bonusBalanceAfter > 0
+                                ? paisaToInr(tx.bonusBalanceAfter)
+                                : "—"}
+                            </span>
                           </td>
-                          <td className="px-5 py-3.5 text-xs text-text-placeholder">
-                            {new Date(tx.createdAt).toLocaleString()}
+
+                          {/* Date & Time (Stacked) */}
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex flex-col gap-0.5">
+                              <span className="text-base font-medium text-text-primary leading-tight">
+                                {formatTimeOnly(tx.createdAt)}
+                              </span>
+                              <span className="text-sm text-text-muted font-medium leading-tight">
+                                {formatDateOnly(tx.createdAt)}
+                              </span>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -238,7 +337,9 @@ export default function BillingTab() {
                   </tbody>
                 </table>
               </div>
-              <div className="p-4 border-t border-surface-border">
+
+              {/* Pagination */}
+              <div className="p-4 border-t border-surface-border bg-surface-subtle/50">
                 <Pagination
                   page={txPage.page}
                   totalPages={txPage.totalPages}
@@ -266,20 +367,14 @@ function BonusExpiryBadge({ expiresAt }: { expiresAt: string }) {
   return (
     <div
       className={cn(
-        "inline-flex items-center gap-1 mt-2 text-[10px] font-bold px-2 py-0.5 rounded",
+        "inline-flex items-center gap-1.5 mt-4 text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md",
         isUrgent
           ? "text-warning-700 bg-warning-50 border border-warning-200"
-          : "text-secondary-600 bg-secondary-50 border border-secondary-100",
+          : "text-brand-700 bg-brand-50 border border-brand-200",
       )}
     >
-      <Clock size={10} />
-      Bonus expires{" "}
-      {new Date(expiresAt).toLocaleDateString("en-IN", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      })}
-      {isUrgent && ` (${diffDays}d left)`}
+      <Clock size={12} strokeWidth={2.5} />
+      Bonus credits expire in {diffDays} day{diffDays === 1 ? "" : "s"}
     </div>
   );
 }

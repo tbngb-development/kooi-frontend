@@ -4,11 +4,11 @@ import { Check } from "lucide-react";
 
 export function UniversalPlanFeatures() {
   const features = [
-    { label: "Billing", value: "30-sec minimum, then 15-sec increments" },
+    { label: "Call billing", value: "30-sec minimum, then 15-sec increments" },
     { label: "Campaigns", value: "Unlimited" },
-    { label: "Lead uploads", value: "Unlimited*" },
-    { label: "Recordings included", value: "Yes" },
-    { label: "Transcripts included", value: "Yes" },
+    { label: "Lead imports", value: "Unlimited*" },
+    { label: "Call recordings", value: "Included" },
+    { label: "Call transcripts", value: "Included" },
   ];
 
   return (

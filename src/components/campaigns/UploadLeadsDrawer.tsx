@@ -6,110 +6,196 @@ import { Spinner } from "@/components/ui/Spinner";
 import { RetryConfigEditor } from "@/components/campaigns/RetryConfigEditor";
 import {
   useCreateBatch,
+  useResumeBatch,
   useRunBatch,
   useScheduleBatch,
 } from "@/hooks/useBatches";
 import { useParseCSV } from "@/hooks/useCampaigns";
 import { toBolnaISO, toDateTimeLocalString } from "@/lib/utils/date";
-import type { RetryConfig } from "@/types/batch";
+import type { LeadBatch, RetryConfig } from "@/types/batch";
 import type { ParseLeadsResult } from "@/types/campaign";
 import {
   AlertTriangle,
   CalendarClock,
-  CheckCircle,
   Play,
+  RotateCcw,
   Upload,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
+/* ──────────────────────────────────────────────────────────────────────────
+   Types
+   ────────────────────────────────────────────────────────────────────────── */
 interface UploadLeadsDrawerProps {
   campaignId: string;
   isOpen: boolean;
   onClose: () => void;
+  /** When provided, the drawer skips upload/parse and jumps to run/schedule. */
+  resumeBatchId?: string;
 }
 
-type Step = "upload" | "preview" | "trigger";
+type Step = "upload" | "review";
 
-/**
- * Multi-step lead upload drawer.
- * Step 1: File upload
- * Step 2: Preview + Retry config → Import
- * Step 3: On successful import → choose Run Now OR Schedule for later
- */
+/** Exact schema returned by the useResumeBatch hook mutation */
+interface ResumeBatchResponse {
+  originalBatchId: string;
+  newBatch: LeadBatch;
+  remainingLeads: number;
+  message: string;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────
+   Main Drawer
+   ────────────────────────────────────────────────────────────────────────── */
 export function UploadLeadsDrawer({
   campaignId,
   isOpen,
   onClose,
+  resumeBatchId,
 }: UploadLeadsDrawerProps) {
+  const isResumeMode = !!resumeBatchId;
+
+  // ── state ────────────────────────────────────────────────────────────
   const [step, setStep] = useState<Step>("upload");
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<ParseLeadsResult | null>(null);
   const [retryConfig, setRetryConfig] = useState<RetryConfig | undefined>();
-  const [createdBatchId, setCreatedBatchId] = useState<string | null>(null);
 
+  const [scheduleEnabled, setScheduleEnabled] = useState(false);
+  const [scheduledAt, setScheduledAt] = useState<Date | null>(null);
+  const [scheduleError, setScheduleError] = useState<string | null>(null);
+  const [minDateString, setMinDateString] = useState<string>("");
+
+  // ── hooks ────────────────────────────────────────────────────────────
   const parseCSV = useParseCSV(campaignId);
   const createBatch = useCreateBatch(campaignId);
   const runBatch = useRunBatch(campaignId);
   const scheduleBatch = useScheduleBatch(campaignId);
+  const resumeBatch = useResumeBatch(campaignId);
 
-  // ─── Handlers ─────────────────────────────────────────────────────────
+  const isBusy =
+    createBatch.isPending ||
+    runBatch.isPending ||
+    scheduleBatch.isPending ||
+    resumeBatch.isPending;
+
+  // ── safely update current date limits on drawer open ──────────────────
+  useEffect(() => {
+    if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setMinDateString(
+        toDateTimeLocalString(new Date(Date.now() + 3 * 60 * 1000)),
+      );
+    }
+  }, [isOpen]);
+
+  // ── handlers ─────────────────────────────────────────────────────────
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
     if (!selected) return;
-
     setFile(selected);
     parseCSV.mutate(selected, {
       onSuccess: (data) => {
         setPreview(data);
-        setStep("preview");
+        setStep("review");
       },
     });
   };
 
-  const handleImport = () => {
-    if (!file) return;
-    createBatch.mutate(
-      { file, retryConfig },
-      {
-        onSuccess: (data) => {
-          setCreatedBatchId(data.batch.id);
-          setStep("trigger");
-        },
-      },
-    );
+  /**
+   * Type-safe chained flow:
+   *   1. createBatch / resumeBatch  →  awaits and extracts the valid batchId
+   *   2. runBatch OR scheduleBatch  →  waits, then closes the drawer on success
+   */
+  const handleConfirm = async () => {
+    if (scheduleEnabled && (!scheduledAt || scheduleError)) return;
+
+    try {
+      let batchId: string;
+
+      if (isResumeMode && resumeBatchId) {
+        const data = (await resumeBatch.mutateAsync(
+          resumeBatchId,
+        )) as ResumeBatchResponse;
+        batchId = data.newBatch.id;
+      } else {
+        if (!file) return;
+        const data = await createBatch.mutateAsync({ file, retryConfig });
+        batchId = data.batch.id;
+      }
+
+      // Step 2 — run or schedule
+      if (scheduleEnabled && scheduledAt) {
+        await scheduleBatch.mutateAsync({
+          batchId,
+          scheduledAt: toBolnaISO(scheduledAt),
+        });
+      } else {
+        await runBatch.mutateAsync(batchId);
+      }
+
+      handleClose();
+    } catch {
+      // API error toasts are handled globally in individual mutate configurations.
+    }
   };
 
   const handleClose = () => {
-    // Reset state ONLY when not in the middle of an API call
-    if (createBatch.isPending || runBatch.isPending || scheduleBatch.isPending)
-      return;
+    if (isBusy) return;
 
+    // Resetting states inside event handler is safe and prevents render cascades
     setStep("upload");
     setFile(null);
     setPreview(null);
     setRetryConfig(undefined);
-    setCreatedBatchId(null);
+    setScheduleEnabled(false);
+    setScheduledAt(null);
+    setScheduleError(null);
+    setMinDateString("");
+
     onClose();
   };
 
-  // ─── Titles per step ──────────────────────────────────────────────────
-  const stepMeta: Record<Step, { title: string; description: string }> = {
-    upload: {
-      title: "Upload Leads",
-      description: "Import phone numbers from a CSV, XLS, or XLSX file.",
-    },
-    preview: {
-      title: "Review & Configure",
-      description: "Verify parsed leads and configure retry behavior.",
-    },
-    trigger: {
-      title: "Batch Ready",
-      description: "Choose how to launch your new batch.",
-    },
+  // ── pure derived view calculation ────────────────────────────────────
+  const showReviewStep = isResumeMode || step === "review";
+
+  // ── title / description ──────────────────────────────────────────────
+  const title = isResumeMode
+    ? "Resume Batch"
+    : !showReviewStep
+      ? "Upload Leads"
+      : "Review & Configure";
+
+  const description = isResumeMode
+    ? "Create a new batch with remaining leads and choose how to launch it."
+    : !showReviewStep
+      ? "Import phone numbers from a CSV, XLS, or XLSX file."
+      : "Verify parsed leads, configure retry behavior, and launch.";
+
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.value) {
+      setScheduledAt(null);
+      return;
+    }
+    const d = new Date(e.target.value);
+    if (d.getTime() < Date.now() + 2 * 60 * 1000) {
+      setScheduleError(
+        "Schedule time must be at least 2 minutes in the future.",
+      );
+    } else {
+      setScheduleError(null);
+    }
+    setScheduledAt(d);
   };
 
-  const { title, description } = stepMeta[step];
+  const confirmDisabled =
+    isBusy ||
+    (scheduleEnabled && (!scheduledAt || !!scheduleError)) ||
+    (!isResumeMode && (preview?.readyToImport ?? 0) === 0);
 
+  const confirmLabel = scheduleEnabled ? "Schedule Batch" : "Run Now";
+
+  // ── render ───────────────────────────────────────────────────────────
   return (
     <Drawer
       isOpen={isOpen}
@@ -117,49 +203,45 @@ export function UploadLeadsDrawer({
       title={title}
       description={description}
       size="lg"
-      disableBackdropClose={
-        createBatch.isPending || runBatch.isPending || scheduleBatch.isPending
-      }
+      disableBackdropClose={isBusy}
     >
-      {step === "upload" && (
+      {/* ── Step 1: Upload (upload mode only) ─────────────────────────── */}
+      {!showReviewStep && (
         <UploadStep
           onFileSelect={handleFileSelect}
           isParsing={parseCSV.isPending}
         />
       )}
 
-      {step === "preview" && preview && (
-        <PreviewStep
+      {/* ── Step 2: Review & Configure ────────────────────────────────── */}
+      {showReviewStep && ((!isResumeMode && preview) || isResumeMode) && (
+        <ReviewStep
+          isResumeMode={isResumeMode}
           preview={preview}
           retryConfig={retryConfig}
           onRetryConfigChange={setRetryConfig}
+          scheduleEnabled={scheduleEnabled}
+          onScheduleToggle={(checked) => {
+            setScheduleEnabled(checked);
+            setScheduleError(null);
+          }}
+          minDateString={minDateString}
+          onDateChange={handleDateChange}
+          scheduleError={scheduleError}
           onCancel={handleClose}
-          onImport={handleImport}
-          isImporting={createBatch.isPending}
-        />
-      )}
-
-      {step === "trigger" && createdBatchId && (
-        <TriggerStep
-          batchId={createdBatchId}
-          onRun={() =>
-            runBatch.mutate(createdBatchId, { onSuccess: handleClose })
-          }
-          onSchedule={(date) =>
-            scheduleBatch.mutate(
-              { batchId: createdBatchId, scheduledAt: toBolnaISO(date) },
-              { onSuccess: handleClose },
-            )
-          }
-          isRunning={runBatch.isPending}
-          isScheduling={scheduleBatch.isPending}
+          onConfirm={handleConfirm}
+          isBusy={isBusy}
+          confirmDisabled={confirmDisabled}
+          confirmLabel={confirmLabel}
         />
       )}
     </Drawer>
   );
 }
 
-// ─── Step 1: Upload ─────────────────────────────────────────────────────────
+/* ──────────────────────────────────────────────────────────────────────────
+   Step 1 — File Upload
+   ────────────────────────────────────────────────────────────────────────── */
 function UploadStep({
   onFileSelect,
   isParsing,
@@ -191,197 +273,171 @@ function UploadStep({
       {isParsing && (
         <div className="flex items-center justify-center gap-2 py-4">
           <Spinner />
-          <span className="text-sm text-text-muted">Parsing file...</span>
+          <span className="text-base text-text-muted">Parsing file…</span>
         </div>
       )}
     </div>
   );
 }
 
-// ─── Step 2: Preview ───────────────────────────────────────────────────────
-function PreviewStep({
+/* ──────────────────────────────────────────────────────────────────────────
+   Step 2 — Review & Configure (shared by upload + resume modes)
+   ────────────────────────────────────────────────────────────────────────── */
+function ReviewStep({
+  isResumeMode,
   preview,
   retryConfig,
   onRetryConfigChange,
+  scheduleEnabled,
+  onScheduleToggle,
+  minDateString,
+  onDateChange,
+  scheduleError,
   onCancel,
-  onImport,
-  isImporting,
+  onConfirm,
+  isBusy,
+  confirmDisabled,
+  confirmLabel,
 }: {
-  preview: ParseLeadsResult;
+  isResumeMode: boolean;
+  preview: ParseLeadsResult | null;
   retryConfig: RetryConfig | undefined;
   onRetryConfigChange: (c: RetryConfig | undefined) => void;
+  scheduleEnabled: boolean;
+  onScheduleToggle: (checked: boolean) => void;
+  minDateString: string;
+  onDateChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  scheduleError: string | null;
   onCancel: () => void;
-  onImport: () => void;
-  isImporting: boolean;
+  onConfirm: () => void;
+  isBusy: boolean;
+  confirmDisabled: boolean;
+  confirmLabel: string;
 }) {
-  return (
-    <div className="space-y-4">
-      {/* Parsed stats grid */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatTile label="Total Rows" value={preview.total} />
-        <StatTile label="Valid Indian" value={preview.valid} color="green" />
-        <StatTile label="Non-Indian" value={preview.nonIndian} color="amber" />
-        <StatTile label="Invalid" value={preview.invalid} color="red" />
-      </div>
-
-      {preview.inFileDuplicates > 0 && (
-        <WarningLine
-          text={`${preview.inFileDuplicates} duplicate(s) within file`}
-        />
-      )}
-      {preview.dbDuplicates > 0 && (
-        <WarningLine
-          text={`${preview.dbDuplicates} duplicate(s) already in campaign`}
-        />
-      )}
-
-      <div className="rounded-lg bg-success-50 p-4 text-center border border-success-100">
-        <span className="text-3xl font-bold text-success-700">
-          {preview.readyToImport}
-        </span>
-        <p className="text-sm text-success-600 font-medium mt-1">
-          leads ready to import
-        </p>
-      </div>
-
-      <RetryConfigEditor value={retryConfig} onChange={onRetryConfigChange} />
-
-      <div className="flex justify-end gap-2 pt-2">
-        <Button variant="outline" onClick={onCancel} disabled={isImporting}>
-          Cancel
-        </Button>
-        <Button
-          onClick={onImport}
-          loading={isImporting}
-          disabled={preview.readyToImport === 0}
-        >
-          Import {preview.readyToImport} Leads
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-// ─── Step 3: Run or Schedule ───────────────────────────────────────────────
-function TriggerStep({
-  batchId,
-  onRun,
-  onSchedule,
-  isRunning,
-  isScheduling,
-}: {
-  batchId: string;
-  onRun: () => void;
-  onSchedule: (date: Date) => void;
-  isRunning: boolean;
-  isScheduling: boolean;
-}) {
-  const [mode, setMode] = useState<"run" | "schedule">("run");
-  const [scheduledAt, setScheduledAt] = useState<Date | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  const minDateString = useMemo(
-    // eslint-disable-next-line react-hooks/purity
-    () => toDateTimeLocalString(new Date(Date.now() + 3 * 60 * 1000)),
-    [],
-  );
-
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.value) {
-      setScheduledAt(null);
-      return;
-    }
-    const d = new Date(e.target.value);
-    if (d.getTime() < Date.now() + 2 * 60 * 1000) {
-      setError("Schedule time must be at least 2 minutes in the future.");
-    } else {
-      setError(null);
-    }
-    setScheduledAt(d);
-  };
-
-  const handleConfirm = () => {
-    if (mode === "run") {
-      onRun();
-    } else if (scheduledAt && !error) {
-      onSchedule(scheduledAt);
-    }
-  };
-
-  const isBusy = isRunning || isScheduling;
-
   return (
     <div className="space-y-5">
-      {/* Success confirmation */}
-      <div className="flex items-center gap-3 rounded-lg bg-success-50 border border-success-100 p-4">
-        <CheckCircle className="h-6 w-6 shrink-0 text-success-600" />
-        <div className="min-w-0">
-          <h3 className="text-sm font-semibold text-success-800">
-            Batch Pipeline Provisioned
-          </h3>
-          <p className="text-xs text-success-700 mt-0.5 font-mono truncate">
-            ID: {batchId}
-          </p>
+      {/* ── Resume info banner ────────────────────────────────────────── */}
+      {isResumeMode && (
+        <div className="flex items-start gap-3 rounded-lg bg-info-50 border border-info-100 p-4">
+          <RotateCcw className="h-5 w-5 shrink-0 text-info-600 mt-0.5" />
+          <div>
+            <h3 className="text-base font-semibold text-info-800">
+              Resume Stopped Batch
+            </h3>
+            <p className="text-sm text-info-700 mt-1">
+              A new batch will be created with the remaining leads from the
+              stopped batch. Choose how to launch it below.
+            </p>
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Schedule toggle */}
-      <label className="flex items-center gap-2.5 cursor-pointer p-3 rounded-lg border border-surface-border bg-surface hover:bg-surface-hover transition-colors">
+      {/* ── Parsed-lead stats (upload mode only) ──────────────────────── */}
+      {!isResumeMode && preview && (
+        <>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <StatTile label="Total Rows" value={preview.total} />
+            <StatTile
+              label="Valid Indian"
+              value={preview.valid}
+              color="green"
+            />
+            <StatTile
+              label="Non-Indian"
+              value={preview.nonIndian}
+              color="amber"
+            />
+            <StatTile label="Invalid" value={preview.invalid} color="red" />
+          </div>
+
+          {preview.inFileDuplicates > 0 && (
+            <WarningLine
+              text={`${preview.inFileDuplicates} duplicate(s) within file`}
+            />
+          )}
+          {preview.dbDuplicates > 0 && (
+            <WarningLine
+              text={`${preview.dbDuplicates} duplicate(s) already in campaign`}
+            />
+          )}
+
+          <div className="rounded-lg bg-success-50 p-4 text-center border border-success-100">
+            <span className="text-3xl font-bold text-success-700">
+              {preview.readyToImport}
+            </span>
+            <p className="text-sm text-success-600 font-medium mt-1">
+              leads ready to import
+            </p>
+          </div>
+        </>
+      )}
+
+      {/* ── Schedule checkbox (above retry config) ────────────────────── */}
+      <label className="flex items-center gap-3 cursor-pointer p-4 rounded-lg border border-surface-border bg-surface hover:bg-surface-hover transition-colors">
         <input
           type="checkbox"
-          checked={mode === "schedule"}
-          onChange={(e) => {
-            setMode(e.target.checked ? "schedule" : "run");
-            setError(null);
-          }}
+          checked={scheduleEnabled}
+          onChange={(e) => onScheduleToggle(e.target.checked)}
           className="h-4 w-4 rounded border-surface-border text-brand-600 focus:ring-brand-500"
           disabled={isBusy}
         />
         <div className="flex-1">
-          <span className="text-sm font-semibold text-text-primary">
+          <span className="text-base font-semibold text-text-primary">
             Schedule for later
           </span>
-          <p className="text-xs text-text-muted mt-0.5">
-            Uncheck to run this batch immediately.
+          <p className="text-sm text-text-muted mt-0.5">
+            Uncheck to run this batch immediately after creation.
           </p>
         </div>
       </label>
 
-      {/* Datetime input (when scheduling) */}
-      {mode === "schedule" && (
-        <div className="space-y-1.5">
-          <label className="text-sm font-medium text-text-secondary">
-            Trigger Date & Time
+      {/* ── Datetime picker (visible when scheduling) ─────────────────── */}
+      {scheduleEnabled && (
+        <div className="space-y-2">
+          <label className="text-base font-medium text-text-secondary">
+            Trigger Date &amp; Time
           </label>
           <input
             type="datetime-local"
-            className="w-full h-10 rounded-md border border-surface-border bg-surface px-3 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+            className="w-full h-10 rounded-md border border-surface-border bg-surface px-3 text-base text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
             min={minDateString}
-            onChange={handleDateChange}
+            onChange={onDateChange}
             disabled={isBusy}
           />
-          {error && <p className="text-xs text-error-600">{error}</p>}
+          {scheduleError && (
+            <p className="text-sm text-error-600">{scheduleError}</p>
+          )}
         </div>
       )}
 
-      {/* CTAs */}
-      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 pt-2">
+      {/* ── Retry config (upload mode only) ───────────────────────────── */}
+      {!isResumeMode && (
+        <RetryConfigEditor value={retryConfig} onChange={onRetryConfigChange} />
+      )}
+
+      {/* ── Action buttons ────────────────────────────────────────────── */}
+      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-2">
+        <Button variant="outline" onClick={onCancel} disabled={isBusy}>
+          Cancel
+        </Button>
         <Button
-          onClick={handleConfirm}
+          onClick={onConfirm}
           loading={isBusy}
-          disabled={mode === "schedule" && (!scheduledAt || !!error)}
+          disabled={confirmDisabled}
           leftIcon={
-            mode === "run" ? <Play size={14} /> : <CalendarClock size={14} />
+            scheduleEnabled ? <CalendarClock size={16} /> : <Play size={16} />
           }
         >
-          {mode === "run" ? "Run Now" : "Schedule Batch"}
+          {confirmLabel}
         </Button>
       </div>
     </div>
   );
 }
 
-// ─── Small helpers ─────────────────────────────────────────────────────────
+/* ──────────────────────────────────────────────────────────────────────────
+   Tiny presentational helpers
+   ────────────────────────────────────────────────────────────────────────── */
 function StatTile({
   label,
   value,
@@ -391,7 +447,7 @@ function StatTile({
   value: number;
   color?: "green" | "red" | "amber";
 }) {
-  const colorClasses = {
+  const palette = {
     green: "text-success-700 bg-success-50 border-success-100",
     red: "text-error-700 bg-error-50 border-error-100",
     amber: "text-warning-700 bg-warning-50 border-warning-100",
@@ -399,18 +455,18 @@ function StatTile({
   return (
     <div
       className={`rounded-lg p-3 text-center border ${
-        color ? colorClasses[color] : "bg-surface-muted border-surface-border"
+        color ? palette[color] : "bg-surface-muted border-surface-border"
       }`}
     >
       <div className="text-xl font-bold">{value}</div>
-      <div className="text-xs text-text-muted mt-0.5">{label}</div>
+      <div className="text-sm text-text-muted mt-0.5">{label}</div>
     </div>
   );
 }
 
 function WarningLine({ text }: { text: string }) {
   return (
-    <div className="flex items-center gap-2 rounded bg-warning-50 border border-warning-100 px-3 py-2 text-sm text-warning-700">
+    <div className="flex items-center gap-2 rounded-lg bg-warning-50 border border-warning-100 px-3 py-2 text-base text-warning-700">
       <AlertTriangle className="h-4 w-4 shrink-0" />
       <span>{text}</span>
     </div>

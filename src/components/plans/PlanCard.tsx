@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { paisaToInr } from "@/constants/config/wallet.config";
 import { cn } from "@/lib/utils/cn";
+import { paisaToRupees } from "@/lib/utils/formatMoney";
 import type {
   CallingChannel,
   DashboardTier,
@@ -15,6 +16,7 @@ import {
   ArrowRight,
   ArrowUp,
   Check,
+  Info,
   PhoneCall,
   X,
   Zap,
@@ -95,7 +97,6 @@ export function PlanCard({
   const isCustom = v?.pricingModel === "CUSTOM";
   const highlighted = isCurrent || isFeatured;
 
-  // Guard: no published version yet
   if (!v) {
     return (
       <div className="relative flex w-full">
@@ -122,7 +123,6 @@ export function PlanCard({
     );
   }
 
-  // Rate text
   const formattedRate =
     v.pricingModel === "VOLUME"
       ? `Volume (${paisaToInr(v.perMinuteRate)}/min)`
@@ -130,21 +130,22 @@ export function PlanCard({
         ? "Custom Pricing"
         : `${paisaToInr(v.perMinuteRate)}/min`;
 
-  // Included balance & validity
+  // ✅ Balance only — expiry moved to tooltip
   const formattedBalance = isCustom
     ? "Custom"
-    : v.bonusValidityDays
-      ? `${paisaToInr(v.includedBalance)} - ${v.bonusValidityDays} days validity`
-      : paisaToInr(v.includedBalance);
+    : `₹${paisaToRupees(v.includedBalance)}`;
 
-  // Strikethrough pricing logic
+  const balanceExpiryTooltip =
+    !isCustom && v.bonusValidityDays
+      ? `Bonus credits valid for ${v.bonusValidityDays} day${v.bonusValidityDays === 1 ? "" : "s"} after activation`
+      : null;
+
   const hasOriginalPrice =
     v.onboardingFeeOriginal !== null &&
     v.onboardingFeeOriginal > v.onboardingFee;
 
   return (
     <div className="relative flex w-full">
-      {/* Ribbon Badges */}
       {isCurrent && (
         <span className="absolute -top-3 left-1/2 -translate-x-1/2 z-10 bg-brand-600 text-text-inverse text-[10px] sm:text-xs font-bold px-3 py-1 rounded-full shadow-sm flex items-center gap-1 whitespace-nowrap">
           <Check size={12} /> Current Plan
@@ -164,7 +165,7 @@ export function PlanCard({
             : "border-surface-border hover:border-surface-hover shadow-sm",
         )}
       >
-        {/* Header — name + onboarding fee */}
+        {/* Header */}
         <div className="pb-4 text-center">
           <h3 className="text-xl font-extrabold text-text-primary capitalize tracking-tight">
             {plan.name}
@@ -193,10 +194,9 @@ export function PlanCard({
           </div>
         </div>
 
-        {/* Dense Specification List */}
+        {/* Specs */}
         <div className="flex-1 space-y-3 py-4 border-t border-b border-surface-subtle mb-5">
           <FeatureRow label="AI calling" value={formattedRate} />
-
           <FeatureRow
             label="Active campaigns"
             value={v.maxActiveCampaigns ?? "Unlimited"}
@@ -206,13 +206,19 @@ export function PlanCard({
             label="Dashboard"
             value={formatDashboardTier(v.dashboardTier)}
           />
-          <FeatureRow label="Included Balance" value={formattedBalance} />
+
+          {/* ✅ Included Balance + info tooltip for expiry */}
+          <FeatureRow
+            label="Included Balance"
+            value={formattedBalance}
+            infoTooltip={balanceExpiryTooltip}
+          />
+
           <FeatureRow
             label="Calling channel"
             value={formatCallingChannel(v.callingChannel)}
           />
 
-          {/* Brochure Feature Boolean */}
           <div className="flex items-center justify-between text-[13px] leading-tight">
             <span className="text-text-muted">Brochure Upload</span>
             {v.brochureUpload ? (
@@ -227,7 +233,7 @@ export function PlanCard({
             value={formatTeamMembers(v.maxTeamMembers)}
           />
           <FeatureRow
-            label="Credit Limit"
+            label="Min. Balance"
             value={paisaToInr(v.lowBalanceThreshold).replace(".00", "")}
           />
           <FeatureRow
@@ -240,7 +246,6 @@ export function PlanCard({
           />
         </div>
 
-        {/* CTA */}
         <div className="mt-auto pt-1">
           <PlanCardCTAButton
             ctaType={ctaType}
@@ -261,15 +266,32 @@ export function PlanCard({
 function FeatureRow({
   label,
   value,
+  infoTooltip,
 }: {
   label: string;
   value: string | number;
+  infoTooltip?: string | null;
 }) {
   return (
     <div className="flex items-center justify-between text-[13px] leading-tight gap-2">
       <span className="text-text-muted shrink-0">{label}</span>
-      <span className="font-semibold text-text-primary text-right truncate">
-        {value}
+
+      <span className="font-semibold text-text-primary text-right truncate inline-flex items-center justify-end gap-1 min-w-0">
+        <span className="truncate">{value}</span>
+
+        {infoTooltip ? (
+          <span
+            className="relative inline-flex shrink-0"
+            title={infoTooltip}
+            aria-label={infoTooltip}
+          >
+            <Info
+              size={13}
+              className="text-text-muted hover:text-text-secondary transition-colors cursor-help"
+              strokeWidth={2.25}
+            />
+          </span>
+        ) : null}
       </span>
     </div>
   );

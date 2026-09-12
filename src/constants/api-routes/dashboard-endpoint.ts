@@ -1,11 +1,18 @@
 import { API_PREFIXES } from "@/constants/config/api-prefix";
 
+const BASE = `${API_PREFIXES.TENANT}/dashboard`;
+
 /**
- * Tenant Analytics Dashboard overview feeds.
- * Backend module: `modules/dashboard/presentation/buildDashboardRoutes`
+ * Tenant Analytics Dashboard API endpoints.
+ * See: docs/api/tenant-dashboard.md
  */
 export const DASHBOARD_ENDPOINTS = {
-  OVERVIEW: `${API_PREFIXES.TENANT}/dashboard/overview`,
-  ACTIVITY: `${API_PREFIXES.TENANT}/dashboard/activity`,
-  CAMPAIGNS: `${API_PREFIXES.TENANT}/dashboard/campaigns`,
+  OVERVIEW: `${BASE}/overview`,
+  CALL_TRENDS: `${BASE}/call-trends`,
+  SPEND_TRENDS: `${BASE}/spend-trends`,
+  LEAD_FUNNEL: `${BASE}/lead-funnel`,
+  DISPOSITION_BREAKDOWN: `${BASE}/disposition-breakdown`,
+  TEMPERATURE_DISTRIBUTION: `${BASE}/temperature-distribution`,
+  TOP_CAMPAIGNS: `${BASE}/top-campaigns`,
+  RECENT_ACTIVITY: `${BASE}/recent-activity`,
 } as const;
