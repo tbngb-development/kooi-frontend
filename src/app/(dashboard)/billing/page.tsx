@@ -9,7 +9,6 @@ export default function PlansAndBillingPage() {
       {/* Page Header */}
       <div>
         <h1 className="text-2xl font-bold text-text-primary tracking-tight flex items-center gap-2">
-          <CreditCard size={24} className="text-brand-600" />
           Plans & Billing
         </h1>
         <p className="text-sm font-medium text-text-muted mt-1">

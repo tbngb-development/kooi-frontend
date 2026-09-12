@@ -80,7 +80,6 @@ export default function PlansPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold text-text-primary tracking-tight flex items-center gap-2">
-          <CreditCard size={24} className="text-brand-600" />
           Plans & Pricing
         </h1>
         <p className="text-sm text-text-muted mt-1 max-w-2xl">

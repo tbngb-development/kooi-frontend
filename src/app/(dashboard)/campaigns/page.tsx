@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Plus, Megaphone, Target } from "lucide-react";
+import { Plus, Target } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageSpinner } from "@/components/ui/Spinner";
@@ -34,7 +34,6 @@ export default function CampaignsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
         <div>
           <h1 className="text-2xl font-bold text-text-primary tracking-tight flex items-center gap-2">
-            <Megaphone size={24} className="text-brand-600" />
             Outreach Campaigns
           </h1>
           <p className="text-sm font-medium text-text-muted mt-1">
