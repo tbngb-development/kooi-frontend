@@ -1,7 +1,7 @@
 export { API_PREFIX, API_PREFIXES } from "./api-prefix";
 
 export const RECHARGE_SLABS_PAISA = [
-  100_000, 500_000, 1_000_000, 2_500_000, 10_000_000,
+  500_00,  100_000, 500_000, 1_000_000, 2_500_000, 5_000_000,
 ] as const; 
 
 export const RAZORPAY_CHECKOUT_JS =

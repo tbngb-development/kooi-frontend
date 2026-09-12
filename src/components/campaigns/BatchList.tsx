@@ -7,7 +7,6 @@ import { formatDateOnly, formatTimeOnly } from "@/lib/utils/formatDate";
 import type { LeadBatch } from "@/types/batch";
 import {
   CheckCircle,
-  Clock,
   FileSpreadsheet,
   Phone,
   Users,
@@ -33,7 +32,7 @@ export function BatchList({ campaignId }: BatchListProps) {
 
   if (error) {
     return (
-      <div className="rounded-lg border border-error-100 bg-error-50 p-4 text-sm text-error-700">
+      <div className="rounded-lg border border-error-100 bg-error-50 p-4 text-base text-error-700">
         Failed to load batches
       </div>
     );
@@ -52,7 +51,7 @@ export function BatchList({ campaignId }: BatchListProps) {
   return (
     <div className="w-full overflow-hidden rounded-lg border border-surface-border bg-surface">
       <div className="overflow-x-auto thin-scrollbar">
-        <table className="w-full min-w-[900px] text-sm">
+        <table className="w-full min-w-[900px] text-base">
           <thead className="bg-surface-subtle border-b border-surface-border">
             <tr>
               <Th align="left">File</Th>
@@ -103,14 +102,32 @@ function BatchRow({
 }) {
   return (
     <tr className="hover:bg-surface-hover transition-colors">
-      {/* File */}
+      {/* File (clickable link if originalFileUrl is available) */}
       <td className="px-4 py-3 whitespace-nowrap">
-        <div className="flex items-center gap-2">
-          <FileSpreadsheet size={14} className="text-text-muted shrink-0" />
-          <span className="max-w-[200px] truncate font-medium text-text-primary">
-            {batch.fileName ?? "Unknown"}
-          </span>
-        </div>
+        {batch.originalFileUrl ? (
+          <a
+            href={batch.originalFileUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 group max-w-[220px]"
+            title="Download original file"
+          >
+            <FileSpreadsheet
+              size={14}
+              className="text-text-muted group-hover:text-brand-600 shrink-0 transition-colors"
+            />
+            <span className="truncate font-medium text-text-primary group-hover:text-brand-600 group-hover:underline transition-colors">
+              {batch.fileName ?? "Unknown"}
+            </span>
+          </a>
+        ) : (
+          <div className="flex items-center gap-2 max-w-[220px]">
+            <FileSpreadsheet size={14} className="text-text-muted shrink-0" />
+            <span className="truncate font-medium text-text-primary">
+              {batch.fileName ?? "Unknown"}
+            </span>
+          </div>
+        )}
       </td>
 
       {/* Status */}
@@ -151,6 +168,7 @@ function BatchRow({
           campaignId={campaignId}
           batchId={batch.id}
           status={batch.status}
+          fileUrl={batch.originalFileUrl}
         />
       </td>
     </tr>
@@ -178,19 +196,12 @@ function MetricCell({
   );
 }
 
-/**
- * "Runs At" column:
- * - SCHEDULED  → scheduled date/time
- * - startedAt  → actual start date/time
- * - Otherwise  → "Instant" pill (was queued for immediate run)
- */
 function RunsAtCell({ batch }: { batch: LeadBatch }) {
   const runAt = batch.scheduledAt ?? batch.startedAt;
 
   if (!runAt) {
     return (
       <span className="inline-flex items-center gap-1 rounded-full bg-surface-subtle border border-surface-border px-2 py-0.5 text-[10px] font-bold text-text-muted uppercase tracking-wider shrink-0">
-        {/* <Clock size={10} /> */}
         Not Scheduled
       </span>
     );
@@ -198,7 +209,7 @@ function RunsAtCell({ batch }: { batch: LeadBatch }) {
 
   return (
     <div className="flex flex-col gap-0.5">
-      <span className="text-sm font-medium text-text-primary leading-none">
+      <span className="text-base font-medium text-text-primary leading-none">
         {formatTimeOnly(runAt)}
       </span>
       <span className="text-xs text-text-muted leading-none">

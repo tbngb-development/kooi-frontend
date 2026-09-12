@@ -154,7 +154,7 @@ export default function BillingTab() {
                     className="w-full font-bold"
                     rightIcon={<ArrowRight size={14} />}
                   >
-                    Explore & Change Plans
+                    View Plans
                   </Button>
                 </Link>
               </div>

@@ -3,35 +3,37 @@
 import { Button } from "@/components/ui/Button";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { RunBatchDrawer } from "@/components/campaigns/RunBatchDrawer";
-import { useResumeBatch, useStopBatch } from "@/hooks/useBatches";
+import { UploadLeadsDrawer } from "@/components/campaigns/UploadLeadsDrawer";
+import { useStopBatch } from "@/hooks/useBatches";
 import type { BatchStatus } from "@/types/batch";
-import { Play, RotateCcw, Square } from "lucide-react";
+import { Download, Play, RotateCcw, Square } from "lucide-react";
 import { useState } from "react";
 
 interface BatchActionsProps {
   campaignId: string;
   batchId: string;
   status: BatchStatus;
+  fileUrl: string | null;
 }
 
 /**
  * Row-level batch actions.
- * V1 rules:
- * - CREATED              → Run (opens drawer to pick immediate or scheduled)
+ * - CREATED              → Run (opens RunBatchDrawer to pick immediate or scheduled)
  * - RUNNING / SCHEDULED  → Stop (with confirmation)
- * - STOPPED              → Resume (creates a new CREATED batch)
- * - COMPLETED / FAILED   → No action
+ * - STOPPED              → Resume (opens UploadLeadsDrawer in resume mode)
+ * - COMPLETED / FAILED   → Download original file (if available)
  */
 export function BatchActions({
   campaignId,
   batchId,
   status,
+  fileUrl,
 }: BatchActionsProps) {
   const [showStopConfirm, setShowStopConfirm] = useState(false);
   const [showRunDrawer, setShowRunDrawer] = useState(false);
+  const [showResumeDrawer, setShowResumeDrawer] = useState(false);
 
   const stopBatch = useStopBatch(campaignId);
-  const resumeBatch = useResumeBatch(campaignId);
 
   const isCreated = status === "CREATED";
   const isRunning = status === "RUNNING" || status === "SCHEDULED";
@@ -42,16 +44,10 @@ export function BatchActions({
     setShowStopConfirm(false);
   };
 
-  const handleResume = () => resumeBatch.mutate(batchId);
-
-  // Nothing actionable for COMPLETED / FAILED
-  if (!isCreated && !isRunning && !isStopped) {
-    return <span className="text-xs text-text-placeholder">—</span>;
-  }
-
   return (
     <>
       <div className="flex items-center justify-center gap-2">
+        {/* Core batch action buttons */}
         {isCreated && (
           <Button
             size="sm"
@@ -79,15 +75,32 @@ export function BatchActions({
             size="sm"
             variant="outline"
             leftIcon={<RotateCcw size={12} />}
-            onClick={handleResume}
-            loading={resumeBatch.isPending}
+            onClick={() => setShowResumeDrawer(true)}
           >
             Resume
           </Button>
         )}
+
+        {/* View / Download original file option */}
+        {fileUrl && (
+          <a
+            href={fileUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Download original file"
+          >
+            <Button size="sm" variant="outline" className="px-2">
+              <Download size={12} />
+            </Button>
+          </a>
+        )}
+
+        {!isCreated && !isRunning && !isStopped && !fileUrl && (
+          <span className="text-xs text-text-placeholder">—</span>
+        )}
       </div>
 
-      {/* Run drawer — pick Run Now or Schedule */}
+      {/* CREATED → pick Run Now / Schedule for existing batch */}
       <RunBatchDrawer
         isOpen={showRunDrawer}
         onClose={() => setShowRunDrawer(false)}
@@ -95,7 +108,14 @@ export function BatchActions({
         batchId={batchId}
       />
 
-      {/* Stop confirmation */}
+      {/* STOPPED → resume creates new batch, then run/schedule */}
+      <UploadLeadsDrawer
+        isOpen={showResumeDrawer}
+        onClose={() => setShowResumeDrawer(false)}
+        campaignId={campaignId}
+        resumeBatchId={batchId}
+      />
+
       {showStopConfirm && (
         <ConfirmModal
           isOpen={showStopConfirm}

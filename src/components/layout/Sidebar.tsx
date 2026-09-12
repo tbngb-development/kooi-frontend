@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { RechargeDrawer } from "../wallet/RechargeDrawer";
 
 const NAV_ITEMS: SidebarNavItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: BarChart3 },
@@ -117,7 +118,12 @@ export function Sidebar() {
           </aside>
         </div>
       )}
-      <RechargeModal
+      {/* <RechargeModal
+        isOpen={rechargeOpen}
+        onClose={() => setRechargeOpen(false)}
+      /> */}
+
+      <RechargeDrawer
         isOpen={rechargeOpen}
         onClose={() => setRechargeOpen(false)}
       />
