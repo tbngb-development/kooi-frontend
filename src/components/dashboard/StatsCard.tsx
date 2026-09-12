@@ -28,28 +28,24 @@ export function StatsCard({
   return (
     <Card
       padding="md"
-      className="hover:shadow-md hover:-translate-y-0.5 hover:border-neutral-300 transition-all duration-normal ease-out"
+      className="h-full hover:shadow-md hover:-translate-y-0.5 hover:border-neutral-300 transition-all duration-normal ease-out"
     >
-      <div className="flex justify-between items-start gap-4">
+      <div className="flex justify-between items-start gap-3 sm:gap-4">
         <div className="min-w-0 flex-1">
-          {/* Label */}
           <p className="text-xs font-bold text-text-muted uppercase tracking-wider">
             {title}
           </p>
 
-          {/* Primary Metric */}
-          <p className="text-2xl sm:text-3xl font-extrabold text-text-primary mt-1.5 leading-none font-mono">
+          <p className="text-2xl sm:text-3xl font-extrabold text-text-primary mt-1.5 leading-none font-mono tabular-nums break-all">
             {value}
           </p>
 
-          {/* Subtitle / Context */}
           {subtitle && (
-            <p className="text-xs font-medium text-text-secondary mt-2.5 truncate">
+            <p className="text-xs font-medium text-text-secondary mt-2.5 line-clamp-2">
               {subtitle}
             </p>
           )}
 
-          {/* Trend Indicator */}
           {trend && (
             <div
               className={cn(
@@ -58,16 +54,19 @@ export function StatsCard({
               )}
             >
               {trend.positive ? (
-                <TrendingUp size={12} strokeWidth={2.5} />
+                <TrendingUp size={12} strokeWidth={2.5} className="shrink-0" />
               ) : (
-                <TrendingDown size={12} strokeWidth={2.5} />
+                <TrendingDown
+                  size={12}
+                  strokeWidth={2.5}
+                  className="shrink-0"
+                />
               )}
               <span className="truncate">{trend.value}</span>
             </div>
           )}
         </div>
 
-        {/* Icon Container */}
         <div
           className={cn(
             "flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl shrink-0 border shadow-xs",

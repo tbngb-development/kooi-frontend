@@ -16,7 +16,6 @@ import {
   useDashboardRecentActivity,
 } from "@/hooks/useDashboard";
 import { useDashboardFilters } from "@/hooks/useDashboardFilters";
-import { LayoutDashboard } from "lucide-react";
 
 export default function DashboardPage() {
   const { filters, setFilters, reset, apiFilters } = useDashboardFilters();

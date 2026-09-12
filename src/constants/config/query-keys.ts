@@ -1,4 +1,13 @@
-import { DashboardFilters, DashboardTimeSeriesFilters, TopCampaignsFilters } from "@/types/dashboard";
+import {
+  AdminDateRange,
+  AdminTimeSeriesFilters,
+  AdminTopTenantsFilters,
+} from "@/types/admin-dashboard";
+import {
+  DashboardFilters,
+  DashboardTimeSeriesFilters,
+  TopCampaignsFilters,
+} from "@/types/dashboard";
 
 export const QUERY_KEYS = {
   AUTH: {
@@ -91,10 +100,30 @@ export const QUERY_KEYS = {
   // ── Admin-specific query keys ──────────────────────────────────────────────
   ADMIN_DASHBOARD: {
     all: ["admin", "dashboard"] as const,
-    overview: () => [...QUERY_KEYS.ADMIN_DASHBOARD.all, "overview"] as const,
-    tenantsHealth: () =>
-      [...QUERY_KEYS.ADMIN_DASHBOARD.all, "tenants-health"] as const,
-    activity: () => [...QUERY_KEYS.ADMIN_DASHBOARD.all, "activity"] as const,
+    overview: (filters: AdminDateRange) =>
+      [...QUERY_KEYS.ADMIN_DASHBOARD.all, "overview", filters] as const,
+    revenueTrends: (filters: AdminTimeSeriesFilters) =>
+      [...QUERY_KEYS.ADMIN_DASHBOARD.all, "revenue-trends", filters] as const,
+    callVolumeTrends: (filters: AdminTimeSeriesFilters) =>
+      [
+        ...QUERY_KEYS.ADMIN_DASHBOARD.all,
+        "call-volume-trends",
+        filters,
+      ] as const,
+    tenantDistribution: () =>
+      [...QUERY_KEYS.ADMIN_DASHBOARD.all, "tenant-distribution"] as const,
+    topTenants: (filters: AdminTopTenantsFilters) =>
+      [...QUERY_KEYS.ADMIN_DASHBOARD.all, "top-tenants", filters] as const,
+    tenantEngagement: (filters: AdminDateRange) =>
+      [
+        ...QUERY_KEYS.ADMIN_DASHBOARD.all,
+        "tenant-engagement",
+        filters,
+      ] as const,
+    atRiskTenants: () =>
+      [...QUERY_KEYS.ADMIN_DASHBOARD.all, "at-risk-tenants"] as const,
+    activity: (limit: number) =>
+      [...QUERY_KEYS.ADMIN_DASHBOARD.all, "activity", limit] as const,
   },
   ADMIN_CAMPAIGNS: {
     all: (tenantId: string) => ["admin", "campaigns", tenantId] as const,
