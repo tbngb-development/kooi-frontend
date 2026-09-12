@@ -1,5 +1,6 @@
 import apiClient from "@/lib/axios";
 import { DASHBOARD_ENDPOINTS } from "@/constants/api-routes/dashboard-endpoint";
+import { cleanParams } from "@/lib/utils/cleanParams";
 import type { ApiResponse } from "@/types/api";
 import type {
   DashboardCallTrends,
@@ -16,57 +17,10 @@ import type {
   TopCampaignsFilters,
 } from "@/types/dashboard";
 
-type CleanableValue = string | number | boolean;
-
 /**
- * Strips undefined, null, and empty string keys from an object.
+ * Builds a query-string URL for direct download actions.
  */
-function cleanParams<T extends object>(
-  params?: T,
-): Record<string, CleanableValue> | undefined {
-  if (!params) return undefined;
-
-  const out: Record<string, CleanableValue> = {};
-  const entries = Object.entries(params as Record<string, unknown>);
-
-  for (const [key, value] of entries) {
-    if (
-      value !== undefined &&
-      value !== null &&
-      value !== "" &&
-      (typeof value === "string" ||
-        typeof value === "number" ||
-        typeof value === "boolean")
-    ) {
-      out[key] = value;
-    }
-  }
-
-  return Object.keys(out).length > 0 ? out : undefined;
-}
-
-/**
- * Generic data fetcher with strict return types and parameterized inputs.
- */
-async function fetchData<TData, TParams extends object = object>(
-  url: string,
-  params?: TParams,
-): Promise<TData> {
-  const res = await apiClient.get<ApiResponse<TData>>(url, {
-    params: cleanParams(params),
-  });
-
-  if (!res.data.success || res.data.data === undefined) {
-    throw new Error(res.data.error ?? "Request failed");
-  }
-
-  return res.data.data;
-}
-
-/**
- * Builds a query-string URL for direct download endpoints.
- */
-function buildUrl<TParams extends object = object>(
+function buildUrl<TParams extends object>(
   path: string,
   params?: TParams,
 ): string {
@@ -77,78 +31,113 @@ function buildUrl<TParams extends object = object>(
   for (const [key, value] of Object.entries(cleaned)) {
     search.append(key, String(value));
   }
-
   return `${path}?${search.toString()}`;
 }
 
-/**
- * Tenant Analytics Dashboard API client.
- * Backend module: `modules/dashboard` (tenant routes).
- */
 export const dashboardApi = {
-  getOverview: (filters?: DashboardFilters) =>
-    fetchData<DashboardOverview, DashboardFilters>(
+  getOverview: async (
+    filters?: DashboardFilters,
+  ): Promise<DashboardOverview> => {
+    const res = await apiClient.get<ApiResponse<DashboardOverview>>(
       DASHBOARD_ENDPOINTS.OVERVIEW,
-      filters,
-    ),
+      { params: cleanParams(filters) },
+    );
+    if (!res.data.success || res.data.data === undefined) {
+      throw new Error(res.data.error ?? "Failed to fetch dashboard overview");
+    }
+    return res.data.data;
+  },
 
-  getCallTrends: (filters?: DashboardTimeSeriesFilters) =>
-    fetchData<DashboardCallTrends, DashboardTimeSeriesFilters>(
+  getCallTrends: async (
+    filters?: DashboardTimeSeriesFilters,
+  ): Promise<DashboardCallTrends> => {
+    const res = await apiClient.get<ApiResponse<DashboardCallTrends>>(
       DASHBOARD_ENDPOINTS.CALL_TRENDS,
-      filters,
-    ),
+      { params: cleanParams(filters) },
+    );
+    if (!res.data.success || res.data.data === undefined) {
+      throw new Error(res.data.error ?? "Failed to fetch call trends");
+    }
+    return res.data.data;
+  },
 
-  getSpendTrends: (filters?: DashboardTimeSeriesFilters) =>
-    fetchData<DashboardSpendTrends, DashboardTimeSeriesFilters>(
+  getSpendTrends: async (
+    filters?: DashboardTimeSeriesFilters,
+  ): Promise<DashboardSpendTrends> => {
+    const res = await apiClient.get<ApiResponse<DashboardSpendTrends>>(
       DASHBOARD_ENDPOINTS.SPEND_TRENDS,
-      filters,
-    ),
+      { params: cleanParams(filters) },
+    );
+    if (!res.data.success || res.data.data === undefined) {
+      throw new Error(res.data.error ?? "Failed to fetch spend trends");
+    }
+    return res.data.data;
+  },
 
-  getLeadFunnel: (filters?: DashboardFilters) =>
-    fetchData<DashboardLeadFunnel, DashboardFilters>(
+  getLeadFunnel: async (
+    filters?: DashboardFilters,
+  ): Promise<DashboardLeadFunnel> => {
+    const res = await apiClient.get<ApiResponse<DashboardLeadFunnel>>(
       DASHBOARD_ENDPOINTS.LEAD_FUNNEL,
-      filters,
-    ),
+      { params: cleanParams(filters) },
+    );
+    if (!res.data.success || res.data.data === undefined) {
+      throw new Error(res.data.error ?? "Failed to fetch lead funnel");
+    }
+    return res.data.data;
+  },
 
-  getDispositionBreakdown: (filters?: DashboardFilters) =>
-    fetchData<DashboardDispositionBreakdown, DashboardFilters>(
+  getDispositionBreakdown: async (
+    filters?: DashboardFilters,
+  ): Promise<DashboardDispositionBreakdown> => {
+    const res = await apiClient.get<ApiResponse<DashboardDispositionBreakdown>>(
       DASHBOARD_ENDPOINTS.DISPOSITION_BREAKDOWN,
-      filters,
-    ),
+      { params: cleanParams(filters) },
+    );
+    if (!res.data.success || res.data.data === undefined) {
+      throw new Error(
+        res.data.error ?? "Failed to fetch disposition breakdown",
+      );
+    }
+    return res.data.data;
+  },
 
-  getTemperatureDistribution: (filters?: DashboardFilters) =>
-    fetchData<DashboardTemperatureDistribution, DashboardFilters>(
-      DASHBOARD_ENDPOINTS.TEMPERATURE_DISTRIBUTION,
-      filters,
-    ),
+  getTemperatureDistribution: async (
+    filters?: DashboardFilters,
+  ): Promise<DashboardTemperatureDistribution> => {
+    const res = await apiClient.get<
+      ApiResponse<DashboardTemperatureDistribution>
+    >(DASHBOARD_ENDPOINTS.TEMPERATURE_DISTRIBUTION, {
+      params: cleanParams(filters),
+    });
+    if (!res.data.success || res.data.data === undefined) {
+      throw new Error(
+        res.data.error ?? "Failed to fetch temperature distribution",
+      );
+    }
+    return res.data.data;
+  },
 
-  getCampaignPerformance: (filters?: DashboardFilters) =>
-    fetchData<DashboardCampaignPerformance, DashboardFilters>(
-      DASHBOARD_ENDPOINTS.CAMPAIGN_PERFORMANCE,
-      filters,
-    ),
-
-  getTopCampaigns: (filters?: TopCampaignsFilters) =>
-    fetchData<DashboardTopCampaigns, TopCampaignsFilters>(
+  getTopCampaigns: async (
+    filters?: TopCampaignsFilters,
+  ): Promise<DashboardTopCampaigns> => {
+    const res = await apiClient.get<ApiResponse<DashboardTopCampaigns>>(
       DASHBOARD_ENDPOINTS.TOP_CAMPAIGNS,
-      filters,
-    ),
+      { params: cleanParams(filters) },
+    );
+    if (!res.data.success || res.data.data === undefined) {
+      throw new Error(res.data.error ?? "Failed to fetch top campaigns");
+    }
+    return res.data.data;
+  },
 
-  getRecentActivity: () =>
-    fetchData<DashboardRecentActivity>(DASHBOARD_ENDPOINTS.RECENT_ACTIVITY),
-
-  /**
-   * Build URLs for CSV downloads.
-   */
-  buildExportCampaignPerformanceUrl: (filters?: DashboardFilters) =>
-    buildUrl<DashboardFilters>(
-      DASHBOARD_ENDPOINTS.EXPORT_CAMPAIGN_PERFORMANCE,
-      filters,
-    ),
-
-  buildExportCallTrendsUrl: (filters?: DashboardTimeSeriesFilters) =>
-    buildUrl<DashboardTimeSeriesFilters>(
-      DASHBOARD_ENDPOINTS.EXPORT_CALL_TRENDS,
-      filters,
-    ),
+  getRecentActivity: async (): Promise<DashboardRecentActivity> => {
+    const res = await apiClient.get<ApiResponse<DashboardRecentActivity>>(
+      DASHBOARD_ENDPOINTS.RECENT_ACTIVITY,
+    );
+    if (!res.data.success || res.data.data === undefined) {
+      throw new Error(res.data.error ?? "Failed to fetch recent activity");
+    }
+    return res.data.data;
+  },
 };

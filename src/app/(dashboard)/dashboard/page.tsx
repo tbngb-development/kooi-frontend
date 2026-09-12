@@ -2,7 +2,6 @@
 
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { CallTrendsChart } from "@/components/dashboard/CallTrendsChart";
-import { CampaignPerformance } from "@/components/dashboard/CampaignPerformance";
 import { DashboardFilters } from "@/components/dashboard/DashboardFilters";
 import { DispositionBreakdown } from "@/components/dashboard/DispositionBreakdown";
 import { LeadFunnel } from "@/components/dashboard/LeadFunnel";
@@ -79,8 +78,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ─── Campaign Performance Table ─────────────────────────── */}
-      <CampaignPerformance filters={apiFilters} />
     </div>
   );
 }

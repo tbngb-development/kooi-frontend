@@ -77,17 +77,6 @@ export function useDashboardTemperatureDistribution(
   });
 }
 
-export function useDashboardCampaignPerformance(
-  filters: DashboardFilters = {},
-) {
-  return useQuery({
-    queryKey: QUERY_KEYS.DASHBOARD.campaignPerformance(filters),
-    queryFn: () => dashboardApi.getCampaignPerformance(filters),
-    staleTime: DEFAULT_STALE_TIME,
-    gcTime: DEFAULT_GC_TIME,
-  });
-}
-
 export function useDashboardTopCampaigns(filters: TopCampaignsFilters = {}) {
   return useQuery({
     queryKey: QUERY_KEYS.DASHBOARD.topCampaigns(filters),

@@ -30,14 +30,11 @@ export interface TopCampaignsFilters extends DashboardFilters {
   metric?: TopCampaignsMetric;
   limit?: number;
 }
-
 // ─── 1. Overview ──────────────────────────────────────────────────────────────
 export interface DashboardOverview {
-  campaigns: { total: number; active: number };
-  wallet: {
-    cashBalancePaisa: number;
-    bonusBalancePaisa: number;
-    totalBalancePaisa: number;
+  campaigns: {
+    total: number;
+    active: number;
   };
   leads: {
     total: number;
@@ -50,15 +47,10 @@ export interface DashboardOverview {
     completed: number;
     failed: number;
     noAnswer: number;
-    connectRate: number;
   };
   spend: {
     totalPaisa: number;
     avgCostPerQualifiedLeadPaisa: number;
-  };
-  projections: {
-    dailyBurnRatePaisa: number;
-    estimatedDaysRemaining: number | null;
   };
 }
 
