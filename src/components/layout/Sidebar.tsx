@@ -7,7 +7,7 @@ import {
 } from "@/components/layout/sidebar/SidebarNav";
 import { SidebarProfileMenu } from "@/components/layout/sidebar/SidebarProfileMenu";
 import { SidebarWalletCard } from "@/components/layout/sidebar/SidebarWalletCard";
-import { RechargeModal } from "@/components/wallet/RechargeModal";
+// import { RechargeModal } from "@/components/wallet/RechargeModal";
 import { useLogout } from "@/hooks/useAuth";
 import { useAuthStore } from "@/store/authStore";
 import {
