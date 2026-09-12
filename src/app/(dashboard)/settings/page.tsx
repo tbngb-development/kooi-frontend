@@ -3,61 +3,34 @@
 import { useState } from "react";
 import {
   User as UserIcon,
-  Building2,
-  Users,
   KeyRound,
+  Settings,
   ShieldCheck,
-  CreditCard,
 } from "lucide-react";
 import { cn } from "@/lib/utils/cn";
 import { useAuthStore } from "@/store/authStore";
-import { ProfileTab } from "@/components/settings/ProfileTab";
-import { WorkspaceTab } from "@/components/settings/WorkspaceTab";
-import { TeamTab } from "@/components/settings/TeamTab";
+import { ProfileWorkspaceTab } from "@/components/settings/ProfileWorkspaceTab";
 import { SecurityTab } from "@/components/settings/SecurityTab";
-import BillingTab from "@/components/settings/BillingTab";
 
-type TabKey = "profile" | "workspace" | "team" | "security" | "billing";
+type TabKey = "profile" | "security";
 
 interface TabDefinition {
   key: TabKey;
   label: string;
   description: string;
   icon: React.ElementType;
-  adminOnly?: boolean;
 }
 
 const TABS: TabDefinition[] = [
   {
     key: "profile",
-    label: "Profile",
-    description: "Your personal account information",
+    label: "Profile & Workspace",
+    description: "Identity and active workspace configuration",
     icon: UserIcon,
   },
   {
-    key: "workspace",
-    label: "Workspace",
-    description: "Organization-level configuration",
-    icon: Building2,
-    adminOnly: true,
-  },
-  {
-    key: "team",
-    label: "Team Members",
-    description: "Manage users and roles",
-    icon: Users,
-    adminOnly: true,
-  },
-  {
-    key: "billing",
-    label: "Plans & Billing",
-    description: "Manage your active plan, usage, and transaction history",
-    icon: CreditCard,
-    adminOnly: true,
-  },
-  {
     key: "security",
-    label: "Security",
+    label: "Security & Access",
     description: "Passwords and active sessions",
     icon: KeyRound,
   },
@@ -72,43 +45,39 @@ export default function SettingsPage() {
   );
   const activeRole = activeMembership?.role ?? "USER";
   const isPlatformAdmin = user?.isPlatformAdmin ?? false;
-  const isPrivileged =
-    activeRole === "OWNER" || activeRole === "ADMIN" || isPlatformAdmin;
 
-  const visibleTabs = TABS.filter((tab) => !tab.adminOnly || isPrivileged);
-
-  const currentTab =
-    visibleTabs.find((t) => t.key === activeTab) ?? visibleTabs[0];
+  const currentTab = TABS.find((t) => t.key === activeTab) ?? TABS[0];
 
   return (
-    <div className="flex flex-col gap-6 max-w-6xl mx-auto px-4 py-6">
-      {/* Page Header */}
-      <div className="flex items-start justify-between gap-4 flex-wrap">
+    <div className="flex flex-col gap-6 max-w-7xl mx-auto pb-8">
+      {/* Dashboard Style Header */}
+      <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold text-text-primary tracking-tight">
-            Settings
+          <h1 className="text-2xl font-bold text-text-primary tracking-tight flex items-center gap-2">
+            <Settings size={24} className="text-brand-600" />
+            Account Settings
           </h1>
-          <p className="text-sm text-text-muted mt-1">
-            Manage your account, workspace, and security preferences.
+          <p className="text-sm font-medium text-text-muted mt-1">
+            Manage your personal profile, workspace identity, and security
+            credentials.
           </p>
         </div>
 
-        {isPrivileged && (
-          <div className="flex items-center gap-1.5 text-xs bg-brand-50 border border-brand-100 px-2.5 py-1.5 rounded-md">
-            <ShieldCheck size={13} className="text-brand-600" />
-            <span className="text-brand-700 font-semibold uppercase tracking-wide">
-              {isPlatformAdmin ? "Platform Admin" : activeRole}
-            </span>
-          </div>
-        )}
+        {/* Role Badge */}
+        <div className="flex items-center gap-1.5 text-xs bg-brand-50 border border-brand-100 px-3 py-1.5 rounded-lg shadow-xs">
+          <ShieldCheck size={14} className="text-brand-600" />
+          <span className="text-brand-700 font-bold uppercase tracking-wider">
+            {isPlatformAdmin ? "Platform Admin" : activeRole}
+          </span>
+        </div>
       </div>
 
-      {/* Tabs Container */}
+      {/* Navigation Layout */}
       <div className="flex flex-col lg:flex-row gap-6">
-        {/* Tab Navigation (Vertical on Desktop) */}
-        <nav className="lg:w-64 shrink-0">
-          <ul className="flex lg:flex-col gap-1 overflow-x-auto lg:overflow-visible no-scrollbar">
-            {visibleTabs.map((tab) => {
+        {/* Sidebar Tabs */}
+        <nav className="lg:w-72 shrink-0">
+          <ul className="flex lg:flex-col gap-1.5 overflow-x-auto lg:overflow-visible no-scrollbar">
+            {TABS.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.key;
 
@@ -117,32 +86,32 @@ export default function SettingsPage() {
                   <button
                     onClick={() => setActiveTab(tab.key)}
                     className={cn(
-                      "flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-md transition-all duration-150 border",
+                      "flex items-center gap-3 w-full text-left px-3.5 py-3 rounded-lg transition-all duration-150 border focus-ring",
                       isActive
-                        ? "bg-brand-50 border-brand-100 text-brand-700"
-                        : "border-transparent text-text-secondary hover:bg-surface-hover hover:text-text-primary",
+                        ? "bg-surface border-surface-border text-brand-700 shadow-sm"
+                        : "border-transparent text-text-secondary hover:bg-surface hover:border-surface-border hover:shadow-xs",
                     )}
                   >
                     <Icon
-                      size={16}
+                      size={18}
                       className={
                         isActive ? "text-brand-600" : "text-text-muted"
                       }
                     />
                     <div className="min-w-0 hidden lg:block">
-                      <p className="text-sm font-semibold leading-tight">
-                        {tab.label}
-                      </p>
                       <p
                         className={cn(
-                          "text-xs mt-0.5 truncate",
-                          isActive ? "text-brand-600/70" : "text-text-muted",
+                          "text-sm font-bold leading-tight",
+                          isActive ? "text-brand-700" : "text-text-primary",
                         )}
                       >
+                        {tab.label}
+                      </p>
+                      <p className="text-xs text-text-muted mt-0.5 truncate font-medium">
                         {tab.description}
                       </p>
                     </div>
-                    <span className="lg:hidden text-xs font-medium">
+                    <span className="lg:hidden text-sm font-bold">
                       {tab.label}
                     </span>
                   </button>
@@ -155,27 +124,20 @@ export default function SettingsPage() {
         {/* Tab Content Panel */}
         <div className="flex-1 min-w-0">
           <div className="bg-surface border border-surface-border rounded-xl shadow-sm overflow-hidden">
-            {/* Tab Header */}
             <div className="px-6 py-4 border-b border-surface-border bg-surface-subtle">
               <div className="flex items-center gap-2">
-                {currentTab && (
-                  <currentTab.icon size={16} className="text-text-muted" />
-                )}
+                <currentTab.icon size={18} className="text-text-muted" />
                 <h2 className="text-base font-bold text-text-primary">
-                  {currentTab?.label}
+                  {currentTab.label}
                 </h2>
               </div>
-              <p className="text-xs text-text-muted mt-0.5">
-                {currentTab?.description}
+              <p className="text-sm font-medium text-text-muted mt-1">
+                {currentTab.description}
               </p>
             </div>
 
-            {/* Content Body */}
             <div className="p-6">
-              {activeTab === "profile" && <ProfileTab />}
-              {activeTab === "workspace" && isPrivileged && <WorkspaceTab />}
-              {activeTab === "team" && isPrivileged && <TeamTab />}
-              {activeTab === "billing" && isPrivileged && <BillingTab />}
+              {activeTab === "profile" && <ProfileWorkspaceTab />}
               {activeTab === "security" && <SecurityTab />}
             </div>
           </div>

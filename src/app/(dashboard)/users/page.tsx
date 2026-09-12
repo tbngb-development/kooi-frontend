@@ -38,20 +38,20 @@ function RoleBadge({ role }: { role: TenantRole }) {
     },
     ADMIN: {
       label: "Admin",
-      className: "bg-info-50 text-info-600 border border-info-100",
+      className: "bg-info-50 text-info-700 border border-info-200",
     },
     USER: {
       label: "Member",
       className:
-        "bg-surface-subtle text-text-muted border border-surface-border",
+        "bg-surface-subtle text-text-secondary border border-surface-border",
     },
   };
   const c = config[role] ?? config.USER;
   return (
     <span
-      className={`inline-flex items-center gap-1 text-base font-semibold px-2 py-0.5 rounded-full ${c.className}`}
+      className={`inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${c.className}`}
     >
-      <Shield size={10} />
+      <Shield size={12} strokeWidth={2.5} />
       <span>{c.label}</span>
     </span>
   );
@@ -94,15 +94,20 @@ export default function UsersPage() {
     return (
       <div className="flex-1 flex items-center justify-center min-h-[60vh] px-4 max-w-7xl mx-auto">
         <EmptyState
-          icon={<Shield size={24} className="text-error-500" />}
+          icon={<Shield size={28} className="text-error-500" />}
           title="Access Restricted"
-          description="You do not have permission to view or manage team members. Please contact your workspace administrator to modify environment structures."
+          description="You do not have permission to view or manage team members. Please contact your workspace administrator."
         />
       </div>
     );
   }
 
-  if (isLoading) return <PageSpinner />;
+  if (isLoading)
+    return (
+      <div className="py-12">
+        <PageSpinner />
+      </div>
+    );
 
   const onInvite = (data: InviteFormValues) => {
     createUser(data, {
@@ -114,83 +119,107 @@ export default function UsersPage() {
   };
 
   return (
-    <div className="flex flex-col gap-6 max-w-7xl mx-auto px-4 py-6">
-      {/* Page Header */}
-      <div className="flex items-center justify-between gap-4 flex-wrap">
+    <div className="flex flex-col gap-6 max-w-7xl mx-auto w-full pb-10">
+      {/* ─── Page Header ─── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
         <div>
-          <h2 className="text-xl font-bold text-text-primary tracking-tight">
+          <h1 className="text-2xl font-bold text-text-primary tracking-tight flex items-center gap-2">
+            <Users size={24} className="text-brand-600" />
             Team Members
-          </h2>
-          <p className="text-base text-text-muted mt-1">
-            Manage roles and configure workspace access privileges for Kooi
-            agents
+          </h1>
+          <p className="text-sm font-medium text-text-muted mt-1">
+            Manage roles and configure workspace access privileges for your
+            team.
           </p>
         </div>
         <Button
-          size="sm"
-          leftIcon={<Plus size={13} />}
+          size="md"
+          leftIcon={<Plus size={16} strokeWidth={2.5} />}
           onClick={() => setInviteOpen(true)}
-          className="shadow-sm font-semibold"
+          className="w-full sm:w-auto shadow-sm"
         >
           Add Member
         </Button>
       </div>
 
-      {/* Users Data Table */}
+      {/* ─── Users Data Table ─── */}
       {users && users.length > 0 ? (
         <div className="bg-surface rounded-xl border border-surface-border shadow-sm overflow-hidden">
           <div className="overflow-x-auto thin-scrollbar">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-surface-border bg-surface-subtle">
-                  <th className="px-6 py-4 text-base font-bold text-text-muted uppercase tracking-wider">
+                  <th className="px-6 py-4 text-xs font-bold text-text-muted uppercase tracking-wider whitespace-nowrap">
                     Member Identity
                   </th>
-                  <th className="px-4 py-4 text-base font-bold text-text-muted uppercase tracking-wider">
+                  <th className="px-5 py-4 text-xs font-bold text-text-muted uppercase tracking-wider whitespace-nowrap">
                     Assigned Role
                   </th>
-                  <th className="px-4 py-4 text-base font-bold text-text-muted uppercase tracking-wider">
+                  <th className="px-5 py-4 text-xs font-bold text-text-muted uppercase tracking-wider whitespace-nowrap">
                     Joined Date
                   </th>
-                  <th className="px-6 py-4" />
+                  <th className="px-6 py-4 text-xs font-bold text-text-muted uppercase tracking-wider text-right whitespace-nowrap">
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-surface-border">
                 {users.map((u) => (
                   <tr
                     key={u.id}
-                    className="hover:bg-surface-hover/50 transition-colors duration-150"
+                    className="hover:bg-surface-hover/60 transition-colors duration-normal ease-out"
                   >
+                    {/* Identity */}
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-50 border border-brand-100 text-brand-600 text-sm font-bold shrink-0">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-50 border border-brand-100 text-brand-700 text-sm font-bold shrink-0">
                           {u.name.charAt(0).toUpperCase()}
                         </div>
                         <div className="min-w-0">
-                          <p className="text-base font-semibold text-text-primary truncate">
+                          <p className="text-base font-bold text-text-primary truncate">
                             {u.name}
                           </p>
-                          <p className="text-base text-text-muted mt-0.5 truncate">
+                          <p className="text-sm font-medium text-text-muted mt-0.5 truncate">
                             {u.email}
                           </p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      <RoleBadge role={u.role} />
+
+                    {/* Role */}
+                    <td className="px-5 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                        <RoleBadge role={u.role} />
+                        {currentUser?.id === u.id && (
+                          <span className="text-[10px] font-bold uppercase tracking-wider bg-surface-muted text-text-muted border border-surface-border px-1.5 py-0.5 rounded-md">
+                            You
+                          </span>
+                        )}
+                      </div>
                     </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-base text-text-muted">
-                      {formatDate(u.createdAt)}
+
+                    {/* Joined Date */}
+                    <td className="px-5 py-4 whitespace-nowrap">
+                      <span className="text-base font-medium text-text-secondary">
+                        {formatDate(u.createdAt)}
+                      </span>
                     </td>
+
+                    {/* Actions */}
                     <td className="px-6 py-4 whitespace-nowrap text-right">
-                      {u.id !== currentUser?.id && u.role !== "OWNER" && (
+                      {u.id !== currentUser?.id && u.role !== "OWNER" ? (
                         <button
+                          type="button"
                           onClick={() => setDeleteTarget(u)}
-                          className="flex h-8 w-8 items-center justify-center rounded-lg text-text-muted hover:text-error-600 hover:bg-error-50 border border-transparent hover:border-error-100 transition-all ml-auto"
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-text-muted hover:text-error-600 hover:bg-error-50 border border-transparent hover:border-error-200 transition-all ml-auto focus-ring"
                           aria-label={`Remove member ${u.name}`}
                         >
-                          <Trash2 size={13} />
+                          <Trash2 size={16} />
                         </button>
+                      ) : (
+                        <span className="text-sm text-text-placeholder italic inline-block w-8 text-center">
+                          —
+                        </span>
                       )}
                     </td>
                   </tr>
@@ -201,13 +230,13 @@ export default function UsersPage() {
         </div>
       ) : (
         <EmptyState
-          icon={<Users size={24} className="text-text-placeholder" />}
+          icon={<Users size={28} className="text-text-placeholder" />}
           title="No team members configured"
-          description="Provision access by creating temporary credentials for teammates."
+          description="Provision access by creating credentials for your teammates."
           action={
             <Button
-              size="sm"
-              leftIcon={<Plus size={13} />}
+              size="md"
+              leftIcon={<Plus size={16} />}
               onClick={() => setInviteOpen(true)}
               className="shadow-sm font-semibold"
             >
@@ -217,7 +246,7 @@ export default function UsersPage() {
         />
       )}
 
-      {/* Provision Workspace Access Modal */}
+      {/* ─── Provision Workspace Access Modal ─── */}
       {inviteOpen && (
         <Modal
           isOpen={inviteOpen}
@@ -225,12 +254,12 @@ export default function UsersPage() {
             setInviteOpen(false);
             reset();
           }}
-          size="lg"
+          size="md"
           title="Provision Workspace Access"
         >
           <form
             onSubmit={handleSubmit(onInvite)}
-            className="flex flex-col gap-4 mt-2"
+            className="flex flex-col gap-5 mt-2"
           >
             <Input
               label="Full name"
@@ -262,13 +291,13 @@ export default function UsersPage() {
             />
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-base font-semibold text-text-secondary">
+              <label className="text-base font-medium text-text-secondary">
                 Assigned Role
               </label>
               <select
                 {...register("role")}
                 disabled={creating}
-                className="w-full h-10 px-3 rounded-md border border-surface-border bg-surface text-base text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                className="w-full h-9 px-3 rounded-md border border-surface-border bg-surface text-base font-medium text-text-primary focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 hover:border-text-placeholder transition-colors cursor-pointer"
               >
                 <option value="USER">
                   Member — View stats and manage campaign configurations
@@ -278,17 +307,18 @@ export default function UsersPage() {
                 </option>
               </select>
               {errors.role?.message && (
-                <p className="text-base text-error-600 mt-1">
+                <p className="text-sm text-error-600 mt-1">
                   {errors.role.message}
                 </p>
               )}
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-4 border-t border-surface-border">
+            <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-3 pt-4 mt-2 border-t border-surface-border">
               <Button
                 type="button"
                 variant="outline"
-                size="sm"
+                size="md"
+                className="w-full sm:w-auto"
                 onClick={() => {
                   setInviteOpen(false);
                   reset();
@@ -297,7 +327,12 @@ export default function UsersPage() {
               >
                 Cancel
               </Button>
-              <Button type="submit" size="sm" loading={creating}>
+              <Button
+                type="submit"
+                size="md"
+                loading={creating}
+                className="w-full sm:w-auto"
+              >
                 Provision Account
               </Button>
             </div>
@@ -305,7 +340,7 @@ export default function UsersPage() {
         </Modal>
       )}
 
-      {/* Revoke Membership Confirmation Modal */}
+      {/* ─── Revoke Membership Confirmation Modal ─── */}
       {deleteTarget && (
         <ConfirmModal
           isOpen={Boolean(deleteTarget)}
